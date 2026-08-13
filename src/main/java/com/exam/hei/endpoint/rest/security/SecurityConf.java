@@ -7,6 +7,7 @@ import jakarta.servlet.DispatcherType;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,6 +45,7 @@ public class SecurityConf {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     var authenticationManager = new ProviderManager(authProvider);
     var authenticationEntryPoint = new RestAuthenticationEntryPoint(objectMapper);
+    var accessDeniedHandler = new RestAccessDeniedHandler(objectMapper);
 
     return http.csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
@@ -51,7 +53,11 @@ public class SecurityConf {
         .logout(AbstractHttpConfigurer::disable)
         // Stateless: the API runs behind Lambda, there is no session to carry.
         .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
-        .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint))
+        .exceptionHandling(
+            handling ->
+                handling
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler))
         .authorizeHttpRequests(
             requests ->
                 requests
@@ -62,6 +68,10 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(PUBLIC_PATHS)
                     .permitAll()
+                    // Reference and structural data is administered, never edited by students or
+                    // teachers. Reading stays open to any authenticated caller.
+                    .requestMatchers(HttpMethod.PUT, "/promotions", "/tracks")
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(
