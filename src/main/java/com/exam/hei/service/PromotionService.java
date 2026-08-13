@@ -1,6 +1,6 @@
 package com.exam.hei.service;
 
-import com.exam.hei.model.exception.BadRequestException;
+import com.exam.hei.model.Pagination;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.model.Promotion;
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class PromotionService {
 
-  private static final int MAX_PAGE_SIZE = 500;
-
   private final PromotionRepository promotionRepository;
   private final TrackService trackService;
 
@@ -27,15 +24,8 @@ public class PromotionService {
    * @param page 1-based, as declared in doc/api.yml
    */
   public List<Promotion> findAll(int page, int pageSize) {
-    if (page < 1) {
-      throw new BadRequestException("Page must be at least 1 but was " + page);
-    }
-    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
-      throw new BadRequestException(
-          "Page size must be between 1 and " + MAX_PAGE_SIZE + " but was " + pageSize);
-    }
     return promotionRepository
-        .findAll(PageRequest.of(page - 1, pageSize, Sort.by("ref")))
+        .findAll(Pagination.toPageRequest(page, pageSize, Sort.by("ref")))
         .getContent();
   }
 
