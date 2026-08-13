@@ -1,0 +1,1879 @@
+openapi: 3.0.3
+
+info:
+  title: HEI Admin API
+  description: |
+    Gestion des etudiants, promotions, parcours, groupes, cours, enseignants,
+    examens, notes et diplomes de HEI.
+
+    Ce fichier est la source unique du modele de donnees du projet.
+    Les invariants qui ne sont pas exprimables en OpenAPI (cles etrangeres,
+    unicite, non-chevauchement des periodes) sont documentes dans la
+    description de chaque schema et seront materialises par les migrations
+    Flyway et les services metier.
+  version: 1.0.0
+
+servers:
+  - url: https://api.hei-admin.com
+    description: Production
+  - url: http://localhost:8080
+    description: Local
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Health
+  - name: Security
+  - name: Promotion
+  - name: Track
+  - name: Group
+  - name: Student
+  - name: Teacher
+  - name: Course
+  - name: Exam
+  - name: Grade
+  - name: Result
+  - name: Transcript
+
+paths:
+  /ping:
+    get:
+      tags: [ Health ]
+      summary: Ping
+      operationId: ping
+      security: []
+      responses:
+        "200":
+          description: pong
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /whoami:
+    get:
+      tags: [ Security ]
+      summary: Identite et role de l'utilisateur authentifie
+      operationId: whoami
+      responses:
+        "200":
+          description: Utilisateur courant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Whoami"
+        "401":
+          $ref: "#/components/responses/401"
+
+  # ----------------------------------------------------------------------------
+  # Promotion / Track / Group
+  # ----------------------------------------------------------------------------
+  /promotions:
+    get:
+      tags: [ Promotion ]
+      summary: Lister les promotions
+      description: Alimente la page Thymeleaf de listing des promotions.
+      operationId: getPromotions
+      parameters:
+        - $ref: "#/components/parameters/QueryPage"
+        - $ref: "#/components/parameters/QueryPageSize"
+      responses:
+        "200":
+          description: Liste des promotions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Promotion"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+    put:
+      tags: [ Promotion ]
+      summary: Creer ou mettre a jour des promotions
+      description: Reserve au role ADMIN.
+      operationId: crupdatePromotions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Promotion"
+      responses:
+        "200":
+          description: Promotions creees ou mises a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Promotion"
+        "400":
+          $ref: "#/components/responses/400"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /promotions/{id}:
+    get:
+      tags: [ Promotion ]
+      summary: Detail d'une promotion
+      operationId: getPromotionById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Promotion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Promotion"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /promotions/{id}/groups:
+    get:
+      tags: [ Group ]
+      summary: Groupes d'une promotion
+      operationId: getPromotionGroups
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Groupes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+    put:
+      tags: [ Group ]
+      summary: Creer ou mettre a jour les groupes d'une promotion
+      description: Reserve au role ADMIN.
+      operationId: crupdatePromotionGroups
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Group"
+      responses:
+        "200":
+          description: Groupes crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/400"
+
+  /promotions/{id}/results:
+    get:
+      tags: [ Result ]
+      summary: Resultats d'une promotion sur les trois annees
+      description: |
+        Reserve au role ADMIN.
+        Retourne, pour chaque etudiant de la promotion, le resultat de S1 a S6
+        calcule semestre par semestre a partir des cours applicables a SON
+        contexte academique : tronc commun en S1-S3, parcours choisi en S4-S6.
+      operationId: getPromotionResults
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+        - name: track_code
+          in: query
+          description: |
+            Filtre optionnel sur le parcours choisi (EL, TN, ...).
+            Exclut les etudiants encore en tronc commun, qui n'ont pas
+            encore de parcours.
+          required: false
+          schema:
+            type: string
+        - $ref: "#/components/parameters/QueryPage"
+        - $ref: "#/components/parameters/QueryPageSize"
+      responses:
+        "200":
+          description: Resultats de la promotion
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentResult"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /promotions/{id}/graduates:
+    get:
+      tags: [ Result ]
+      summary: Liste des diplomes d'une promotion
+      description: |
+        Calculee dynamiquement : un etudiant est diplome si et seulement si
+        S1, S2, S3, S4, S5 et S6 sont tous valides. Aucun champ persiste
+        `graduated` n'est utilise.
+      operationId: getPromotionGraduates
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Diplomes classes par moyenne generale decroissante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Graduate"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /promotions/{id}/graduates/excel:
+    get:
+      tags: [ Result ]
+      summary: Telecharger la liste des diplomes au format Excel
+      description: |
+        Colonnes du fichier : rang, STD, nom, prenom, moyenne generale.
+        Cible du bouton "Telecharger diplomes" de l'interface Thymeleaf.
+      operationId: getPromotionGraduatesExcel
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Fichier XLSX
+          headers:
+            Content-Disposition:
+              description: attachment; filename="graduates-<promotion_ref>.xlsx"
+              schema:
+                type: string
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /tracks:
+    get:
+      tags: [ Track ]
+      summary: Lister les parcours
+      operationId: getTracks
+      responses:
+        "200":
+          description: Parcours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Track"
+    put:
+      tags: [ Track ]
+      summary: Creer ou mettre a jour des parcours
+      description: Reserve au role ADMIN.
+      operationId: crupdateTracks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Track"
+      responses:
+        "200":
+          description: Parcours crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Track"
+
+  # ----------------------------------------------------------------------------
+  # Student
+  # ----------------------------------------------------------------------------
+  /students:
+    get:
+      tags: [ Student ]
+      summary: Lister les etudiants
+      description: Reserve aux roles ADMIN et TEACHER.
+      operationId: getStudents
+      parameters:
+        - $ref: "#/components/parameters/QueryPage"
+        - $ref: "#/components/parameters/QueryPageSize"
+        - name: promotion_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: track_code
+          in: query
+          description: |
+            Filtre sur le parcours choisi. Ne ramene aucun etudiant encore en
+            tronc commun.
+          required: false
+          schema:
+            type: string
+        - name: group_id
+          in: query
+          description: Etudiants affectes a ce groupe a la date `at` (ou aujourd'hui).
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: at
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Etudiants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+        "403":
+          $ref: "#/components/responses/403"
+    put:
+      tags: [ Student ]
+      summary: Creer ou mettre a jour des etudiants
+      description: Reserve au role ADMIN.
+      operationId: crupdateStudents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Student"
+      responses:
+        "200":
+          description: Etudiants crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+        "400":
+          $ref: "#/components/responses/400"
+
+  /students/{id}:
+    get:
+      tags: [ Student ]
+      summary: Detail d'un etudiant
+      description: Un STUDENT ne peut acceder qu'a sa propre fiche.
+      operationId: getStudentById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Etudiant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /students/{id}/group-assignments:
+    get:
+      tags: [ Student ]
+      summary: Historique complet des groupes frequentes par un etudiant
+      description: |
+        Repond a "quels groupes l'etudiant a-t-il frequentes pendant son parcours ?".
+        Les affectations passees sont conservees indefiniment.
+      operationId: getStudentGroupAssignments
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+        - name: at
+          in: query
+          description: |
+            Si fourni, ne retourne que l'affectation active a cette date.
+            Repond a "dans quel groupe etait l'etudiant a une date donnee ?".
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Affectations, triees par start_date croissante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentGroupAssignment"
+        "403":
+          $ref: "#/components/responses/403"
+    post:
+      tags: [ Student ]
+      summary: Changer un etudiant de groupe
+      description: |
+        Reserve au role ADMIN.
+        Cloture l'affectation courante a `start_date - 1 jour` puis ouvre la
+        nouvelle affectation avec `end_date = null`, dans une seule transaction.
+        Un changement de groupe ne modifie AUCUNE note : `Grade` ne reference
+        jamais un groupe.
+        Rejete si la periode chevauche une affectation existante du meme etudiant.
+      operationId: changeStudentGroup
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentGroupChange"
+      responses:
+        "200":
+          description: Nouvelle affectation active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentGroupAssignment"
+        "400":
+          $ref: "#/components/responses/400"
+        "403":
+          $ref: "#/components/responses/403"
+        "409":
+          description: Chevauchement de periodes d'affectation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /students/{id}/track-choices:
+    get:
+      tags: [ Track ]
+      summary: Choix de parcours d'un etudiant
+      description: |
+        Retourne les choix de parcours, tries par semestre de prise d'effet
+        croissant. Liste vide tant que l'etudiant est en tronc commun.
+        Un STUDENT ne peut consulter que les siens.
+      operationId: getStudentTrackChoices
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Choix de parcours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentTrackChoice"
+        "403":
+          $ref: "#/components/responses/403"
+    post:
+      tags: [ Track ]
+      summary: Enregistrer le choix de parcours d'un etudiant
+      description: |
+        Reserve au role ADMIN.
+        Le choix prend effet a partir du semestre indique, S4 dans le cas
+        nominal, et vaut pour tous les semestres suivants.
+
+        Rejete en 400 si le semestre de prise d'effet est en tronc commun
+        (`semester.common_core` vrai), ou si le parcours n'est pas ouvert dans
+        la promotion de l'etudiant.
+
+        Enregistrer un choix ne modifie AUCUNE note deja saisie : les notes du
+        tronc commun restent valables et comptent dans le diplome.
+      operationId: chooseStudentTrack
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentTrackChoiceCreation"
+      responses:
+        "200":
+          description: Choix enregistre
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentTrackChoice"
+        "400":
+          $ref: "#/components/responses/400"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /students/{id}/courses:
+    get:
+      tags: [ Course ]
+      summary: Cours applicables a l'etudiant
+      description: |
+        REGLE CRITIQUE TRONC COMMUN puis EL / TN.
+
+        Les cours retournes dependent du semestre, jamais d'une propriete
+        globale de l'etudiant :
+        - semestre en tronc commun (S1-S3) : tous les cours du semestre, qui
+          ont tous `track = null` ;
+        - semestre avec parcours (S4-S6) : les cours a `track = null`, communs
+          aux deux parcours, plus ceux dont le `track` est egal au parcours
+          resolu pour ce semestre via `StudentTrackChoice`.
+
+        Un etudiant EL n'obtient donc jamais un cours TN-only, et inversement.
+        Le filtrage est porte par la donnee, jamais par une condition ecrite en
+        dur dans le code metier.
+
+        Si aucun `semester_ref` n'est fourni, la resolution est faite semestre
+        par semestre sur S1 a S6.
+      operationId: getStudentCourses
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+        - name: semester_ref
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SemesterRef"
+      responses:
+        "200":
+          description: Cours applicables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /students/{id}/grades:
+    get:
+      tags: [ Grade ]
+      summary: Notes d'un etudiant
+      description: |
+        Un STUDENT ne peut consulter QUE ses propres notes.
+        Les notes obtenues avant un changement de groupe restent presentes.
+      operationId: getStudentGrades
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+        - name: semester_ref
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SemesterRef"
+      responses:
+        "200":
+          description: Notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Grade"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /students/{id}/result:
+    get:
+      tags: [ Result ]
+      summary: Resultat complet d'un etudiant (S1 a S6)
+      operationId: getStudentResult
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Resultat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResult"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /students/{id}/transcript-requests:
+    get:
+      tags: [ Transcript ]
+      summary: Releves demandes par l'etudiant
+      description: Un STUDENT ne peut consulter QUE ses propres releves.
+      operationId: getStudentTranscriptRequests
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Demandes de releve
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TranscriptRequest"
+        "403":
+          $ref: "#/components/responses/403"
+    post:
+      tags: [ Transcript ]
+      summary: Demander un releve de notes PDF
+      description: |
+        FRONTIERE SYNCHRONE / ASYNCHRONE.
+
+        Partie synchrone : generation du PDF, upload sur AWS S3, passage du
+        statut a GENERATED, puis publication d'un evenement.
+        Partie asynchrone : un consumer recoit l'evenement, construit le lien
+        S3 et envoie l'email a l'etudiant, puis passe le statut a SENT ou FAILED.
+
+        La reponse HTTP ne contient donc jamais le lien final : le client
+        recoit un identifiant de demande et interroge ensuite
+        `GET /transcript-requests/{id}`, ou attend l'email.
+      operationId: requestTranscript
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranscriptRequestCreation"
+      responses:
+        "202":
+          description: Demande acceptee, traitement asynchrone en cours
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptRequest"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /transcript-requests/{id}:
+    get:
+      tags: [ Transcript ]
+      summary: Statut d'une demande de releve
+      operationId: getTranscriptRequestById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Demande de releve
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptRequest"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  # ----------------------------------------------------------------------------
+  # Teacher
+  # ----------------------------------------------------------------------------
+  /teachers:
+    get:
+      tags: [ Teacher ]
+      summary: Lister les enseignants
+      operationId: getTeachers
+      parameters:
+        - $ref: "#/components/parameters/QueryPage"
+        - $ref: "#/components/parameters/QueryPageSize"
+      responses:
+        "200":
+          description: Enseignants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Teacher"
+        "403":
+          $ref: "#/components/responses/403"
+    put:
+      tags: [ Teacher ]
+      summary: Creer ou mettre a jour des enseignants
+      description: Reserve au role ADMIN.
+      operationId: crupdateTeachers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Teacher"
+      responses:
+        "200":
+          description: Enseignants crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Teacher"
+
+  /teachers/{id}:
+    get:
+      tags: [ Teacher ]
+      summary: Detail d'un enseignant
+      operationId: getTeacherById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Enseignant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /teachers/{id}/teaching-assignments:
+    get:
+      tags: [ Teacher ]
+      summary: Perimetre d'enseignement d'un enseignant
+      description: |
+        Source de verite de l'autorisation TEACHER : un enseignant ne peut
+        consulter et modifier que les notes des couples (cours, groupe)
+        presents dans cette liste.
+      operationId: getTeacherTeachingAssignments
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Affectations d'enseignement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeachingAssignment"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /teaching-assignments:
+    put:
+      tags: [ Teacher ]
+      summary: Creer ou mettre a jour des affectations d'enseignement
+      description: |
+        Reserve au role ADMIN.
+        Une affectation associe un cours, un enseignant et un groupe.
+        Un cours peut donc etre enseigne par plusieurs enseignants, et donne
+        a plusieurs groupes sans etre donne a tous les groupes.
+      operationId: crupdateTeachingAssignments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/TeachingAssignment"
+      responses:
+        "200":
+          description: Affectations creees ou mises a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeachingAssignment"
+        "400":
+          $ref: "#/components/responses/400"
+
+  # ----------------------------------------------------------------------------
+  # Course / Exam
+  # ----------------------------------------------------------------------------
+  /courses:
+    get:
+      tags: [ Course ]
+      summary: Lister les cours du programme
+      operationId: getCourses
+      parameters:
+        - $ref: "#/components/parameters/QueryPage"
+        - $ref: "#/components/parameters/QueryPageSize"
+        - name: semester_ref
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SemesterRef"
+        - name: track_code
+          in: query
+          description: |
+            Ne retourne que les cours suivis par ce parcours, c'est-a-dire les
+            cours specifiques a ce parcours ET les cours a `track` nul, qui
+            sont communs.
+            Pour n'obtenir que les cours specifiques, filtrer en plus sur un
+            semestre non `common_core`.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+    put:
+      tags: [ Course ]
+      summary: Creer ou mettre a jour des cours
+      description: Reserve au role ADMIN.
+      operationId: crupdateCourses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Course"
+      responses:
+        "200":
+          description: Cours crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+        "400":
+          $ref: "#/components/responses/400"
+
+  /courses/{id}:
+    get:
+      tags: [ Course ]
+      summary: Detail d'un cours
+      operationId: getCourseById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Cours
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /courses/{id}/exams:
+    get:
+      tags: [ Exam ]
+      summary: Examens d'un cours
+      operationId: getCourseExams
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Examens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exam"
+    put:
+      tags: [ Exam ]
+      summary: Creer ou mettre a jour les examens d'un cours
+      description: Reserve aux roles ADMIN et TEACHER affecte au cours.
+      operationId: crupdateCourseExams
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Exam"
+      responses:
+        "200":
+          description: Examens crees ou mis a jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exam"
+        "400":
+          $ref: "#/components/responses/400"
+        "403":
+          $ref: "#/components/responses/403"
+
+  # ----------------------------------------------------------------------------
+  # Grade
+  # ----------------------------------------------------------------------------
+  /exams/{id}/grades:
+    get:
+      tags: [ Grade ]
+      summary: Notes d'un examen
+      description: |
+        Un TEACHER ne voit que les notes des etudiants qui, a la date de
+        l'examen, appartenaient a un groupe pour lequel il est affecte au cours.
+      operationId: getExamGrades
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Grade"
+        "403":
+          $ref: "#/components/responses/403"
+    put:
+      tags: [ Grade ]
+      summary: Saisir ou modifier des notes d'examen
+      description: |
+        Chaque element ecrit une ligne dans l'historique de la note.
+        `reason` et `reason_type` sont OBLIGATOIRES : une modification sans
+        raison est rejetee en 400, aussi bien a la creation qu'a la mise a jour.
+      operationId: crupdateExamGrades
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/GradeChange"
+      responses:
+        "200":
+          description: Notes enregistrees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Grade"
+        "400":
+          $ref: "#/components/responses/400"
+        "403":
+          $ref: "#/components/responses/403"
+
+  /grades/{id}:
+    get:
+      tags: [ Grade ]
+      summary: Detail d'une note
+      operationId: getGradeById
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Grade"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /grades/{id}/history:
+    get:
+      tags: [ Grade ]
+      summary: Historique complet des modifications d'une note
+      description: |
+        Conserve pour chaque modification : ancienne valeur, nouvelle valeur,
+        raison, auteur et date. L'historique n'est jamais supprime ni ecrase.
+      operationId: getGradeHistory
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Historique, du plus recent au plus ancien
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GradeHistory"
+        "403":
+          $ref: "#/components/responses/403"
+
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    QueryPage:
+      name: page
+      in: query
+      required: false
+      description: Numero de page, commence a 1.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    QueryPageSize:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+
+  responses:
+    "400":
+      description: Requete invalide
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    "401":
+      description: Non authentifie
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    "403":
+      description: Non autorise
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    "404":
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+
+    # ==========================================================================
+    # ENUMERATIONS
+    # ==========================================================================
+    Role:
+      type: string
+      description: Role porte par le compte utilisateur.
+      enum: [ STUDENT, TEACHER, ADMIN ]
+
+    StudentStatus:
+      type: string
+      enum: [ ACTIVE, SUSPENDED, LEFT ]
+
+    SemesterRef:
+      type: string
+      description: |
+        La formation dure trois ans, deux semestres par an, 30 credits par
+        semestre, soit 180 credits au total.
+
+        S1, S2 et S3 sont en TRONC COMMUN : l'etudiant n'a pas encore de
+        parcours. Le choix EL / TN intervient a partir de S4 et s'applique a
+        S4, S5 et S6.
+      enum: [ S1, S2, S3, S4, S5, S6 ]
+
+    GradeChangeReasonType:
+      type: string
+      description: |
+        Categorie de la raison d'une saisie ou d'une modification de note.
+        CREATION est reserve a la premiere saisie.
+      enum: [ CREATION, CLAIM, INPUT_ERROR, CORRECTION, OTHER ]
+
+    TranscriptStatus:
+      type: string
+      description: |
+        PENDING   : demande enregistree
+        GENERATED : PDF genere et depose sur S3, evenement publie (fin du synchrone)
+        SENT      : email envoye par le consumer (fin de l'asynchrone)
+        FAILED    : echec, `error_message` renseigne
+      enum: [ PENDING, GENERATED, SENT, FAILED ]
+
+    # ==========================================================================
+    # STRUCTURE ACADEMIQUE
+    # ==========================================================================
+    Promotion:
+      type: object
+      description: |
+        Cohorte identifiee par une lettre : K, H, N.
+        Une promotion contient plusieurs groupes et ouvre un ou plusieurs
+        parcours. Promotion, parcours, groupe et etudiant sont quatre concepts
+        distincts.
+        Contraintes DB : `ref` UNIQUE, `end_year` > `start_year`.
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          type: string
+          description: Lettre de la promotion.
+          example: K
+        name:
+          type: string
+          example: Promotion K 2025-2028
+        start_year:
+          type: integer
+          example: 2025
+        end_year:
+          type: integer
+          example: 2028
+        tracks:
+          type: array
+          description: |
+            Parcours ouverts dans cette promotion, a partir de S4.
+            Relation N:N Promotion / Track, table de liaison `promotion_track`.
+            Un `StudentTrackChoice` n'est accepte que si le parcours choisi
+            figure dans cette liste pour la promotion de l'etudiant.
+          items:
+            $ref: "#/components/schemas/Track"
+
+    Track:
+      type: object
+      description: |
+        Parcours HEI : EL (Ecosysteme Logiciel), TN (Transformation Numerique).
+        Table de reference globale : EL n'existe qu'une fois et est reutilise
+        par toutes les promotions. Ajouter un parcours est une insertion de
+        donnees, pas une modification de code.
+
+        Un parcours ne s'applique qu'a partir de S4. Aucun etudiant n'a de
+        parcours en S1, S2 et S3, qui sont en tronc commun. Un parcours n'est
+        donc jamais rattache directement a un etudiant, mais toujours via un
+        `StudentTrackChoice` portant un semestre de prise d'effet.
+
+        Contrainte DB : `code` UNIQUE.
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: EL
+        name:
+          type: string
+          example: Ecosysteme Logiciel
+
+    Group:
+      type: object
+      description: |
+        Groupe pedagogique d'une promotion : K1, K2, K3.
+        Le groupe est un contexte historique, jamais l'identite permanente de
+        l'etudiant : `Student` ne porte AUCUN `group_id`.
+        Le groupe n'est pas rattache a un parcours ; c'est l'etudiant qui porte
+        son parcours, ce qui evite deux sources de verite pour le filtrage EL/TN.
+        Contrainte DB : UNIQUE (promotion_id, ref).
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          type: string
+          example: K1
+        promotion:
+          $ref: "#/components/schemas/Promotion"
+
+    Semester:
+      type: object
+      description: |
+        Table de reference : S1 a S6, identiques pour toutes les promotions.
+        Chaque semestre vaut 30 credits.
+        Contraintes DB : `ref` UNIQUE, `sem_order` UNIQUE entre 1 et 6.
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          $ref: "#/components/schemas/SemesterRef"
+        sem_order:
+          type: integer
+          description: 1 a 6.
+          example: 3
+        year_number:
+          type: integer
+          description: 1 a 3.
+          example: 2
+        required_credits:
+          type: integer
+          description: Credits necessaires pour valider le semestre.
+          default: 30
+        common_core:
+          type: boolean
+          description: |
+            Vrai si le semestre est en tronc commun (S1, S2, S3), faux si le
+            parcours EL / TN s'y applique (S4, S5, S6).
+
+            Ce drapeau est une DONNEE de reference et non une constante ecrite
+            en dur : le rang du semestre a partir duquel le parcours est choisi
+            n'apparait nulle part dans le code metier. Deplacer le choix a S5
+            ou ouvrir un troisieme parcours ne demanderait aucune modification
+            de code.
+
+            Invariants portes par ce drapeau :
+            - un cours d'un semestre `common_core` a obligatoirement
+              `track = null` ;
+            - un `StudentTrackChoice` ne peut pas prendre effet sur un
+              semestre `common_core`.
+          example: false
+
+    # ==========================================================================
+    # PERSONNES
+    # ==========================================================================
+    Whoami:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          $ref: "#/components/schemas/Role"
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Renseigne uniquement si le role est STUDENT.
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Renseigne uniquement si le role est TEACHER.
+
+    Student:
+      type: object
+      description: |
+        Porteur permanent des notes. Un changement de groupe ne modifie jamais
+        ses notes.
+        Le modele ne contient volontairement AUCUN champ `graduated` : le
+        statut de diplome est recalcule a partir de S1 a S6.
+        Le modele ne contient volontairement AUCUN `group_id` : l'appartenance
+        a un groupe est historisee dans `StudentGroupAssignment`.
+        Le modele ne contient volontairement AUCUN `track_id` : l'etudiant est
+        en tronc commun jusqu'a S3 et n'a donc pas de parcours sur toute la
+        duree de sa formation. Le parcours est porte par `StudentTrackChoice`,
+        qui le rend dependant du semestre considere.
+        Contraintes DB : `ref` UNIQUE, `email` UNIQUE, `user_id` UNIQUE.
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          type: string
+          description: Numero etudiant, colonne "STD" du fichier Excel des diplomes.
+          example: STD22045
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        birth_date:
+          type: string
+          format: date
+        entrance_date:
+          type: string
+          format: date
+        status:
+          $ref: "#/components/schemas/StudentStatus"
+        promotion:
+          $ref: "#/components/schemas/Promotion"
+        current_track:
+          allOf:
+            - $ref: "#/components/schemas/Track"
+          nullable: true
+          description: |
+            Champ CALCULE, non persiste : parcours applicable au dernier
+            semestre de la formation (S6), c'est-a-dire le choix en vigueur le
+            plus recent.
+            Nul tant que l'etudiant n'a pas choisi, donc nul pour tout etudiant
+            encore en tronc commun (S1-S3).
+            A ne jamais utiliser pour construire un bulletin : le parcours
+            applicable depend du semestre et se resout via `StudentTrackChoice`.
+        current_group:
+          allOf:
+            - $ref: "#/components/schemas/Group"
+          nullable: true
+          description: |
+            Champ CALCULE, non persiste : affectation dont `end_date` est nulle.
+            Fourni par commodite de lecture uniquement.
+
+    Teacher:
+      type: object
+      description: |
+        Contraintes DB : `ref` UNIQUE, `email` UNIQUE, `user_id` UNIQUE.
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          type: string
+          example: TCH0012
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    # ==========================================================================
+    # HISTORIQUE D'APPARTENANCE A UN GROUPE
+    # ==========================================================================
+    StudentGroupAssignment:
+      type: object
+      description: |
+        Historise l'appartenance d'un etudiant a un groupe sur une periode.
+
+        Un etudiant peut changer de groupe a n'importe quel moment : pendant
+        une annee, pendant un semestre, entre deux semestres, et plusieurs fois
+        dans la meme annee ou le meme semestre. Aucune notion d'annee
+        academique n'apparait donc dans la cle : seules les dates comptent.
+
+        `end_date = null` signifie affectation actuellement active.
+
+        Contraintes DB :
+        - CHECK (end_date IS NULL OR end_date >= start_date)
+        - EXCLUDE USING gist (student_id WITH =,
+            daterange(start_date, COALESCE(end_date, 'infinity'), '[]') WITH &&)
+          interdit deux affectations simultanees pour un meme etudiant.
+        - Index unique partiel sur student_id WHERE end_date IS NULL.
+        Regle applicative : le groupe doit appartenir a la promotion de l'etudiant.
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        group:
+          $ref: "#/components/schemas/Group"
+        start_date:
+          type: string
+          format: date
+          example: "2025-09-01"
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: Nulle si l'affectation est active.
+          example: "2025-11-14"
+        reason:
+          type: string
+          nullable: true
+
+    StudentGroupChange:
+      type: object
+      required: [ group_id, start_date ]
+      properties:
+        group_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+          description: |
+            Date de prise d'effet. L'affectation precedente est cloturee la
+            veille de cette date.
+        reason:
+          type: string
+          nullable: true
+
+    # ==========================================================================
+    # CHOIX DE PARCOURS
+    # ==========================================================================
+    StudentTrackChoice:
+      type: object
+      description: |
+        Choix d'un parcours EL ou TN par un etudiant, effectif A PARTIR d'un
+        semestre.
+
+        A HEI, l'etudiant suit d'abord un tronc commun en S1, S2 et S3, puis
+        choisit EL ou TN a partir de S4. Le parcours n'est donc PAS une
+        propriete permanente de l'etudiant : c'est un contexte academique
+        valable sur une plage de semestres.
+
+        Modele a effet differe : une seule ligne suffit au cas nominal
+        (EL a partir de S4 couvre S4, S5 et S6). Une reorientation eventuelle
+        s'exprime en ajoutant une ligne de rang superieur, sans colonne de fin
+        ni mise a jour de l'existant.
+
+        Resolution du parcours applicable a un semestre donne :
+            trackOf(etudiant, semestre) =
+                le choix de plus grand `from_semester.sem_order`
+                tel que  from_semester.sem_order <= semestre.sem_order,
+                ou null si aucun (l'etudiant est encore en tronc commun).
+
+        C'est cette fonction, et elle seule, qui alimente la construction des
+        bulletins, le calcul des credits et l'eligibilite au diplome.
+
+        Contraintes DB : UNIQUE (student_id, from_semester_id).
+        Regles applicatives :
+        - `from_semester.common_core` doit etre faux (on ne choisit pas un
+          parcours pour un semestre de tronc commun) ;
+        - le parcours choisi doit etre ouvert dans la promotion de l'etudiant
+          (present dans `promotion_track`).
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        track:
+          $ref: "#/components/schemas/Track"
+        from_semester:
+          allOf:
+            - $ref: "#/components/schemas/Semester"
+          description: Premier semestre auquel ce parcours s'applique.
+        decided_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+
+    StudentTrackChoiceCreation:
+      type: object
+      required: [ track_id, from_semester_ref ]
+      properties:
+        track_id:
+          type: string
+          format: uuid
+        from_semester_ref:
+          allOf:
+            - $ref: "#/components/schemas/SemesterRef"
+          description: |
+            Semestre de prise d'effet, S4 dans le cas nominal.
+            Rejete si le semestre est en tronc commun.
+        reason:
+          type: string
+          nullable: true
+
+    # ==========================================================================
+    # PROGRAMME
+    # ==========================================================================
+    Course:
+      type: object
+      description: |
+        Matiere du programme. Un cours appartient a un seul semestre, ce qui
+        rend le semestre d'une note deductible par
+        grade -> exam -> course -> semester : `Grade` ne stocke donc pas de
+        semestre.
+        Contraintes DB : `ref` UNIQUE, `credits` > 0.
+      properties:
+        id:
+          type: string
+          format: uuid
+        ref:
+          type: string
+          example: PROG1
+        title:
+          type: string
+          example: Programmation avancee
+        credits:
+          type: integer
+          description: Credits acquis lorsque le cours est valide.
+          example: 6
+        semester:
+          $ref: "#/components/schemas/Semester"
+        track:
+          allOf:
+            - $ref: "#/components/schemas/Track"
+          nullable: true
+          description: |
+            REGLE CRITIQUE EL / TN, portee par la donnee.
+            Relation N:1 Course -> Track, cle etrangere NULLABLE `track_id`.
+
+            Les quatre categories de cours se lisent en croisant `track` et
+            `semester.common_core` :
+            1. tronc commun          -> track = null, semestre common_core
+                                        (S1-S3, suivi par tous les etudiants)
+            2. commun aux parcours   -> track = null, semestre non common_core
+                                        (S4-S6, suivi par les EL et les TN)
+            3. specifique EL         -> track = EL, invisible pour un TN
+            4. specifique TN         -> track = TN, invisible pour un EL
+
+            Une relation N:N `course_track` a ete ecartee : elle ne sait pas
+            representer le tronc commun. Un cours commun y serait rattache aux
+            deux parcours, or en S1-S3 l'etudiant n'a AUCUN parcours, donc la
+            jointure sur son parcours ne ramenerait rien. `track = null` traite
+            au contraire le tronc commun et le commun post-choix par le meme
+            mecanisme.
+
+            Contrainte : si `semester.common_core` est vrai, `track` doit etre
+            null. Un cours de S1-S3 ne peut pas etre specifique a un parcours.
+
+    TeachingAssignment:
+      type: object
+      description: |
+        Relation TERNAIRE Course x Teacher x Group.
+
+        Les trois regles "un cours est enseigne par plusieurs enseignants",
+        "un cours est donne a plusieurs groupes" et "un enseignant enseigne a
+        plusieurs groupes" ne peuvent pas etre representees par trois tables de
+        liaison binaires : on saurait que deux enseignants donnent Java et que
+        Java est donne a K1 et K2, sans savoir QUI enseigne A QUEL groupe.
+        Une absence de ligne (cours, groupe) signifie que le cours n'est pas
+        donne a ce groupe.
+
+        Le semestre n'est pas un axe supplementaire : il est deja determine par
+        `course.semester`. L'ajouter introduirait la dependance fonctionnelle
+        course -> semester dans la cle.
+
+        Le parcours n'est pas non plus un axe : il est deja porte par
+        `course.track`. Un groupe reste mixte apres S4, un cours EL-only peut
+        donc etre affecte a un groupe contenant aussi des TN. Les etudiants TN
+        de ce groupe n'ont simplement pas ce cours parmi leurs cours
+        applicables, et il ne compte ni dans leurs credits ni dans leur
+        moyenne.
+
+        Contrainte DB : UNIQUE (course_id, teacher_id, group_id).
+      properties:
+        id:
+          type: string
+          format: uuid
+        course:
+          $ref: "#/components/schemas/Course"
+        teacher:
+          $ref: "#/components/schemas/Teacher"
+        group:
+          $ref: "#/components/schemas/Group"
+
+    Exam:
+      type: object
+      description: |
+        Evaluation d'un cours. Un cours peut avoir plusieurs examens
+        coefficientes.
+        Contrainte DB : UNIQUE (course_id, title), `coefficient` > 0.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Partiel
+        date_exam:
+          type: string
+          format: date-time
+          description: |
+            Sert aussi a resoudre le groupe de l'etudiant a la date de
+            l'examen, pour le controle d'autorisation TEACHER.
+        coefficient:
+          type: number
+          format: double
+          example: 2.0
+        course:
+          $ref: "#/components/schemas/Course"
+
+    # ==========================================================================
+    # NOTES
+    # ==========================================================================
+    Grade:
+      type: object
+      description: |
+        Note courante d'un etudiant a un examen.
+
+        La note est rattachee a l'etudiant et a l'examen, JAMAIS a un groupe :
+        c'est la garantie structurelle qu'un changement de groupe ne peut pas
+        faire perdre une note.
+        Elle ne porte pas non plus de semestre, deductible via l'examen.
+
+        Contraintes DB : UNIQUE (student_id, exam_id), 0 <= value <= 20.
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        exam:
+          $ref: "#/components/schemas/Exam"
+        value:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 20
+          example: 14.0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GradeChange:
+      type: object
+      description: |
+        Saisie ou modification d'une note.
+        `reason_type` et `reason` sont obligatoires : une modification sans
+        raison est impossible, tant au niveau applicatif qu'au niveau de la
+        base (NOT NULL + CHECK sur une raison non vide).
+      required: [ student_id, value, reason_type, reason ]
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        value:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 20
+        reason_type:
+          $ref: "#/components/schemas/GradeChangeReasonType"
+        reason:
+          type: string
+          minLength: 1
+          example: Reclamation acceptee
+
+    GradeHistory:
+      type: object
+      description: |
+        Une ligne par saisie ou modification. Jamais mise a jour ni supprimee.
+
+        Exemple d'une note passee de 10 a 14 puis a 13 : la note courante vaut
+        13 et trois lignes d'historique coexistent
+        (null -> 10, 10 -> 14, 14 -> 13), chacune avec sa raison et son auteur.
+
+        Contraintes DB :
+        - `reason` NOT NULL et CHECK (length(btrim(reason)) > 0)
+        - CHECK (old_value IS DISTINCT FROM new_value)
+      properties:
+        id:
+          type: string
+          format: uuid
+        grade_id:
+          type: string
+          format: uuid
+        old_value:
+          type: number
+          format: double
+          nullable: true
+          description: Nulle lors de la premiere saisie.
+        new_value:
+          type: number
+          format: double
+        reason_type:
+          $ref: "#/components/schemas/GradeChangeReasonType"
+        reason:
+          type: string
+        changed_by:
+          type: string
+          format: uuid
+          description: Compte utilisateur auteur de la modification.
+        changed_by_email:
+          type: string
+          format: email
+        changed_at:
+          type: string
+          format: date-time
+
+    # ==========================================================================
+    # RESULTATS (entierement calcules, jamais persistes)
+    # ==========================================================================
+    CourseResult:
+      type: object
+      description: |
+        Resultat d'un etudiant pour un cours applicable a son contexte
+        academique au semestre du cours.
+
+        Note finale = somme(note_i x coefficient_i) / somme(coefficient_i),
+        sur tous les examens du cours. Un examen sans note compte 0 au
+        numerateur, son coefficient restant au denominateur.
+        Cette formule n'est pas precisee par le sujet : c'est une convention
+        assumee du projet.
+
+        Cours valide si note finale >= 10, ce qui octroie `credits` credits.
+      properties:
+        course:
+          $ref: "#/components/schemas/Course"
+        final_grade:
+          type: number
+          format: double
+          nullable: true
+          description: Nulle si le cours n'a aucun examen.
+          example: 14.0
+        validated:
+          type: boolean
+          description: final_grade >= 10
+        obtained_credits:
+          type: integer
+          description: credits du cours si valide, sinon 0.
+
+    SemesterResult:
+      type: object
+      description: |
+        Semestre valide si les credits obtenus atteignent les credits requis
+        (30). Les credits sont comptes uniquement sur les cours applicables au
+        CONTEXTE ACADEMIQUE DE CE SEMESTRE : en S1-S3 les cours du tronc
+        commun, en S4-S6 les cours communs plus ceux du parcours choisi.
+        Un EL ne peut donc pas echouer a cause d'un cours TN-only.
+      properties:
+        semester:
+          $ref: "#/components/schemas/Semester"
+        track:
+          allOf:
+            - $ref: "#/components/schemas/Track"
+          nullable: true
+          description: |
+            Parcours applique pour CE semestre, resolu via `StudentTrackChoice`.
+            Nul en tronc commun (S1-S3), renseigne en S4-S6.
+            Rend le contexte academique explicite dans le bulletin et le releve.
+        obtained_credits:
+          type: integer
+        required_credits:
+          type: integer
+        validated:
+          type: boolean
+        course_results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CourseResult"
+
+    StudentResult:
+      type: object
+      description: |
+        Resultat d'un etudiant sur les trois annees.
+
+        Diplome si et seulement si les six semestres S1 a S6 sont valides.
+        Une moyenne generale superieure a 10 ne suffit jamais : un seul
+        semestre non valide rend l'etudiant non diplome.
+
+        Moyenne generale = somme(note finale x credits) / somme(credits) sur
+        les cours applicables, de S1 a S6, c'est-a-dire le tronc commun de
+        S1 a S3 puis le contexte du parcours choisi de S4 a S6. La ponderation
+        par les credits est une convention assumee du projet.
+      properties:
+        student:
+          $ref: "#/components/schemas/Student"
+        semester_results:
+          type: array
+          description: Six elements, de S1 a S6.
+          items:
+            $ref: "#/components/schemas/SemesterResult"
+        total_obtained_credits:
+          type: integer
+          description: Sur 180.
+        general_average:
+          type: number
+          format: double
+        graduated:
+          type: boolean
+
+    Graduate:
+      type: object
+      description: |
+        Ligne de la liste des diplomes. Correspond exactement aux colonnes
+        exigees pour l'export Excel : rang, STD, nom, prenom, moyenne generale.
+        Rang : classement olympique par moyenne generale decroissante parmi les
+        seuls diplomes de la promotion, ex aequo au meme rang, departage
+        secondaire par nom puis prenom.
+      properties:
+        rank:
+          type: integer
+          example: 1
+        std:
+          type: string
+          description: Reference de l'etudiant.
+          example: STD22045
+        last_name:
+          type: string
+        first_name:
+          type: string
+        general_average:
+          type: number
+          format: double
+          example: 15.42
+        track_code:
+          type: string
+          nullable: true
+          description: |
+            Parcours de sortie du diplome, en pratique celui choisi a partir
+            de S4. Colonne ajoutee au-dela du minimum exige par le sujet
+            (rang, STD, nom, prenom, moyenne generale).
+          example: EL
+
+    # ==========================================================================
+    # RELEVE DE NOTES (PDF + S3 + EMAIL ASYNCHRONE)
+    # ==========================================================================
+    TranscriptRequestCreation:
+      type: object
+      properties:
+        semester_ref:
+          allOf:
+            - $ref: "#/components/schemas/SemesterRef"
+          nullable: true
+          description: Nul pour un releve complet de S1 a S6.
+
+    TranscriptRequest:
+      type: object
+      description: |
+        Trace du cycle de vie d'une demande de releve, ce qui rend le
+        traitement asynchrone observable et testable.
+        `file_url` n'est disponible qu'une fois le PDF depose sur S3.
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        semester_ref:
+          allOf:
+            - $ref: "#/components/schemas/SemesterRef"
+          nullable: true
+        status:
+          $ref: "#/components/schemas/TranscriptStatus"
+        file_url:
+          type: string
+          nullable: true
+          description: Lien S3 presigne, envoye par email par le consumer.
+        requested_at:
+          type: string
+          format: date-time
+        generated_at:
+          type: string
+          format: date-time
+          nullable: true
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+
+    # ==========================================================================
+    # ERREURS
+    # ==========================================================================
+    Error:
+      type: object
+      properties:
+        type:
+          type: string
+          example: BadRequestException
+        message:
+          type: string
