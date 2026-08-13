@@ -67,12 +67,15 @@ class SchemaMigrationIT extends FacadeIT {
   }
 
   private UUID insertUser() {
+    // api_key is required since the V45 migration: it is the credential behind the bearer scheme.
     return jdbcTemplate.queryForObject(
-        "insert into app_user (email, password_hash, role) values (?, ?, ?) returning id",
+        "insert into app_user (email, password_hash, role, api_key) values (?, ?, ?, ?)"
+            + " returning id",
         UUID.class,
         rand(12) + "@hei.test",
         "hash",
-        "STUDENT");
+        "STUDENT",
+        UUID.randomUUID().toString());
   }
 
   private UUID insertStudent(UUID promotionId) {
