@@ -8,14 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Promotion;
 import com.exam.hei.endpoint.rest.model.Student;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.PromotionRepository;
+import com.exam.hei.repository.StudentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
 import com.exam.hei.repository.model.StudentStatus;
@@ -35,22 +38,31 @@ class StudentIT extends FacadeIT {
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
+  @Autowired StudentRepository studentRepository;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
-  /** Writes are administered, so the tests already call them as an admin. */
-  private String adminKey() {
+  private String keyOf(Role role) {
     var apiKey = UUID.randomUUID().toString();
     appUserRepository.save(
         AppUser.builder()
             .email(rand(12) + "@hei.test")
             .passwordHash("hash")
-            .role(Role.ADMIN)
+            .role(role)
             .apiKey(apiKey)
             .build());
     return apiKey;
+  }
+
+  /** Writes are administered, so the tests already call them as an admin. */
+  private String adminKey() {
+    return keyOf(Role.ADMIN);
+  }
+
+  private String teacherKey() {
+    return keyOf(Role.TEACHER);
   }
 
   private static HttpHeaders bearer(String apiKey) {
@@ -246,5 +258,87 @@ class StudentIT extends FacadeIT {
   void the_current_track_of_a_student_is_not_resolved_yet() {
     // Part of the contract, but it comes from a track choice, introduced by its own feature.
     assertNull(created(adminKey(), persistedPromotionId()).getCurrentTrack());
+  }
+
+  // --- authorization --------------------------------------------------------
+
+  /** Reads back the generated key of a student, which the API deliberately never returns. */
+  private String apiKeyOf(Student student) {
+    return studentRepository.findById(student.getId()).orElseThrow().getUser().getApiKey();
+  }
+
+  @Test
+  void reading_students_requires_authentication() {
+    var response =
+        restTemplate.exchange("/students", GET, new HttpEntity<>(new HttpHeaders()), String.class);
+
+    assertEquals(UNAUTHORIZED, response.getStatusCode());
+  }
+
+  @Test
+  void only_an_admin_can_write_students() {
+    var student = created(adminKey(), persistedPromotionId());
+
+    assertEquals(
+        FORBIDDEN,
+        putRaw(List.of(aStudent(persistedPromotionId())), apiKeyOf(student)).getStatusCode());
+  }
+
+  @Test
+  void a_student_cannot_browse_the_whole_student_body() {
+    var student = created(adminKey(), persistedPromotionId());
+
+    var response =
+        restTemplate.exchange(
+            "/students", GET, new HttpEntity<>(bearer(apiKeyOf(student))), String.class);
+
+    assertEquals(FORBIDDEN, response.getStatusCode());
+  }
+
+  @Test
+  void a_student_reads_their_own_record() {
+    var student = created(adminKey(), persistedPromotionId());
+
+    var response =
+        restTemplate.exchange(
+            "/students/" + student.getId(),
+            GET,
+            new HttpEntity<>(bearer(apiKeyOf(student))),
+            Student.class);
+
+    assertEquals(OK, response.getStatusCode());
+    assertEquals(student.getId(), response.getBody().getId());
+  }
+
+  @Test
+  void a_student_cannot_read_another_student() {
+    // The rule the subject states explicitly: a student never sees another student's data.
+    var admin = adminKey();
+    var jean = created(admin, persistedPromotionId());
+    var alice = created(admin, persistedPromotionId());
+
+    var response =
+        restTemplate.exchange(
+            "/students/" + alice.getId(),
+            GET,
+            new HttpEntity<>(bearer(apiKeyOf(jean))),
+            String.class);
+
+    assertEquals(FORBIDDEN, response.getStatusCode());
+    assertTrue(response.getBody().contains("ForbiddenException"), "body was " + response.getBody());
+  }
+
+  @Test
+  void a_teacher_reads_any_student() {
+    var student = created(adminKey(), persistedPromotionId());
+
+    var response =
+        restTemplate.exchange(
+            "/students/" + student.getId(),
+            GET,
+            new HttpEntity<>(bearer(teacherKey())),
+            Student.class);
+
+    assertEquals(OK, response.getStatusCode());
   }
 }

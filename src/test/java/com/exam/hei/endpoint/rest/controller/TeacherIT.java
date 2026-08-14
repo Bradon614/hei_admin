@@ -7,8 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Teacher;
@@ -143,6 +145,36 @@ class TeacherIT extends FacadeIT {
 
     assertTrue(raw.contains("\"first_name\""), "body was " + raw);
     assertFalse(raw.contains("\"firstName\""), "body was " + raw);
+  }
+
+  @Test
+  void only_an_admin_can_write_teachers() {
+    var body = List.of(aTeacher());
+
+    for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
+      var apiKey = UUID.randomUUID().toString();
+      appUserRepository.save(
+          AppUser.builder()
+              .email(rand(12) + "@hei.test")
+              .passwordHash("hash")
+              .role(role)
+              .apiKey(apiKey)
+              .build());
+
+      var response =
+          restTemplate.exchange(
+              "/teachers", PUT, new HttpEntity<>(body, bearer(apiKey)), String.class);
+
+      assertEquals(FORBIDDEN, response.getStatusCode(), "role " + role);
+    }
+  }
+
+  @Test
+  void reading_teachers_requires_authentication() {
+    var response =
+        restTemplate.exchange("/teachers", GET, new HttpEntity<>(new HttpHeaders()), String.class);
+
+    assertEquals(UNAUTHORIZED, response.getStatusCode());
   }
 
   @Test

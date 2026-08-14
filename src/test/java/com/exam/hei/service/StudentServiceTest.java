@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.exam.hei.endpoint.rest.security.StudentAuthorizer;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.AppUserRepository;
@@ -33,8 +34,9 @@ class StudentServiceTest {
   private final StudentRepository studentRepository = mock(StudentRepository.class);
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PromotionService promotionService = mock(PromotionService.class);
+  private final StudentAuthorizer studentAuthorizer = mock(StudentAuthorizer.class);
   private final StudentService subject =
-      new StudentService(studentRepository, appUserRepository, promotionService);
+      new StudentService(studentRepository, appUserRepository, promotionService, studentAuthorizer);
 
   private static final UUID PROMOTION_ID = UUID.randomUUID();
 
