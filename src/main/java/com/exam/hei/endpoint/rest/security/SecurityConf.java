@@ -12,6 +12,8 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
@@ -41,6 +43,12 @@ public class SecurityConf {
   private final AuthProvider authProvider;
   private final ObjectMapper objectMapper;
 
+  /** Used to hash a password on write and to check one on {@code POST /auth/login}. */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     var authenticationManager = new ProviderManager(authProvider);
@@ -67,6 +75,10 @@ public class SecurityConf {
                     .dispatcherTypeMatchers(DispatcherType.ERROR)
                     .permitAll()
                     .requestMatchers(PUBLIC_PATHS)
+                    .permitAll()
+                    // The one endpoint a caller can reach before holding a token, since it is what
+                    // hands one out.
+                    .requestMatchers(HttpMethod.POST, "/auth/login")
                     .permitAll()
                     // Reference and structural data is administered, never edited by students or
                     // teachers. Reading stays open to any authenticated caller.

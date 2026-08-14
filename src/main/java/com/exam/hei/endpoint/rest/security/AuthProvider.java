@@ -1,30 +1,22 @@
 package com.exam.hei.endpoint.rest.security;
 
-import com.exam.hei.endpoint.rest.security.model.Principal;
-import com.exam.hei.repository.AppUserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-/** Resolves a bearer API key into the account that owns it. */
+/** Resolves a bearer JWT into the account it was issued for. */
 @Component
 @AllArgsConstructor
 public class AuthProvider implements AuthenticationProvider {
 
-  private final AppUserRepository appUserRepository;
+  private final JwtService jwtService;
 
   @Override
   public Authentication authenticate(Authentication authentication) {
-    var apiKey = String.valueOf(authentication.getPrincipal());
-    var user =
-        appUserRepository
-            .findByApiKey(apiKey)
-            .orElseThrow(() -> new BadCredentialsException("Provided API key is not valid"));
-
-    var principal = new Principal(user);
+    var token = String.valueOf(authentication.getPrincipal());
+    var principal = jwtService.parse(token);
     return new PreAuthenticatedAuthenticationToken(
         principal, authentication.getCredentials(), principal.getAuthorities());
   }
