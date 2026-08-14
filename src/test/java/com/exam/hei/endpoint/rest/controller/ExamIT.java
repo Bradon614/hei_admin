@@ -12,6 +12,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Exam;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.CourseRepository;
 import com.exam.hei.repository.SemesterRepository;
@@ -37,21 +38,21 @@ class ExamIT extends FacadeIT {
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
   @Autowired SemesterRepository semesterRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String keyOf(Role role) {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(role)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(role)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {

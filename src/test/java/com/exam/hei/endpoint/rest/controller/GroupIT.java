@@ -14,6 +14,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Group;
 import com.exam.hei.endpoint.rest.model.Track;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.TrackRepository;
@@ -36,21 +37,21 @@ class GroupIT extends FacadeIT {
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired TrackRepository trackRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String adminKey() {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(Role.ADMIN)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {
@@ -205,14 +206,14 @@ class GroupIT extends FacadeIT {
     var promotionId = promotionOpening();
 
     for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
-      var apiKey = UUID.randomUUID().toString();
-      appUserRepository.save(
-          AppUser.builder()
-              .email(rand(12) + "@hei.test")
-              .passwordHash("hash")
-              .role(role)
-              .apiKey(apiKey)
-              .build());
+      var user =
+          appUserRepository.save(
+              AppUser.builder()
+                  .email(rand(12) + "@hei.test")
+                  .passwordHash("hash")
+                  .role(role)
+                  .build());
+      var apiKey = jwtService.issue(user).token();
 
       assertEquals(
           403,

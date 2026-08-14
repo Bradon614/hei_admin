@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/** Covers the credential column added by the V45 migration. */
+/** Covers the credential column an account signs in with, checked by {@code POST /auth/login}. */
 class AppUserRepositoryIT extends FacadeIT {
 
   @Autowired AppUserRepository appUserRepository;
@@ -21,49 +21,22 @@ class AppUserRepositoryIT extends FacadeIT {
     return AppUser.builder()
         .email(UUID.randomUUID() + "@hei.test")
         .passwordHash("hash")
-        .role(Role.STUDENT)
-        .apiKey(UUID.randomUUID().toString());
+        .role(Role.STUDENT);
   }
 
   @Test
-  void an_account_is_findable_by_its_api_key() {
+  void an_account_is_findable_by_its_email() {
     var saved = appUserRepository.save(validUser().role(Role.ADMIN).build());
 
-    var found = appUserRepository.findByApiKey(saved.getApiKey()).orElseThrow();
+    var found = appUserRepository.findByEmail(saved.getEmail()).orElseThrow();
 
     assertEquals(saved.getId(), found.getId());
     assertEquals(Role.ADMIN, found.getRole());
   }
 
   @Test
-  void an_account_is_findable_by_its_email() {
-    var saved = appUserRepository.save(validUser().build());
-
-    assertEquals(
-        saved.getId(), appUserRepository.findByEmail(saved.getEmail()).orElseThrow().getId());
-  }
-
-  @Test
-  void an_unknown_api_key_resolves_to_nothing() {
-    assertTrue(appUserRepository.findByApiKey(UUID.randomUUID().toString()).isEmpty());
-  }
-
-  @Test
-  void two_accounts_cannot_share_the_same_api_key() {
-    // Guards app_user_api_key_uq: a shared key would let one caller act as another account.
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.saveAndFlush(validUser().apiKey(apiKey).build());
-
-    assertThrows(
-        DataIntegrityViolationException.class,
-        () -> appUserRepository.saveAndFlush(validUser().apiKey(apiKey).build()));
-  }
-
-  @Test
-  void an_account_cannot_be_created_without_an_api_key() {
-    assertThrows(
-        DataIntegrityViolationException.class,
-        () -> appUserRepository.saveAndFlush(validUser().apiKey(null).build()));
+  void an_unknown_email_resolves_to_nothing() {
+    assertTrue(appUserRepository.findByEmail(UUID.randomUUID() + "@hei.test").isEmpty());
   }
 
   @Test
@@ -74,5 +47,12 @@ class AppUserRepositoryIT extends FacadeIT {
     assertThrows(
         DataIntegrityViolationException.class,
         () -> appUserRepository.saveAndFlush(validUser().email(email).build()));
+  }
+
+  @Test
+  void an_account_cannot_be_created_without_a_password_hash() {
+    assertThrows(
+        DataIntegrityViolationException.class,
+        () -> appUserRepository.saveAndFlush(validUser().passwordHash(null).build()));
   }
 }

@@ -8,6 +8,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Whoami;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.StudentRepository;
@@ -34,6 +35,7 @@ class WhoamiIT extends FacadeIT {
   @Autowired StudentRepository studentRepository;
   @Autowired TeacherRepository teacherRepository;
   @Autowired PromotionRepository promotionRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
@@ -41,12 +43,7 @@ class WhoamiIT extends FacadeIT {
 
   private AppUser persistedUser(Role role) {
     return appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(role)
-            .apiKey(UUID.randomUUID().toString())
-            .build());
+        AppUser.builder().email(rand(12) + "@hei.test").passwordHash("hash").role(role).build());
   }
 
   private Student persistedStudent(AppUser account) {
@@ -83,7 +80,7 @@ class WhoamiIT extends FacadeIT {
 
   private <T> ResponseEntity<T> whoamiAs(AppUser user, Class<T> responseType) {
     var headers = new HttpHeaders();
-    headers.set(AUTHORIZATION, "Bearer " + user.getApiKey());
+    headers.set(AUTHORIZATION, "Bearer " + jwtService.issue(user).token());
     return restTemplate.exchange(
         "/whoami", HttpMethod.GET, new HttpEntity<>(headers), responseType);
   }

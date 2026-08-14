@@ -11,6 +11,12 @@ import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +30,30 @@ class SecurityIT extends FacadeIT {
 
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
+  @Autowired JwtService jwtService;
+  @Autowired javax.crypto.SecretKey jwtSigningKey;
 
-  private String persistedApiKey(Role role) {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(UUID.randomUUID() + "@hei.test")
-            .passwordHash("hash")
-            .role(role)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+  /**
+   * See {@code AuthIT}: the JDK's {@code HttpURLConnection}, behind {@code TestRestTemplate} here,
+   * cannot process a 401 answer to a POST at all.
+   */
+  private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
+  private String tokenOf(Role role) {
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(UUID.randomUUID() + "@hei.test")
+                .passwordHash("hash")
+                .role(role)
+                .build());
+    return jwtService.issue(user).token();
   }
 
-  private HttpStatus statusOf(String path, String apiKey) {
+  private HttpStatus statusOf(String path, String token) {
     var headers = new HttpHeaders();
-    if (apiKey != null) {
-      headers.set(AUTHORIZATION, "Bearer " + apiKey);
+    if (token != null) {
+      headers.set(AUTHORIZATION, "Bearer " + token);
     }
     return (HttpStatus)
         restTemplate
@@ -71,6 +84,23 @@ class SecurityIT extends FacadeIT {
     assertNotEquals(UNAUTHORIZED, statusOf("/health/bucket", null));
   }
 
+  @Test
+  void logging_in_needs_no_token() throws Exception {
+    var request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(restTemplate.getRootUri() + "/auth/login"))
+            .header("Content-Type", "application/json")
+            .POST(
+                HttpRequest.BodyPublishers.ofString(
+                    "{\"email\":\"nobody@hei.test\",\"password\":\"whatever\"}"))
+            .build();
+    var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+    // Reached the handler and was rejected for the credentials, not for a missing token.
+    assertEquals(401, response.statusCode());
+    assertTrue(response.body().contains("UnauthorizedException"), "body was " + response.body());
+  }
+
   // --- everything else is closed -------------------------------------------
 
   @Test
@@ -79,8 +109,8 @@ class SecurityIT extends FacadeIT {
   }
 
   @Test
-  void whoami_with_an_unknown_token_is_unauthorized() {
-    assertEquals(UNAUTHORIZED, statusOf("/whoami", UUID.randomUUID().toString()));
+  void whoami_with_a_malformed_token_is_unauthorized() {
+    assertEquals(UNAUTHORIZED, statusOf("/whoami", "not-a-jwt"));
   }
 
   @Test
@@ -91,14 +121,58 @@ class SecurityIT extends FacadeIT {
 
   @Test
   void whoami_with_a_valid_token_is_authorized() {
-    assertEquals(OK, statusOf("/whoami", persistedApiKey(Role.ADMIN)));
+    assertEquals(OK, statusOf("/whoami", tokenOf(Role.ADMIN)));
   }
 
   @Test
   void every_role_can_authenticate() {
-    assertEquals(OK, statusOf("/whoami", persistedApiKey(Role.STUDENT)));
-    assertEquals(OK, statusOf("/whoami", persistedApiKey(Role.TEACHER)));
-    assertEquals(OK, statusOf("/whoami", persistedApiKey(Role.ADMIN)));
+    assertEquals(OK, statusOf("/whoami", tokenOf(Role.STUDENT)));
+    assertEquals(OK, statusOf("/whoami", tokenOf(Role.TEACHER)));
+    assertEquals(OK, statusOf("/whoami", tokenOf(Role.ADMIN)));
+  }
+
+  // --- what a JWT brings over an API key: a signature to forge ---------------
+
+  @Test
+  void an_expired_token_is_unauthorized() {
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(UUID.randomUUID() + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build());
+    var now = Instant.now();
+    var expired =
+        io.jsonwebtoken.Jwts.builder()
+            .subject(user.getId().toString())
+            .claim("email", user.getEmail())
+            .claim("role", "ADMIN")
+            .issuedAt(Date.from(now.minusSeconds(7200)))
+            .expiration(Date.from(now.minusSeconds(1)))
+            .signWith(jwtSigningKey)
+            .compact();
+
+    assertEquals(UNAUTHORIZED, statusOf("/whoami", expired));
+  }
+
+  @Test
+  void a_tampered_token_is_rejected() {
+    var token = tokenOf(Role.STUDENT);
+    var parts = token.split("\\.");
+    var tamperedPayload =
+        new String(java.util.Base64.getUrlDecoder().decode(parts[1]))
+            .replace("\"STUDENT\"", "\"ADMIN\"");
+    var tampered =
+        parts[0]
+            + "."
+            + java.util.Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(tamperedPayload.getBytes())
+            + "."
+            + parts[2];
+
+    assertEquals(UNAUTHORIZED, statusOf("/whoami", tampered));
   }
 
   // --- error contract -------------------------------------------------------
@@ -106,7 +180,7 @@ class SecurityIT extends FacadeIT {
   @Test
   void an_authentication_failure_is_rendered_as_the_spec_error_payload() {
     var headers = new HttpHeaders();
-    headers.set(AUTHORIZATION, "Bearer " + UUID.randomUUID());
+    headers.set(AUTHORIZATION, "Bearer not-a-jwt");
 
     var response =
         restTemplate.exchange("/whoami", HttpMethod.GET, new HttpEntity<>(headers), String.class);

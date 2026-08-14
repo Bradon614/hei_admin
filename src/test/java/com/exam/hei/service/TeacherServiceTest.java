@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 class TeacherServiceTest {
 
   private final TeacherRepository teacherRepository = mock(TeacherRepository.class);
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
-  private final TeacherService subject = new TeacherService(teacherRepository, appUserRepository);
+  private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+  private final TeacherService subject =
+      new TeacherService(teacherRepository, appUserRepository, passwordEncoder);
 
   private static Teacher teacher(UUID id) {
     return Teacher.builder()
@@ -34,6 +37,7 @@ class TeacherServiceTest {
         .firstName("Aina")
         .lastName("Randria")
         .email("aina@hei.test")
+        .password("s3cret!!")
         .build();
   }
 
@@ -41,6 +45,8 @@ class TeacherServiceTest {
     when(teacherRepository.saveAll(any()))
         .thenAnswer(invocation -> List.copyOf(invocation.getArgument(0)));
     when(appUserRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(passwordEncoder.encode(any()))
+        .thenAnswer(invocation -> "hashed:" + invocation.getArgument(0));
   }
 
   @Test
@@ -52,28 +58,59 @@ class TeacherServiceTest {
     assertNotNull(saved.getUser());
     assertEquals(Role.TEACHER, saved.getUser().getRole());
     assertEquals("aina@hei.test", saved.getUser().getEmail());
-    assertNotNull(saved.getUser().getApiKey());
+    assertEquals("hashed:s3cret!!", saved.getUser().getPasswordHash());
+  }
+
+  @Test
+  void a_teacher_cannot_be_created_without_a_password() {
+    var passwordless = teacher(null);
+    passwordless.setPassword(null);
+
+    assertThrows(BadRequestException.class, () -> subject.saveAll(List.of(passwordless)));
   }
 
   @Test
   void updating_a_teacher_keeps_its_existing_account() {
     var id = UUID.randomUUID();
-    var account = AppUser.builder().id(UUID.randomUUID()).email("aina@hei.test").build();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("aina@hei.test").passwordHash("old").build();
     var existing = teacher(id);
     existing.setUser(account);
     when(teacherRepository.findById(id)).thenReturn(Optional.of(existing));
     repositoryEchoesWhatItIsGiven();
 
-    var saved = subject.saveAll(List.of(teacher(id))).get(0);
+    var updated = teacher(id);
+    updated.setPassword(null);
+    var saved = subject.saveAll(List.of(updated)).get(0);
 
     assertEquals(account.getId(), saved.getUser().getId());
+    assertEquals("old", saved.getUser().getPasswordHash());
     verify(appUserRepository, never()).save(any());
+  }
+
+  @Test
+  void an_updated_password_replaces_the_account_hash() {
+    var id = UUID.randomUUID();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("aina@hei.test").passwordHash("old").build();
+    var existing = teacher(id);
+    existing.setUser(account);
+    when(teacherRepository.findById(id)).thenReturn(Optional.of(existing));
+    repositoryEchoesWhatItIsGiven();
+
+    var withNewPassword = teacher(id);
+    withNewPassword.setPassword("newPass1!");
+    subject.saveAll(List.of(withNewPassword));
+
+    assertEquals("hashed:newPass1!", account.getPasswordHash());
+    verify(appUserRepository).save(account);
   }
 
   @Test
   void renaming_the_email_of_a_teacher_keeps_its_account_in_step() {
     var id = UUID.randomUUID();
-    var account = AppUser.builder().id(UUID.randomUUID()).email("old@hei.test").build();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("old@hei.test").passwordHash("old").build();
     var existing = teacher(id);
     existing.setUser(account);
     when(teacherRepository.findById(id)).thenReturn(Optional.of(existing));
@@ -81,6 +118,7 @@ class TeacherServiceTest {
 
     var renamed = teacher(id);
     renamed.setEmail("new@hei.test");
+    renamed.setPassword(null);
     subject.saveAll(List.of(renamed));
 
     assertEquals("new@hei.test", account.getEmail());

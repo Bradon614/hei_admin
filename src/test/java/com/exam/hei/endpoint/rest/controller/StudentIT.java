@@ -16,6 +16,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Promotion;
 import com.exam.hei.endpoint.rest.model.Student;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.GroupRepository;
 import com.exam.hei.repository.PromotionRepository;
@@ -50,21 +51,21 @@ class StudentIT extends FacadeIT {
   @Autowired SemesterRepository semesterRepository;
   @Autowired StudentGroupAssignmentRepository assignmentRepository;
   @Autowired StudentTrackChoiceRepository trackChoiceRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String keyOf(Role role) {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(role)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(role)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   /** Writes are administered, so the tests already call them as an admin. */
@@ -100,6 +101,7 @@ class StudentIT extends FacadeIT {
         .firstName("Jean")
         .lastName("Rakoto")
         .email(rand(12) + "@hei.test")
+        .password("s3cret!!")
         .birthDate(LocalDate.of(2004, 3, 12))
         .entranceDate(LocalDate.of(2025, 9, 1))
         .promotion(Promotion.builder().id(promotionId).build())
@@ -273,9 +275,10 @@ class StudentIT extends FacadeIT {
 
   // --- authorization --------------------------------------------------------
 
-  /** Reads back the generated key of a student, which the API deliberately never returns. */
+  /** Mints a fresh token for a student's own account, never returned by the API itself. */
   private String apiKeyOf(Student student) {
-    return studentRepository.findById(student.getId()).orElseThrow().getUser().getApiKey();
+    var user = studentRepository.findById(student.getId()).orElseThrow().getUser();
+    return jwtService.issue(user).token();
   }
 
   @Test

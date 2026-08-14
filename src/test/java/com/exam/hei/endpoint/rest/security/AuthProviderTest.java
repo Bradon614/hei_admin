@@ -8,10 +8,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.exam.hei.endpoint.rest.security.model.Principal;
-import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,49 +18,44 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 class AuthProviderTest {
 
-  private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
-  private final AuthProvider subject = new AuthProvider(appUserRepository);
+  private final JwtService jwtService = mock(JwtService.class);
+  private final AuthProvider subject = new AuthProvider(jwtService);
 
-  private static AppUser user(Role role, String apiKey) {
-    return AppUser.builder()
-        .id(UUID.randomUUID())
-        .email("someone@hei.test")
-        .passwordHash("hash")
-        .role(role)
-        .apiKey(apiKey)
-        .build();
+  private static Principal principal(Role role) {
+    return new Principal(
+        AppUser.builder().id(UUID.randomUUID()).email("someone@hei.test").role(role).build());
   }
 
   @Test
-  void a_known_api_key_resolves_its_account() {
-    var expected = user(Role.ADMIN, "known-key");
-    when(appUserRepository.findByApiKey("known-key")).thenReturn(Optional.of(expected));
+  void a_valid_token_resolves_to_the_account_it_was_issued_for() {
+    var expected = principal(Role.ADMIN);
+    when(jwtService.parse("valid-token")).thenReturn(expected);
 
     var authentication =
-        subject.authenticate(new PreAuthenticatedAuthenticationToken("known-key", "known-key"));
+        subject.authenticate(new PreAuthenticatedAuthenticationToken("valid-token", "valid-token"));
 
     assertTrue(authentication.isAuthenticated());
-    assertEquals(expected, ((Principal) authentication.getPrincipal()).getUser());
+    assertEquals(expected, authentication.getPrincipal());
   }
 
   @Test
   void the_resolved_account_carries_its_role_as_an_authority() {
-    when(appUserRepository.findByApiKey("teacher-key"))
-        .thenReturn(Optional.of(user(Role.TEACHER, "teacher-key")));
+    when(jwtService.parse("teacher-token")).thenReturn(principal(Role.TEACHER));
 
     var authentication =
-        subject.authenticate(new PreAuthenticatedAuthenticationToken("teacher-key", "teacher-key"));
+        subject.authenticate(
+            new PreAuthenticatedAuthenticationToken("teacher-token", "teacher-token"));
 
     assertEquals("ROLE_TEACHER", authentication.getAuthorities().iterator().next().getAuthority());
   }
 
   @Test
-  void an_unknown_api_key_is_rejected() {
-    when(appUserRepository.findByApiKey("nope")).thenReturn(Optional.empty());
+  void an_invalid_token_is_rejected() {
+    when(jwtService.parse("garbage")).thenThrow(new BadCredentialsException("Provided token"));
 
     assertThrows(
         BadCredentialsException.class,
-        () -> subject.authenticate(new PreAuthenticatedAuthenticationToken("nope", "nope")));
+        () -> subject.authenticate(new PreAuthenticatedAuthenticationToken("garbage", "garbage")));
   }
 
   @Test
