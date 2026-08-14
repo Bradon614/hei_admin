@@ -76,7 +76,11 @@ public class SecurityConf {
                         "/tracks",
                         "/students",
                         "/teachers",
-                        "/promotions/*/groups")
+                        "/promotions/*/groups",
+                        "/courses",
+                        // Widened to the teachers assigned to the course once teaching assignments
+                        // exist: the specification allows them, nothing can check it yet.
+                        "/courses/*/exams")
                     .hasRole("ADMIN")
                     // Moving a student between groups and recording the track they follow are
                     // administrative acts: neither the student nor their teachers decide them.
