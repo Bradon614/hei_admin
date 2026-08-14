@@ -8,10 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.exam.hei.model.exception.ForbiddenException;
-import com.exam.hei.repository.StudentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
-import com.exam.hei.repository.model.Student;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -20,20 +18,16 @@ class StudentAuthorizerTest {
 
   private final AuthenticatedResourceProvider authenticatedResourceProvider =
       mock(AuthenticatedResourceProvider.class);
-  private final StudentRepository studentRepository = mock(StudentRepository.class);
-  private final StudentAuthorizer subject =
-      new StudentAuthorizer(authenticatedResourceProvider, studentRepository);
-
-  private static final UUID CALLER_USER_ID = UUID.randomUUID();
+  private final StudentAuthorizer subject = new StudentAuthorizer(authenticatedResourceProvider);
 
   private void callerIs(Role role) {
     when(authenticatedResourceProvider.getAuthenticatedUser())
-        .thenReturn(AppUser.builder().id(CALLER_USER_ID).role(role).build());
+        .thenReturn(AppUser.builder().id(UUID.randomUUID()).role(role).build());
   }
 
   private void callerOwnsStudent(UUID studentId) {
-    when(studentRepository.findByUserId(CALLER_USER_ID))
-        .thenReturn(Optional.of(Student.builder().id(studentId).build()));
+    when(authenticatedResourceProvider.getAuthenticatedStudentId())
+        .thenReturn(Optional.of(studentId));
   }
 
   @Test
@@ -51,13 +45,13 @@ class StudentAuthorizerTest {
   }
 
   @Test
-  void a_non_student_role_is_not_even_looked_up() {
-    // No point querying the student table for an account that cannot own a record.
+  void a_non_student_role_is_not_even_resolved_to_a_profile() {
+    // No point looking up a student record for an account that cannot own one.
     callerIs(Role.ADMIN);
 
     subject.checkCanRead(UUID.randomUUID());
 
-    verify(studentRepository, never()).findByUserId(CALLER_USER_ID);
+    verify(authenticatedResourceProvider, never()).getAuthenticatedStudentId();
   }
 
   @Test
@@ -80,7 +74,7 @@ class StudentAuthorizerTest {
   @Test
   void a_student_account_without_a_record_reads_nothing() {
     callerIs(Role.STUDENT);
-    when(studentRepository.findByUserId(CALLER_USER_ID)).thenReturn(Optional.empty());
+    when(authenticatedResourceProvider.getAuthenticatedStudentId()).thenReturn(Optional.empty());
 
     assertThrows(ForbiddenException.class, () -> subject.checkCanRead(UUID.randomUUID()));
   }

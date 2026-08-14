@@ -1,7 +1,6 @@
 package com.exam.hei.endpoint.rest.security;
 
 import com.exam.hei.model.exception.ForbiddenException;
-import com.exam.hei.repository.StudentRepository;
 import com.exam.hei.repository.model.Role;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -22,22 +21,20 @@ import org.springframework.stereotype.Component;
 public class StudentAuthorizer {
 
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
-  private final StudentRepository studentRepository;
 
   /** Passes for an admin or a teacher, and for the student whose own record is being read. */
   public void checkCanRead(UUID studentId) {
-    var caller = authenticatedResourceProvider.getAuthenticatedUser();
-    if (caller.getRole() != Role.STUDENT) {
+    if (authenticatedResourceProvider.getAuthenticatedUser().getRole() != Role.STUDENT) {
       return;
     }
 
     var own =
-        studentRepository
-            .findByUserId(caller.getId())
+        authenticatedResourceProvider
+            .getAuthenticatedStudentId()
             .orElseThrow(
                 () -> new ForbiddenException("This account is not linked to a student record"));
 
-    if (!own.getId().equals(studentId)) {
+    if (!own.equals(studentId)) {
       throw new ForbiddenException("A student may only read their own record");
     }
   }
