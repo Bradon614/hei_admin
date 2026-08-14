@@ -1,10 +1,12 @@
 package com.exam.hei.endpoint.rest.controller;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import com.exam.hei.endpoint.rest.model.Error;
 import com.exam.hei.model.exception.BadRequestException;
+import com.exam.hei.model.exception.ForbiddenException;
 import com.exam.hei.model.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,15 @@ public class RestExceptionHandler {
   @ExceptionHandler(BadRequestException.class)
   public ResponseEntity<Error> handleBadRequest(BadRequestException e) {
     return toError(BAD_REQUEST, "BadRequestException", e.getMessage());
+  }
+
+  /**
+   * Covers the rules that compare the caller to the resource, such as a student reaching another
+   * student's record. Role restrictions never get here: the filter chain refuses them earlier.
+   */
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<Error> handleForbidden(ForbiddenException e) {
+    return toError(FORBIDDEN, "ForbiddenException", e.getMessage());
   }
 
   private ResponseEntity<Error> toError(HttpStatus status, String type, String message) {
