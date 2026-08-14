@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -85,4 +86,11 @@ public class Student {
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;
+
+  /**
+   * Plaintext password carried from the REST payload to {@code StudentService}, which hashes it
+   * into the account and discards it. Never persisted, never read back: {@code Student} the entity
+   * has no password column, only {@code AppUser} does.
+   */
+  @Transient @ToString.Exclude private String password;
 }

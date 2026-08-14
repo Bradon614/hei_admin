@@ -24,6 +24,7 @@ public class TeacherMapper {
         .firstName(rest.getFirstName())
         .lastName(rest.getLastName())
         .email(rest.getEmail())
+        .password(rest.getPassword())
         .build();
   }
 }
