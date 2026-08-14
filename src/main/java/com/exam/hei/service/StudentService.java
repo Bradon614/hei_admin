@@ -8,6 +8,7 @@ import com.exam.hei.repository.StudentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
 import com.exam.hei.repository.model.Student;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -32,13 +33,25 @@ public class StudentService {
 
   /**
    * @param page 1-based, as declared in doc/api.yml
-   * @param promotionId optional filter
+   * @param at the date the group filter applies to, today when left out
+   *     <p>Filters are applied by precedence rather than combined: group, then track, then
+   *     promotion. Combining them would take a criteria builder for a need no requirement states.
    */
-  public List<Student> findAll(int page, int pageSize, UUID promotionId) {
+  public List<Student> findAll(
+      int page, int pageSize, UUID promotionId, UUID groupId, LocalDate at, String trackCode) {
     var pageRequest = Pagination.toPageRequest(page, pageSize, Sort.by("ref"));
-    return promotionId == null
-        ? studentRepository.findAll(pageRequest).getContent()
-        : studentRepository.findAllByPromotionId(promotionId, pageRequest).getContent();
+
+    if (groupId != null) {
+      var date = at == null ? LocalDate.now() : at;
+      return studentRepository.findAllInGroupAt(groupId, date, pageRequest).getContent();
+    }
+    if (trackCode != null) {
+      return studentRepository.findAllFollowingTrack(trackCode, pageRequest).getContent();
+    }
+    if (promotionId != null) {
+      return studentRepository.findAllByPromotionId(promotionId, pageRequest).getContent();
+    }
+    return studentRepository.findAll(pageRequest).getContent();
   }
 
   /**
