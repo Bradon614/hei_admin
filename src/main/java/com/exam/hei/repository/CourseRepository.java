@@ -25,14 +25,17 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
    * <p>Not "the courses whose track is that one": a common course belongs to the programme of every
    * track, and is counted in the credits of each.
    */
-  @Query("select c from Course c where c.track is null or c.track.code = :trackCode")
+  // Left join, never c.track.code: navigating a nullable association implicitly builds an inner
+  // join, which drops the courses carrying no track before the "is null" branch is ever evaluated.
+  // Every common course would silently vanish from a track filter.
+  @Query("select c from Course c left join c.track t where t is null or t.code = :trackCode")
   Page<Course> findAllFollowedByTrack(@Param("trackCode") String trackCode, Pageable pageable);
 
   /** Both filters at once: the courses of a semester that a student of that track follows. */
   @Query(
-      "select c from Course c"
+      "select c from Course c left join c.track t"
           + " where c.semester.ref = :semesterRef"
-          + " and (c.track is null or c.track.code = :trackCode)")
+          + " and (t is null or t.code = :trackCode)")
   Page<Course> findAllOfSemesterFollowedByTrackCode(
       @Param("semesterRef") SemesterRef semesterRef,
       @Param("trackCode") String trackCode,
