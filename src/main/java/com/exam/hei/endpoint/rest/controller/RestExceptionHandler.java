@@ -1,11 +1,13 @@
 package com.exam.hei.endpoint.rest.controller;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import com.exam.hei.endpoint.rest.model.Error;
 import com.exam.hei.model.exception.BadRequestException;
+import com.exam.hei.model.exception.ConflictException;
 import com.exam.hei.model.exception.ForbiddenException;
 import com.exam.hei.model.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,15 @@ public class RestExceptionHandler {
   @ExceptionHandler(ForbiddenException.class)
   public ResponseEntity<Error> handleForbidden(ForbiddenException e) {
     return toError(FORBIDDEN, "ForbiddenException", e.getMessage());
+  }
+
+  /**
+   * Reported by the services before a database constraint has to fire, so that a legitimate clash
+   * reads as a conflict rather than a server error.
+   */
+  @ExceptionHandler(ConflictException.class)
+  public ResponseEntity<Error> handleConflict(ConflictException e) {
+    return toError(CONFLICT, "ConflictException", e.getMessage());
   }
 
   private ResponseEntity<Error> toError(HttpStatus status, String type, String message) {
