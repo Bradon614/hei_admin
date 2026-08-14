@@ -1,5 +1,6 @@
 package com.exam.hei.service;
 
+import com.exam.hei.endpoint.rest.security.StudentAuthorizer;
 import com.exam.hei.model.Pagination;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.AppUserRepository;
@@ -27,6 +28,7 @@ public class StudentService {
   private final StudentRepository studentRepository;
   private final AppUserRepository appUserRepository;
   private final PromotionService promotionService;
+  private final StudentAuthorizer studentAuthorizer;
 
   /**
    * @param page 1-based, as declared in doc/api.yml
@@ -39,7 +41,18 @@ public class StudentService {
         : studentRepository.findAllByPromotionId(promotionId, pageRequest).getContent();
   }
 
+  /**
+   * Read path: a student may only reach their own record.
+   *
+   * <p>The rule itself lives in the security package; this only invokes it. Write paths use {@link
+   * #getById} instead, which does not check: they are already restricted to admins.
+   */
   public Student findById(UUID id) {
+    studentAuthorizer.checkCanRead(id);
+    return getById(id);
+  }
+
+  private Student getById(UUID id) {
     return studentRepository
         .findById(id)
         .orElseThrow(() -> new NotFoundException("Student " + id + " not found"));
@@ -61,7 +74,7 @@ public class StudentService {
   /** An unknown id is a caller mistake rather than a request to create a student at that id. */
   private void attachPromotion(Student student) {
     if (student.getId() != null) {
-      findById(student.getId());
+      getById(student.getId());
     }
     var promotionId = student.getPromotion() == null ? null : student.getPromotion().getId();
     if (promotionId == null) {
@@ -93,7 +106,7 @@ public class StudentService {
       return;
     }
 
-    var existing = findById(student.getId()).getUser();
+    var existing = getById(student.getId()).getUser();
     if (!existing.getEmail().equals(student.getEmail())) {
       existing.setEmail(student.getEmail());
       appUserRepository.save(existing);
