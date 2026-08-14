@@ -201,12 +201,18 @@ class StudentGroupAssignmentRepositoryIT extends FacadeIT {
     assertEquals(
         1,
         assignmentRepository
-            .findOverlapping(
-                jean.getId(), LocalDate.parse("2025-11-15"), LocalDate.parse("2025-12-31"))
+            .findRunningOnOrAfter(jean.getId(), LocalDate.parse("2025-11-15"))
             .size());
+  }
+
+  @Test
+  void a_period_already_closed_conflicts_with_nothing_after_it() {
+    var jean = student();
+    assign(jean, group(), "2025-09-01", "2025-11-30");
+
     assertTrue(
         assignmentRepository
-            .findOverlapping(jean.getId(), LocalDate.parse("2025-12-01"), null)
+            .findRunningOnOrAfter(jean.getId(), LocalDate.parse("2025-12-01"))
             .isEmpty());
   }
 
@@ -218,7 +224,7 @@ class StudentGroupAssignmentRepositoryIT extends FacadeIT {
     assertEquals(
         1,
         assignmentRepository
-            .findOverlapping(jean.getId(), LocalDate.parse("2026-04-20"), null)
+            .findRunningOnOrAfter(jean.getId(), LocalDate.parse("2026-04-20"))
             .size());
   }
 

@@ -58,8 +58,13 @@ public class StudentTrackChoice {
   @ToString.Exclude
   private Semester fromSemester;
 
-  @Column(name = "decided_at", nullable = false, insertable = false, updatable = false)
-  private Instant decidedAt;
+  /**
+   * Set by the application rather than left to the database default: the value is part of the
+   * payload, and a default filled in by PostgreSQL would only be visible after re-reading the row.
+   */
+  @Column(name = "decided_at", nullable = false, updatable = false)
+  @Builder.Default
+  private Instant decidedAt = Instant.now();
 
   @Column(name = "reason")
   private String reason;

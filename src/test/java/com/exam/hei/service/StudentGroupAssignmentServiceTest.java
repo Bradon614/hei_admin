@@ -79,7 +79,7 @@ class StudentGroupAssignmentServiceTest {
   private void noAssignmentYet() {
     when(assignmentRepository.findByStudentIdAndEndDateIsNull(STUDENT_ID))
         .thenReturn(Optional.empty());
-    when(assignmentRepository.findOverlapping(any(), any(), any())).thenReturn(List.of());
+    when(assignmentRepository.findRunningOnOrAfter(any(), any())).thenReturn(List.of());
   }
 
   private StudentGroupAssignment currentlyIn(Group group, LocalDate since) {
@@ -91,7 +91,7 @@ class StudentGroupAssignmentServiceTest {
             .build();
     when(assignmentRepository.findByStudentIdAndEndDateIsNull(STUDENT_ID))
         .thenReturn(Optional.of(open));
-    when(assignmentRepository.findOverlapping(any(), any(), any())).thenReturn(List.of(open));
+    when(assignmentRepository.findRunningOnOrAfter(any(), any())).thenReturn(List.of(open));
     return open;
   }
 
@@ -156,7 +156,7 @@ class StudentGroupAssignmentServiceTest {
     var k2 = group("K2", null);
     when(assignmentRepository.findByStudentIdAndEndDateIsNull(STUDENT_ID))
         .thenReturn(Optional.empty());
-    when(assignmentRepository.findOverlapping(any(), any(), any()))
+    when(assignmentRepository.findRunningOnOrAfter(any(), any()))
         .thenReturn(List.of(StudentGroupAssignment.builder().id(UUID.randomUUID()).build()));
 
     assertThrows(

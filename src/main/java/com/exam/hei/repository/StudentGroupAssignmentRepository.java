@@ -35,18 +35,17 @@ public interface StudentGroupAssignmentRepository
       @Param("studentId") UUID studentId, @Param("date") LocalDate date);
 
   /**
-   * Assignments of the student overlapping the given period, used to reject a conflicting change
-   * before the database constraint has to.
+   * Assignments of the student still running on or after the given date, used to reject a
+   * conflicting change before the database constraint has to.
+   *
+   * <p>Takes no end date: a group change always opens an unbounded period, so anything not already
+   * closed before that date overlaps it. Passing a nullable end date instead would bind an untyped
+   * null, which PostgreSQL cannot cast.
    */
-  // The end date is cast explicitly: an open ended period binds it to null, and PostgreSQL cannot
-  // infer the type of an untyped null parameter.
   @Query(
       "select a from StudentGroupAssignment a"
           + " where a.student.id = :studentId"
-          + " and (cast(:endDate as date) is null or a.startDate <= cast(:endDate as date))"
           + " and (a.endDate is null or a.endDate >= :startDate)")
-  List<StudentGroupAssignment> findOverlapping(
-      @Param("studentId") UUID studentId,
-      @Param("startDate") LocalDate startDate,
-      @Param("endDate") LocalDate endDate);
+  List<StudentGroupAssignment> findRunningOnOrAfter(
+      @Param("studentId") UUID studentId, @Param("startDate") LocalDate startDate);
 }

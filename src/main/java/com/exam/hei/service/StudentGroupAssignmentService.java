@@ -74,10 +74,12 @@ public class StudentGroupAssignmentService {
     checkStartsAfterTheCurrentAssignment(current, startDate);
     checkNoOtherAssignmentCoversThatPeriod(studentId, startDate, current);
 
+    // Flushed, not merely saved: Hibernate would otherwise order the insert of the new assignment
+    // before this update, and the exclusion constraint would see two open periods at once.
     current.ifPresent(
         open -> {
           open.setEndDate(startDate.minusDays(1));
-          assignmentRepository.save(open);
+          assignmentRepository.saveAndFlush(open);
         });
 
     return assignmentRepository.save(
@@ -162,7 +164,7 @@ public class StudentGroupAssignmentService {
   private void checkNoOtherAssignmentCoversThatPeriod(
       UUID studentId, LocalDate startDate, Optional<StudentGroupAssignment> current) {
     var conflicting =
-        assignmentRepository.findOverlapping(studentId, startDate, null).stream()
+        assignmentRepository.findRunningOnOrAfter(studentId, startDate).stream()
             .filter(
                 assignment ->
                     current.isEmpty() || !assignment.getId().equals(current.get().getId()))
