@@ -12,6 +12,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Track;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
@@ -28,17 +29,17 @@ class TrackIT extends FacadeIT {
 
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
+  @Autowired JwtService jwtService;
 
   private String apiKeyOf(Role role) {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(UUID.randomUUID() + "@hei.test")
-            .passwordHash("hash")
-            .role(role)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(UUID.randomUUID() + "@hei.test")
+                .passwordHash("hash")
+                .role(role)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {

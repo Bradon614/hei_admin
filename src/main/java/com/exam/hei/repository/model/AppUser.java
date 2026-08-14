@@ -43,7 +43,10 @@ public class AppUser {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
-  /** Unused for now: the API has no login endpoint, authentication goes through {@link #apiKey}. */
+  /**
+   * BCrypt hash checked by {@code POST /auth/login}. Never returned by any endpoint, and a hash
+   * cannot be turned back into the password it came from.
+   */
   @Column(name = "password_hash", nullable = false)
   @ToString.Exclude
   private String passwordHash;
@@ -51,11 +54,6 @@ public class AppUser {
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   private Role role;
-
-  /** Credential expected in {@code Authorization: Bearer <api_key>}. */
-  @Column(name = "api_key", nullable = false, unique = true)
-  @ToString.Exclude
-  private String apiKey;
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -57,4 +58,10 @@ public class Teacher {
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;
+
+  /**
+   * Plaintext password carried from the REST payload to {@code TeacherService}, which hashes it
+   * into the account and discards it. Never persisted, never read back.
+   */
+  @Transient @ToString.Exclude private String password;
 }

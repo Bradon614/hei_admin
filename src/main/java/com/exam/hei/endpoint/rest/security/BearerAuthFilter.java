@@ -15,14 +15,14 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Turns {@code Authorization: Bearer <api_key>} into an authenticated security context.
+ * Turns {@code Authorization: Bearer <token>} into an authenticated security context.
  *
  * <p>Deliberately not a {@code @Component}: it is wired by {@link SecurityConf} only, so that
  * Spring Boot does not also register it as a plain servlet filter and run it twice per request.
  *
  * <p>A request without the header goes through untouched, which is what keeps the public endpoints
- * reachable. A request carrying an invalid key is rejected right here rather than being treated as
- * anonymous, so a typo in a key never looks like a missing permission.
+ * reachable. A request carrying an invalid token is rejected right here rather than being treated
+ * as anonymous, so a malformed or expired token never looks like a missing permission.
  */
 @AllArgsConstructor
 public class BearerAuthFilter extends OncePerRequestFilter {
@@ -42,11 +42,10 @@ public class BearerAuthFilter extends OncePerRequestFilter {
       return;
     }
 
-    var apiKey = header.substring(BEARER_PREFIX.length()).trim();
+    var token = header.substring(BEARER_PREFIX.length()).trim();
     try {
       var authentication =
-          authenticationManager.authenticate(
-              new PreAuthenticatedAuthenticationToken(apiKey, apiKey));
+          authenticationManager.authenticate(new PreAuthenticatedAuthenticationToken(token, token));
       SecurityContextHolder.getContext().setAuthentication(authentication);
     } catch (AuthenticationException e) {
       SecurityContextHolder.clearContext();

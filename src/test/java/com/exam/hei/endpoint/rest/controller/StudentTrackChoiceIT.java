@@ -13,6 +13,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.StudentTrackChoice;
 import com.exam.hei.endpoint.rest.model.StudentTrackChoiceCreation;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.StudentRepository;
@@ -41,21 +42,21 @@ class StudentTrackChoiceIT extends FacadeIT {
   @Autowired PromotionRepository promotionRepository;
   @Autowired StudentRepository studentRepository;
   @Autowired TrackRepository trackRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String adminKey() {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(Role.ADMIN)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {
@@ -90,7 +91,6 @@ class StudentTrackChoiceIT extends FacadeIT {
                 .email(rand(12) + "@hei.test")
                 .passwordHash("hash")
                 .role(Role.STUDENT)
-                .apiKey(UUID.randomUUID().toString())
                 .build());
     return studentRepository.save(
         Student.builder()
@@ -245,7 +245,8 @@ class StudentTrackChoiceIT extends FacadeIT {
   void only_an_admin_can_record_a_choice() {
     // A student does not record their own track: it is an administrative act.
     var jean = studentOfPromotionOpening(el(), tn());
-    var jeanKey = studentRepository.findById(jean.getId()).orElseThrow().getUser().getApiKey();
+    var jeanKey =
+        jwtService.issue(studentRepository.findById(jean.getId()).orElseThrow().getUser()).token();
 
     assertEquals(403, chooseRaw(jean, el(), SemesterRef.S4, jeanKey).getStatusCode().value());
   }
@@ -256,7 +257,8 @@ class StudentTrackChoiceIT extends FacadeIT {
     var jean = studentOfPromotionOpening(el(), tn());
     var alice = studentOfPromotionOpening(el(), tn());
     choose(jean, el(), SemesterRef.S4, admin);
-    var aliceKey = studentRepository.findById(alice.getId()).orElseThrow().getUser().getApiKey();
+    var aliceKey =
+        jwtService.issue(studentRepository.findById(alice.getId()).orElseThrow().getUser()).token();
 
     var response =
         restTemplate.exchange(

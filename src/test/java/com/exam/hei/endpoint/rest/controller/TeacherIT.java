@@ -14,6 +14,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Teacher;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
@@ -31,21 +32,21 @@ class TeacherIT extends FacadeIT {
 
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String adminKey() {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(Role.ADMIN)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {
@@ -60,6 +61,7 @@ class TeacherIT extends FacadeIT {
         .firstName("Aina")
         .lastName("Randria")
         .email(rand(12) + "@hei.test")
+        .password("s3cret!!")
         .build();
   }
 
@@ -152,14 +154,14 @@ class TeacherIT extends FacadeIT {
     var body = List.of(aTeacher());
 
     for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
-      var apiKey = UUID.randomUUID().toString();
-      appUserRepository.save(
-          AppUser.builder()
-              .email(rand(12) + "@hei.test")
-              .passwordHash("hash")
-              .role(role)
-              .apiKey(apiKey)
-              .build());
+      var user =
+          appUserRepository.save(
+              AppUser.builder()
+                  .email(rand(12) + "@hei.test")
+                  .passwordHash("hash")
+                  .role(role)
+                  .build());
+      var apiKey = jwtService.issue(user).token();
 
       var response =
           restTemplate.exchange(

@@ -50,6 +50,41 @@ paths:
               schema:
                 type: string
 
+  /auth/login:
+    post:
+      tags: [ Security ]
+      summary: Exchange credentials for an access token
+      description: |
+        The only public endpoint besides the health probes: a caller cannot hold a token before
+        signing in.
+
+        The returned token is signed and self contained. Every other endpoint reads it from
+        `Authorization: Bearer <access_token>` and trusts its signature rather than looking the
+        caller up, which is what keeps the API stateless.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+      responses:
+        "200":
+          description: A token usable until it expires
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          description: |
+            Unknown email or wrong password. Deliberately the same answer for both, so that the
+            response never tells an attacker which accounts exist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /whoami:
     get:
       tags: [ Security ]
@@ -1045,6 +1080,7 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
 
   parameters:
     PathId:
@@ -1310,6 +1346,40 @@ components:
               diploma.
           example: false
 
+    Credentials:
+      type: object
+      required: [ email, password ]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jean.rakoto@hei.school
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    Token:
+      type: object
+      description: |
+        A signed JSON Web Token. It carries the user identifier, their role and an expiry date,
+        which is what lets the API authorize a request without reading the database.
+
+        Nothing revokes a token before it expires. The lifetime is therefore kept short, and a
+        deleted account keeps access until its last token runs out.
+      properties:
+        access_token:
+          type: string
+          description: "To be sent back as `Authorization: Bearer <access_token>`."
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          format: int64
+          description: Lifetime in seconds, counted from the moment the token was issued.
+          example: 43200
+
     # ==========================================================================
     # PEOPLE
     # ==========================================================================
@@ -1363,6 +1433,16 @@ components:
         email:
           type: string
           format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+          description: |
+            WRITE ONLY: accepted on creation and update, never returned by any endpoint. Only its
+            hash is stored, and a hash cannot be read back, so this field is the sole way to give
+            a student a password.
+            Leave it out when updating to keep the current password unchanged.
         birth_date:
           type: string
           format: date
@@ -1413,6 +1493,16 @@ components:
         email:
           type: string
           format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+          description: |
+            WRITE ONLY: accepted on creation and update, never returned by any endpoint. Only its
+            hash is stored, and a hash cannot be read back, so this field is the sole way to give
+            a teacher a password.
+            Leave it out when updating to keep the current password unchanged.
 
     # ==========================================================================
     # GROUP MEMBERSHIP HISTORY

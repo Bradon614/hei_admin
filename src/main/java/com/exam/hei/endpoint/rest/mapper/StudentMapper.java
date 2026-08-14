@@ -55,6 +55,7 @@ public class StudentMapper {
         .entranceDate(rest.getEntranceDate())
         .status(rest.getStatus() == null ? StudentStatus.ACTIVE : rest.getStatus())
         .promotion(promotionOf(rest))
+        .password(rest.getPassword())
         .build();
   }
 

@@ -1,7 +1,6 @@
 package com.exam.hei.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 class StudentServiceTest {
 
@@ -35,8 +35,14 @@ class StudentServiceTest {
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PromotionService promotionService = mock(PromotionService.class);
   private final StudentAuthorizer studentAuthorizer = mock(StudentAuthorizer.class);
+  private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
   private final StudentService subject =
-      new StudentService(studentRepository, appUserRepository, promotionService, studentAuthorizer);
+      new StudentService(
+          studentRepository,
+          appUserRepository,
+          promotionService,
+          studentAuthorizer,
+          passwordEncoder);
 
   private static final UUID PROMOTION_ID = UUID.randomUUID();
 
@@ -53,6 +59,7 @@ class StudentServiceTest {
         .email("jean@hei.test")
         .entranceDate(LocalDate.of(2025, 9, 1))
         .promotion(Promotion.builder().id(PROMOTION_ID).build())
+        .password("s3cret!!")
         .build();
   }
 
@@ -60,6 +67,8 @@ class StudentServiceTest {
     when(studentRepository.saveAll(any()))
         .thenAnswer(invocation -> List.copyOf(invocation.getArgument(0)));
     when(appUserRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(passwordEncoder.encode(any()))
+        .thenAnswer(invocation -> "hashed:" + invocation.getArgument(0));
   }
 
   // --- account creation -----------------------------------------------------
@@ -75,35 +84,55 @@ class StudentServiceTest {
     assertNotNull(saved.getUser());
     assertEquals(Role.STUDENT, saved.getUser().getRole());
     assertEquals("jean@hei.test", saved.getUser().getEmail());
-    assertNotNull(saved.getUser().getApiKey());
+    assertEquals("hashed:s3cret!!", saved.getUser().getPasswordHash());
   }
 
   @Test
-  void two_students_never_share_an_api_key() {
+  void a_student_cannot_be_created_without_a_password() {
     when(promotionService.findById(PROMOTION_ID)).thenReturn(promotion());
-    repositoryEchoesWhatItIsGiven();
+    var passwordless = student(null);
+    passwordless.setPassword(null);
 
-    var first = student(null);
-    var second = student(null);
-    subject.saveAll(List.of(first, second));
-
-    assertNotEquals(first.getUser().getApiKey(), second.getUser().getApiKey());
+    assertThrows(BadRequestException.class, () -> subject.saveAll(List.of(passwordless)));
   }
 
   @Test
   void updating_a_student_keeps_its_existing_account() {
     var id = UUID.randomUUID();
-    var account = AppUser.builder().id(UUID.randomUUID()).email("jean@hei.test").build();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("jean@hei.test").passwordHash("old").build();
     var existing = student(id);
     existing.setUser(account);
     when(studentRepository.findById(id)).thenReturn(Optional.of(existing));
     when(promotionService.findById(PROMOTION_ID)).thenReturn(promotion());
     repositoryEchoesWhatItIsGiven();
 
-    var saved = subject.saveAll(List.of(student(id))).get(0);
+    var updated = student(id);
+    updated.setPassword(null);
+    var saved = subject.saveAll(List.of(updated)).get(0);
 
     assertEquals(account.getId(), saved.getUser().getId());
+    assertEquals("old", saved.getUser().getPasswordHash());
     verify(appUserRepository, never()).save(any());
+  }
+
+  @Test
+  void an_updated_password_replaces_the_account_hash() {
+    var id = UUID.randomUUID();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("jean@hei.test").passwordHash("old").build();
+    var existing = student(id);
+    existing.setUser(account);
+    when(studentRepository.findById(id)).thenReturn(Optional.of(existing));
+    when(promotionService.findById(PROMOTION_ID)).thenReturn(promotion());
+    repositoryEchoesWhatItIsGiven();
+
+    var withNewPassword = student(id);
+    withNewPassword.setPassword("newPass1!");
+    subject.saveAll(List.of(withNewPassword));
+
+    assertEquals("hashed:newPass1!", account.getPasswordHash());
+    verify(appUserRepository).save(account);
   }
 
   @Test
@@ -111,7 +140,8 @@ class StudentServiceTest {
     // Profile and account both carry a unique email: letting them drift apart would be a latent
     // bug.
     var id = UUID.randomUUID();
-    var account = AppUser.builder().id(UUID.randomUUID()).email("old@hei.test").build();
+    var account =
+        AppUser.builder().id(UUID.randomUUID()).email("old@hei.test").passwordHash("old").build();
     var existing = student(id);
     existing.setUser(account);
     when(studentRepository.findById(id)).thenReturn(Optional.of(existing));
@@ -120,6 +150,7 @@ class StudentServiceTest {
 
     var renamed = student(id);
     renamed.setEmail("new@hei.test");
+    renamed.setPassword(null);
     subject.saveAll(List.of(renamed));
 
     assertEquals("new@hei.test", account.getEmail());

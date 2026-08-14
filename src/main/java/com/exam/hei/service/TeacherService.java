@@ -1,6 +1,7 @@
 package com.exam.hei.service;
 
 import com.exam.hei.model.Pagination;
+import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.TeacherRepository;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class TeacherService {
 
-  /** See the note on the student side: the column is required, the value is unusable on purpose. */
-  private static final String NO_PASSWORD = "no-password-api-key-authentication-only";
-
   private final TeacherRepository teacherRepository;
   private final AppUserRepository appUserRepository;
+  private final PasswordEncoder passwordEncoder;
 
   /**
    * @param page 1-based, as declared in doc/api.yml
@@ -51,23 +51,36 @@ public class TeacherService {
     return teacherRepository.saveAll(teachers);
   }
 
-  /** Same reasoning as for students: no account endpoint exists, so the profile creates its own. */
+  /**
+   * Same reasoning as for students: no account endpoint exists, so the profile creates its own, and
+   * only the password hash is ever stored.
+   */
   private void attachAccount(Teacher teacher) {
     if (teacher.getId() == null) {
+      if (teacher.getPassword() == null) {
+        throw new BadRequestException("A password is required to create a teacher");
+      }
       teacher.setUser(
           appUserRepository.save(
               AppUser.builder()
                   .email(teacher.getEmail())
-                  .passwordHash(NO_PASSWORD)
+                  .passwordHash(passwordEncoder.encode(teacher.getPassword()))
                   .role(Role.TEACHER)
-                  .apiKey(UUID.randomUUID().toString())
                   .build()));
       return;
     }
 
     var existing = findById(teacher.getId()).getUser();
+    var changed = false;
     if (!existing.getEmail().equals(teacher.getEmail())) {
       existing.setEmail(teacher.getEmail());
+      changed = true;
+    }
+    if (teacher.getPassword() != null) {
+      existing.setPasswordHash(passwordEncoder.encode(teacher.getPassword()));
+      changed = true;
+    }
+    if (changed) {
       appUserRepository.save(existing);
     }
     teacher.setUser(existing);

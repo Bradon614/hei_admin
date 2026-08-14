@@ -28,7 +28,6 @@ class TeacherRepositoryIT extends FacadeIT {
             .email(rand(12) + "@hei.test")
             .passwordHash("hash")
             .role(Role.TEACHER)
-            .apiKey(UUID.randomUUID().toString())
             .build());
   }
 

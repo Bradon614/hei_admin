@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.endpoint.rest.model.Error;
 import com.exam.hei.model.exception.BadRequestException;
@@ -12,6 +13,7 @@ import com.exam.hei.model.exception.ForbiddenException;
 import com.exam.hei.model.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -19,9 +21,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * Renders business failures as the {@code Error} payload of doc/api.yml.
  *
  * <p>Only the statuses the specification actually declares are mapped here. Authentication and
- * authorization failures never reach this advice: they are raised inside the security filter chain,
- * before the dispatcher servlet, and are rendered by the entry point and the access denied handler
- * of the security package.
+ * authorization failures raised while checking a bearer token never reach this advice: they happen
+ * inside the security filter chain, before the dispatcher servlet, and are rendered by the entry
+ * point and the access denied handler of the security package. {@code POST /auth/login} is the one
+ * exception: it runs as an ordinary public endpoint, so a wrong password surfaces as a plain {@link
+ * BadCredentialsException} and is rendered here like any other failure.
  */
 @RestControllerAdvice
 public class RestExceptionHandler {
@@ -52,6 +56,11 @@ public class RestExceptionHandler {
   @ExceptionHandler(ConflictException.class)
   public ResponseEntity<Error> handleConflict(ConflictException e) {
     return toError(CONFLICT, "ConflictException", e.getMessage());
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<Error> handleBadCredentials(BadCredentialsException e) {
+    return toError(UNAUTHORIZED, "UnauthorizedException", e.getMessage());
   }
 
   private ResponseEntity<Error> toError(HttpStatus status, String type, String message) {

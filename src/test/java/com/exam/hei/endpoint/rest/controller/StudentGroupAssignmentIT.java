@@ -14,6 +14,7 @@ import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.StudentGroupAssignment;
 import com.exam.hei.endpoint.rest.model.StudentGroupChange;
 import com.exam.hei.endpoint.rest.model.StudentTrackChoiceCreation;
+import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.GroupRepository;
 import com.exam.hei.repository.PromotionRepository;
@@ -46,21 +47,21 @@ class StudentGroupAssignmentIT extends FacadeIT {
   @Autowired GroupRepository groupRepository;
   @Autowired StudentRepository studentRepository;
   @Autowired TrackRepository trackRepository;
+  @Autowired JwtService jwtService;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
 
   private String adminKey() {
-    var apiKey = UUID.randomUUID().toString();
-    appUserRepository.save(
-        AppUser.builder()
-            .email(rand(12) + "@hei.test")
-            .passwordHash("hash")
-            .role(Role.ADMIN)
-            .apiKey(apiKey)
-            .build());
-    return apiKey;
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build());
+    return jwtService.issue(user).token();
   }
 
   private static HttpHeaders bearer(String apiKey) {
@@ -108,7 +109,6 @@ class StudentGroupAssignmentIT extends FacadeIT {
                 .email(rand(12) + "@hei.test")
                 .passwordHash("hash")
                 .role(Role.STUDENT)
-                .apiKey(UUID.randomUUID().toString())
                 .build());
     return studentRepository.save(
         Student.builder()
@@ -312,7 +312,8 @@ class StudentGroupAssignmentIT extends FacadeIT {
     var admin = adminKey();
     var jean = student();
     move(jean, group(null), "2025-09-01", admin);
-    var jeanKey = studentRepository.findById(jean.getId()).orElseThrow().getUser().getApiKey();
+    var jeanKey =
+        jwtService.issue(studentRepository.findById(jean.getId()).orElseThrow().getUser()).token();
 
     assertEquals(1, history(jean, jeanKey).size());
   }
@@ -321,7 +322,8 @@ class StudentGroupAssignmentIT extends FacadeIT {
   void only_an_admin_can_move_a_student() {
     // Being moved between groups is decided for a student, never by them nor by their teachers.
     var jean = student();
-    var jeanKey = studentRepository.findById(jean.getId()).orElseThrow().getUser().getApiKey();
+    var jeanKey =
+        jwtService.issue(studentRepository.findById(jean.getId()).orElseThrow().getUser()).token();
 
     assertEquals(403, moveRaw(jean, group(null), "2025-09-01", jeanKey).getStatusCode().value());
   }
@@ -332,7 +334,8 @@ class StudentGroupAssignmentIT extends FacadeIT {
     var jean = student();
     var alice = student();
     move(jean, group(null), "2025-09-01", admin);
-    var aliceKey = studentRepository.findById(alice.getId()).orElseThrow().getUser().getApiKey();
+    var aliceKey =
+        jwtService.issue(studentRepository.findById(alice.getId()).orElseThrow().getUser()).token();
 
     var response =
         restTemplate.exchange(
