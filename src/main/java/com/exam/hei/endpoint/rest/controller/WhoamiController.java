@@ -20,6 +20,9 @@ public class WhoamiController {
    */
   @GetMapping("/whoami")
   public Whoami whoami() {
-    return whoamiMapper.toRest(authenticatedResourceProvider.getAuthenticatedUser());
+    return whoamiMapper.toRest(
+        authenticatedResourceProvider.getAuthenticatedUser(),
+        authenticatedResourceProvider.getAuthenticatedStudentId().orElse(null),
+        authenticatedResourceProvider.getAuthenticatedTeacherId().orElse(null));
   }
 }

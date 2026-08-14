@@ -70,8 +70,14 @@ public class SecurityConf {
                     .permitAll()
                     // Reference and structural data is administered, never edited by students or
                     // teachers. Reading stays open to any authenticated caller.
-                    .requestMatchers(HttpMethod.PUT, "/promotions", "/tracks")
+                    .requestMatchers(
+                        HttpMethod.PUT, "/promotions", "/tracks", "/students", "/teachers")
                     .hasRole("ADMIN")
+                    // Browsing the whole student body is not a student's business. Reading one
+                    // record is handled by StudentAuthorizer, which compares caller to resource and
+                    // therefore cannot be expressed here.
+                    .requestMatchers(HttpMethod.GET, "/students")
+                    .hasAnyRole("ADMIN", "TEACHER")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(
