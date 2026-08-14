@@ -171,11 +171,11 @@ class StudentServiceTest {
   // --- listing --------------------------------------------------------------
 
   @Test
-  void listing_without_a_promotion_filter_returns_every_student() {
+  void listing_without_any_filter_returns_every_student() {
     when(studentRepository.findAll(any(Pageable.class)))
         .thenReturn(Page.empty(PageRequest.of(0, 50)));
 
-    subject.findAll(1, 50, null);
+    subject.findAll(1, 50, null, null, null, null);
 
     verify(studentRepository).findAll(any(Pageable.class));
     verify(studentRepository, never()).findAllByPromotionId(any(), any());
@@ -186,16 +186,64 @@ class StudentServiceTest {
     when(studentRepository.findAllByPromotionId(eq(PROMOTION_ID), any(Pageable.class)))
         .thenReturn(Page.empty(PageRequest.of(0, 50)));
 
-    subject.findAll(1, 50, PROMOTION_ID);
+    subject.findAll(1, 50, PROMOTION_ID, null, null, null);
 
     verify(studentRepository).findAllByPromotionId(eq(PROMOTION_ID), any(Pageable.class));
     verify(studentRepository, never()).findAll(any(Pageable.class));
   }
 
   @Test
+  void listing_by_group_looks_at_a_date() {
+    var groupId = UUID.randomUUID();
+    var date = LocalDate.of(2025, 10, 1);
+    when(studentRepository.findAllInGroupAt(eq(groupId), eq(date), any(Pageable.class)))
+        .thenReturn(Page.empty(PageRequest.of(0, 50)));
+
+    subject.findAll(1, 50, null, groupId, date, null);
+
+    verify(studentRepository).findAllInGroupAt(eq(groupId), eq(date), any(Pageable.class));
+  }
+
+  @Test
+  void listing_by_group_without_a_date_looks_at_today() {
+    var groupId = UUID.randomUUID();
+    when(studentRepository.findAllInGroupAt(eq(groupId), eq(LocalDate.now()), any(Pageable.class)))
+        .thenReturn(Page.empty(PageRequest.of(0, 50)));
+
+    subject.findAll(1, 50, null, groupId, null, null);
+
+    verify(studentRepository)
+        .findAllInGroupAt(eq(groupId), eq(LocalDate.now()), any(Pageable.class));
+  }
+
+  @Test
+  void listing_by_track_narrows_the_query() {
+    when(studentRepository.findAllFollowingTrack(eq("EL"), any(Pageable.class)))
+        .thenReturn(Page.empty(PageRequest.of(0, 50)));
+
+    subject.findAll(1, 50, null, null, null, "EL");
+
+    verify(studentRepository).findAllFollowingTrack(eq("EL"), any(Pageable.class));
+  }
+
+  @Test
+  void the_group_filter_takes_precedence_over_the_others() {
+    // Documented precedence: group, then track, then promotion. Combining them is not required.
+    var groupId = UUID.randomUUID();
+    when(studentRepository.findAllInGroupAt(any(), any(), any(Pageable.class)))
+        .thenReturn(Page.empty(PageRequest.of(0, 50)));
+
+    subject.findAll(1, 50, PROMOTION_ID, groupId, null, "EL");
+
+    verify(studentRepository).findAllInGroupAt(eq(groupId), any(), any(Pageable.class));
+    verify(studentRepository, never()).findAllFollowingTrack(any(), any());
+    verify(studentRepository, never()).findAllByPromotionId(any(), any());
+  }
+
+  @Test
   void an_invalid_page_is_a_bad_request() {
-    assertThrows(BadRequestException.class, () -> subject.findAll(0, 50, null));
-    assertThrows(BadRequestException.class, () -> subject.findAll(1, 0, null));
-    assertThrows(BadRequestException.class, () -> subject.findAll(1, 501, null));
+    assertThrows(BadRequestException.class, () -> subject.findAll(0, 50, null, null, null, null));
+    assertThrows(BadRequestException.class, () -> subject.findAll(1, 0, null, null, null, null));
+    assertThrows(BadRequestException.class, () -> subject.findAll(1, 501, null, null, null, null));
   }
 }

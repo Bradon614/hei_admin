@@ -17,10 +17,16 @@ import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.endpoint.rest.model.Promotion;
 import com.exam.hei.endpoint.rest.model.Student;
 import com.exam.hei.repository.AppUserRepository;
+import com.exam.hei.repository.GroupRepository;
 import com.exam.hei.repository.PromotionRepository;
+import com.exam.hei.repository.SemesterRepository;
+import com.exam.hei.repository.StudentGroupAssignmentRepository;
 import com.exam.hei.repository.StudentRepository;
+import com.exam.hei.repository.StudentTrackChoiceRepository;
+import com.exam.hei.repository.TrackRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
+import com.exam.hei.repository.model.SemesterRef;
 import com.exam.hei.repository.model.StudentStatus;
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +45,11 @@ class StudentIT extends FacadeIT {
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired StudentRepository studentRepository;
+  @Autowired GroupRepository groupRepository;
+  @Autowired TrackRepository trackRepository;
+  @Autowired SemesterRepository semesterRepository;
+  @Autowired StudentGroupAssignmentRepository assignmentRepository;
+  @Autowired StudentTrackChoiceRepository trackChoiceRepository;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
@@ -340,5 +351,145 @@ class StudentIT extends FacadeIT {
             Student.class);
 
     assertEquals(OK, response.getStatusCode());
+  }
+
+  // --- computed fields ------------------------------------------------------
+
+  private com.exam.hei.repository.model.Group persistedGroup(
+      UUID promotionId, com.exam.hei.repository.model.Track track) {
+    return groupRepository.save(
+        com.exam.hei.repository.model.Group.builder()
+            .ref(rand(10))
+            .promotion(promotionRepository.findById(promotionId).orElseThrow())
+            .track(track)
+            .build());
+  }
+
+  private void assignTo(Student student, com.exam.hei.repository.model.Group group, String from) {
+    assignmentRepository.save(
+        com.exam.hei.repository.model.StudentGroupAssignment.builder()
+            .student(studentRepository.findById(student.getId()).orElseThrow())
+            .group(group)
+            .startDate(LocalDate.parse(from))
+            .build());
+  }
+
+  private void makeFollow(Student student, com.exam.hei.repository.model.Track track) {
+    trackChoiceRepository.save(
+        com.exam.hei.repository.model.StudentTrackChoice.builder()
+            .student(studentRepository.findById(student.getId()).orElseThrow())
+            .track(track)
+            .fromSemester(semesterRepository.findByRef(SemesterRef.S4).orElseThrow())
+            .build());
+  }
+
+  @Test
+  void a_student_exposes_the_group_they_currently_belong_to() {
+    var admin = adminKey();
+    var promotionId = persistedPromotionId();
+    var student = created(admin, promotionId);
+    var k1 = persistedGroup(promotionId, null);
+    assignTo(student, k1, "2025-09-01");
+
+    var found =
+        restTemplate
+            .exchange(
+                "/students/" + student.getId(), GET, new HttpEntity<>(bearer(admin)), Student.class)
+            .getBody();
+
+    assertEquals(k1.getId(), found.getCurrentGroup().getId());
+  }
+
+  @Test
+  void a_student_still_in_the_common_core_exposes_no_track() {
+    var admin = adminKey();
+    var student = created(admin, persistedPromotionId());
+
+    var found =
+        restTemplate
+            .exchange(
+                "/students/" + student.getId(), GET, new HttpEntity<>(bearer(admin)), Student.class)
+            .getBody();
+
+    assertNull(found.getCurrentTrack());
+    assertNull(found.getCurrentGroup());
+  }
+
+  @Test
+  void a_student_exposes_the_track_they_follow() {
+    var admin = adminKey();
+    var student = created(admin, persistedPromotionId());
+    makeFollow(student, trackRepository.findByCode("EL").orElseThrow());
+
+    var found =
+        restTemplate
+            .exchange(
+                "/students/" + student.getId(), GET, new HttpEntity<>(bearer(admin)), Student.class)
+            .getBody();
+
+    assertEquals("EL", found.getCurrentTrack().getCode());
+  }
+
+  // --- filters --------------------------------------------------------------
+
+  @Test
+  void students_can_be_filtered_by_the_group_they_were_in_on_a_date() {
+    var admin = adminKey();
+    var promotionId = persistedPromotionId();
+    var jean = created(admin, promotionId);
+    var alice = created(admin, promotionId);
+    var k1 = persistedGroup(promotionId, null);
+    assignTo(jean, k1, "2025-09-01");
+    assignTo(alice, persistedGroup(promotionId, null), "2025-09-01");
+
+    var inK1 =
+        restTemplate.exchange(
+            "/students?group_id=" + k1.getId() + "&at=2025-10-01",
+            GET,
+            new HttpEntity<>(bearer(admin)),
+            new ParameterizedTypeReference<List<Student>>() {});
+
+    assertEquals(1, inK1.getBody().size());
+    assertEquals(jean.getId(), inK1.getBody().get(0).getId());
+  }
+
+  @Test
+  void a_date_before_the_assignment_returns_nobody() {
+    var admin = adminKey();
+    var promotionId = persistedPromotionId();
+    var jean = created(admin, promotionId);
+    var k1 = persistedGroup(promotionId, null);
+    assignTo(jean, k1, "2025-09-01");
+
+    var before =
+        restTemplate.exchange(
+            "/students?group_id=" + k1.getId() + "&at=2025-01-01",
+            GET,
+            new HttpEntity<>(bearer(admin)),
+            new ParameterizedTypeReference<List<Student>>() {});
+
+    assertTrue(before.getBody().isEmpty());
+  }
+
+  @Test
+  void students_can_be_filtered_by_the_track_they_follow() {
+    var admin = adminKey();
+    var promotionId = persistedPromotionId();
+    var jean = created(admin, promotionId);
+    created(admin, promotionId);
+    makeFollow(jean, trackRepository.findByCode("EL").orElseThrow());
+
+    var followingEl =
+        restTemplate.exchange(
+            "/students?track_code=EL&page_size=500",
+            GET,
+            new HttpEntity<>(bearer(admin)),
+            new ParameterizedTypeReference<List<Student>>() {});
+
+    assertTrue(
+        followingEl.getBody().stream().anyMatch(s -> s.getId().equals(jean.getId())),
+        "expected Jean among the EL students");
+    assertTrue(
+        followingEl.getBody().stream().allMatch(s -> "EL".equals(s.getCurrentTrack().getCode())));
   }
 }

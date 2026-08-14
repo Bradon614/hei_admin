@@ -18,8 +18,17 @@ import org.springframework.stereotype.Component;
 public class StudentMapper {
 
   private final PromotionMapper promotionMapper;
+  private final TrackMapper trackMapper;
+  private final GroupMapper groupMapper;
 
-  public Student toRest(com.exam.hei.repository.model.Student domain) {
+  /**
+   * @param currentTrack null while the student is still in the common core
+   * @param currentGroup null while the student has never been assigned a group
+   */
+  public Student toRest(
+      com.exam.hei.repository.model.Student domain,
+      com.exam.hei.repository.model.Track currentTrack,
+      com.exam.hei.repository.model.Group currentGroup) {
     return Student.builder()
         .id(domain.getId())
         .ref(domain.getRef())
@@ -30,6 +39,8 @@ public class StudentMapper {
         .entranceDate(domain.getEntranceDate())
         .status(domain.getStatus())
         .promotion(promotionMapper.toRest(domain.getPromotion()))
+        .currentTrack(currentTrack == null ? null : trackMapper.toRest(currentTrack))
+        .currentGroup(currentGroup == null ? null : groupMapper.toRest(currentGroup))
         .build();
   }
 

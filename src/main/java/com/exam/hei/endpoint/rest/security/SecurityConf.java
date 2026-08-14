@@ -71,7 +71,19 @@ public class SecurityConf {
                     // Reference and structural data is administered, never edited by students or
                     // teachers. Reading stays open to any authenticated caller.
                     .requestMatchers(
-                        HttpMethod.PUT, "/promotions", "/tracks", "/students", "/teachers")
+                        HttpMethod.PUT,
+                        "/promotions",
+                        "/tracks",
+                        "/students",
+                        "/teachers",
+                        "/promotions/*/groups")
+                    .hasRole("ADMIN")
+                    // Moving a student between groups and recording the track they follow are
+                    // administrative acts: neither the student nor their teachers decide them.
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/students/*/group-assignments",
+                        "/students/*/track-choices")
                     .hasRole("ADMIN")
                     // Browsing the whole student body is not a student's business. Reading one
                     // record is handled by StudentAuthorizer, which compares caller to resource and
