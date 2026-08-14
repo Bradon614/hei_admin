@@ -28,6 +28,16 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
   @Query("select c from Course c where c.track is null or c.track.code = :trackCode")
   Page<Course> findAllFollowedByTrack(@Param("trackCode") String trackCode, Pageable pageable);
 
+  /** Both filters at once: the courses of a semester that a student of that track follows. */
+  @Query(
+      "select c from Course c"
+          + " where c.semester.ref = :semesterRef"
+          + " and (c.track is null or c.track.code = :trackCode)")
+  Page<Course> findAllOfSemesterFollowedByTrackCode(
+      @Param("semesterRef") SemesterRef semesterRef,
+      @Param("trackCode") String trackCode,
+      Pageable pageable);
+
   /** Courses of a semester that a student of that track follows. */
   @Query(
       "select c from Course c"
