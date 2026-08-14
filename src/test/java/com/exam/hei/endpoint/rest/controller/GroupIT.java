@@ -201,6 +201,29 @@ class GroupIT extends FacadeIT {
   }
 
   @Test
+  void only_an_admin_can_write_groups() {
+    var promotionId = promotionOpening();
+
+    for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
+      var apiKey = UUID.randomUUID().toString();
+      appUserRepository.save(
+          AppUser.builder()
+              .email(rand(12) + "@hei.test")
+              .passwordHash("hash")
+              .role(role)
+              .apiKey(apiKey)
+              .build());
+
+      assertEquals(
+          403,
+          putRaw(promotionId, List.of(Group.builder().ref("K1").build()), apiKey)
+              .getStatusCode()
+              .value(),
+          "role " + role);
+    }
+  }
+
+  @Test
   void groups_are_serialized_in_snake_case() {
     var admin = adminKey();
     var promotionId = promotionOpening();

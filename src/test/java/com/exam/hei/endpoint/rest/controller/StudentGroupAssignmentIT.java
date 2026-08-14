@@ -318,6 +318,15 @@ class StudentGroupAssignmentIT extends FacadeIT {
   }
 
   @Test
+  void only_an_admin_can_move_a_student() {
+    // Being moved between groups is decided for a student, never by them nor by their teachers.
+    var jean = student();
+    var jeanKey = studentRepository.findById(jean.getId()).orElseThrow().getUser().getApiKey();
+
+    assertEquals(403, moveRaw(jean, group(null), "2025-09-01", jeanKey).getStatusCode().value());
+  }
+
+  @Test
   void a_student_cannot_read_the_history_of_another_student() {
     var admin = adminKey();
     var jean = student();

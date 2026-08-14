@@ -242,6 +242,15 @@ class StudentTrackChoiceIT extends FacadeIT {
   }
 
   @Test
+  void only_an_admin_can_record_a_choice() {
+    // A student does not record their own track: it is an administrative act.
+    var jean = studentOfPromotionOpening(el(), tn());
+    var jeanKey = studentRepository.findById(jean.getId()).orElseThrow().getUser().getApiKey();
+
+    assertEquals(403, chooseRaw(jean, el(), SemesterRef.S4, jeanKey).getStatusCode().value());
+  }
+
+  @Test
   void a_student_cannot_read_the_choices_of_another_student() {
     var admin = adminKey();
     var jean = studentOfPromotionOpening(el(), tn());
