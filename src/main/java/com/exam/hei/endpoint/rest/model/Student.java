@@ -45,13 +45,13 @@ public class Student {
   private Promotion promotion;
 
   /**
-   * Track applying to the last semester, computed and never stored.
+   * Track the student ends the curriculum in, computed and never stored.
    *
-   * <p>Always null for now: a track comes from a track choice, which is introduced by its own
-   * feature.
-   *
-   * <p>The {@code current_group} field of doc/api.yml is not exposed yet either: it is computed
-   * from the group assignment history, which the group feature brings.
+   * <p>Null while they are still in the common core. Never to be used to work out which courses
+   * apply to them: that depends on the semester and is resolved through their track choices.
    */
   private Track currentTrack;
+
+  /** Group the student belongs to right now, computed from the assignment left open. */
+  private Group currentGroup;
 }
