@@ -94,8 +94,10 @@ public class SecurityConf {
                     .hasRole("ADMIN")
                     // An exam belongs to a course, and a course is taught by whichever teachers a
                     // teaching assignment names for it: TeacherAuthorizer compares caller to that
-                    // assignment, which the filter chain cannot express.
-                    .requestMatchers(HttpMethod.PUT, "/courses/*/exams")
+                    // assignment, which the filter chain cannot express. Grades follow the same
+                    // rule, one level down: an exam's grades are only ever written by whoever could
+                    // already write that exam.
+                    .requestMatchers(HttpMethod.PUT, "/courses/*/exams", "/exams/*/grades")
                     .hasAnyRole("ADMIN", "TEACHER")
                     // Moving a student between groups and recording the track they follow are
                     // administrative acts: neither the student nor their teachers decide them.
