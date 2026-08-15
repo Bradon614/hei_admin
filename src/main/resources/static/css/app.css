@@ -1,0 +1,158 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --border: #dfe3e8;
+  --text: #1c2430;
+  --muted: #66717f;
+  --accent: #1f5f8b;
+  --error: #b3261e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2rem 1rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.subtitle,
+.empty {
+  color: var(--muted);
+}
+
+.card {
+  max-width: 22rem;
+  margin: 3rem auto;
+  padding: 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+label {
+  display: block;
+  margin: 1rem 0 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+button,
+.download {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.error {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.75rem;
+  color: var(--error);
+  background: #fdecea;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.picker {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.picker label {
+  margin: 0 0 0.35rem;
+}
+
+.picker > div,
+.picker select {
+  flex: 1;
+}
+
+.picker button {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.toolbar .download {
+  margin-top: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: #fafbfc;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}

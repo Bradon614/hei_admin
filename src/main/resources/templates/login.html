@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="card">
+  <h1>HEI admin</h1>
+  <p class="subtitle">Sign in to reach the graduate lists.</p>
+
+  <p class="error" th:if="${error}" th:text="${error}">Invalid email or password</p>
+
+  <form method="post" th:action="@{/ui/login}">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required autofocus>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit">Sign in</button>
+  </form>
+</main>
+</body>
+</html>

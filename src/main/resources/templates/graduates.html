@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graduates — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="page">
+  <h1>Graduates</h1>
+
+  <form method="get" th:action="@{/ui/graduates}" class="picker">
+    <label for="promotion_id">Promotion</label>
+    <select id="promotion_id" name="promotion_id">
+      <option value="">Choose a promotion…</option>
+      <option th:each="p : ${promotions}"
+              th:value="${p.id}"
+              th:text="${p.ref + ' — ' + p.name}"
+              th:selected="${promotion != null and p.id == promotion.id}">K22 — Promotion</option>
+    </select>
+    <button type="submit">Show</button>
+  </form>
+
+  <p class="empty" th:if="${promotion == null}">
+    Pick a promotion to see who graduated.
+  </p>
+
+  <div th:if="${promotion != null}">
+    <div class="toolbar">
+      <h2 th:text="${promotion.ref + ' — ' + promotion.name}">K22 — Promotion</h2>
+      <!-- Plain link, not fetch(): the SameSite=Strict cookie rides along on a same-site
+           navigation, so the browser downloads the file with no script involved. -->
+      <a class="download"
+         th:href="@{'/promotions/' + ${promotion.id} + '/graduates/excel'}">
+        Download graduates
+      </a>
+    </div>
+
+    <p class="empty" th:if="${#lists.isEmpty(graduates)}">
+      No student of this promotion has graduated yet.
+    </p>
+
+    <table th:unless="${#lists.isEmpty(graduates)}">
+      <thead>
+      <tr>
+        <th>Rank</th>
+        <th>STD</th>
+        <th>Last name</th>
+        <th>First name</th>
+        <th>General average</th>
+        <th>Track</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="graduate : ${graduates}">
+        <td th:text="${graduate.rank}">1</td>
+        <td th:text="${graduate.std}">STD22045</td>
+        <td th:text="${graduate.lastName}">Rakoto</td>
+        <td th:text="${graduate.firstName}">Jean</td>
+        <td th:text="${graduate.generalAverage}">15.42</td>
+        <td th:text="${graduate.track != null ? graduate.track.code : ''}">EL</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
