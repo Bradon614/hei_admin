@@ -116,7 +116,10 @@ public class SecurityConf {
                     // optional here: GraduateService reuses ResultService#resultsOfPromotion, which
                     // performs no per-student check, so this is the only gate either endpoint has.
                     .requestMatchers(
-                        HttpMethod.GET, "/promotions/*/results", "/promotions/*/graduates")
+                        HttpMethod.GET,
+                        "/promotions/*/results",
+                        "/promotions/*/graduates",
+                        "/promotions/*/graduates/excel")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
