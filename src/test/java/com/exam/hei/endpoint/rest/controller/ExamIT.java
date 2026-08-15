@@ -15,11 +15,19 @@ import com.exam.hei.endpoint.rest.model.Exam;
 import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.CourseRepository;
+import com.exam.hei.repository.GroupRepository;
+import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.SemesterRepository;
+import com.exam.hei.repository.TeacherRepository;
+import com.exam.hei.repository.TeachingAssignmentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Course;
+import com.exam.hei.repository.model.Group;
+import com.exam.hei.repository.model.Promotion;
 import com.exam.hei.repository.model.Role;
 import com.exam.hei.repository.model.SemesterRef;
+import com.exam.hei.repository.model.Teacher;
+import com.exam.hei.repository.model.TeachingAssignment;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -38,6 +46,10 @@ class ExamIT extends FacadeIT {
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
   @Autowired SemesterRepository semesterRepository;
+  @Autowired TeacherRepository teacherRepository;
+  @Autowired GroupRepository groupRepository;
+  @Autowired PromotionRepository promotionRepository;
+  @Autowired TeachingAssignmentRepository teachingAssignmentRepository;
   @Autowired JwtService jwtService;
 
   private static String rand(int length) {
@@ -71,6 +83,45 @@ class ExamIT extends FacadeIT {
             .credits(6)
             .semester(semesterRepository.findByRef(SemesterRef.S1).orElseThrow())
             .build());
+  }
+
+  private record TeacherAccount(Teacher teacher, String token) {}
+
+  private TeacherAccount teacherAccount() {
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash("hash")
+                .role(Role.TEACHER)
+                .build());
+    var teacher =
+        teacherRepository.save(
+            Teacher.builder()
+                .ref(rand(20))
+                .firstName("Aina")
+                .lastName("Randria")
+                .email(rand(12) + "@hei.test")
+                .user(user)
+                .build());
+    return new TeacherAccount(teacher, jwtService.issue(user).token());
+  }
+
+  private Group group() {
+    var promotion =
+        promotionRepository.save(
+            Promotion.builder()
+                .ref(rand(5))
+                .name("Promotion under test")
+                .startYear(2025)
+                .endYear(2028)
+                .build());
+    return groupRepository.save(Group.builder().ref(rand(10)).promotion(promotion).build());
+  }
+
+  private void assign(Course course, Teacher teacher, Group group) {
+    teachingAssignmentRepository.save(
+        TeachingAssignment.builder().course(course).teacher(teacher).group(group).build());
   }
 
   private static Exam anExam(String title, String coefficient, String date) {
@@ -175,18 +226,42 @@ class ExamIT extends FacadeIT {
   }
 
   @Test
-  void only_an_admin_can_write_exams() {
-    // Widened to the teachers assigned to the course once teaching assignments exist.
-    var course = course();
+  void a_student_cannot_write_exams() {
+    assertEquals(
+        403,
+        putRaw(
+                course(),
+                List.of(anExam("Final", "2.00", "2026-01-15T08:00:00Z")),
+                keyOf(Role.STUDENT))
+            .getStatusCode()
+            .value());
+  }
 
-    for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
-      assertEquals(
-          403,
-          putRaw(course, List.of(anExam("Final", "2.00", "2026-01-15T08:00:00Z")), keyOf(role))
-              .getStatusCode()
-              .value(),
-          "role " + role);
-    }
+  @Test
+  void an_assigned_teacher_can_write_the_exams_of_their_course() {
+    var course = course();
+    var teacher = teacherAccount();
+    assign(course, teacher.teacher(), group());
+
+    var response =
+        put(course, List.of(anExam("Final", "2.00", "2026-01-15T08:00:00Z")), teacher.token());
+
+    assertEquals(OK, response.getStatusCode());
+    assertEquals("Final", response.getBody().get(0).getTitle());
+  }
+
+  @Test
+  void an_unassigned_teacher_cannot_write_the_exams_of_a_course() {
+    // No teaching assignment names this teacher for that course: the specification allows an
+    // assigned teacher to write exams, not every teacher.
+    var course = course();
+    var teacher = teacherAccount();
+
+    assertEquals(
+        403,
+        putRaw(course, List.of(anExam("Final", "2.00", "2026-01-15T08:00:00Z")), teacher.token())
+            .getStatusCode()
+            .value());
   }
 
   @Test
