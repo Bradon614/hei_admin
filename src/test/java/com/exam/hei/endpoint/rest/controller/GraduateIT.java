@@ -9,6 +9,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.endpoint.rest.model.GradeChange;
 import com.exam.hei.endpoint.rest.model.Graduate;
 import com.exam.hei.endpoint.rest.security.JwtService;
@@ -75,7 +76,7 @@ class GraduateIT extends FacadeIT {
   private Promotion promotion() {
     return promotionRepository.save(
         Promotion.builder()
-            .ref(rand(5))
+            .ref(TestRefs.promotionRef())
             .name("Promotion under test")
             .startYear(2025)
             .endYear(2028)

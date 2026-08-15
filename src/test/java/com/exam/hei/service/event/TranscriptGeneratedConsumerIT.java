@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.endpoint.event.consumer.EventServiceInvoker;
 import com.exam.hei.endpoint.event.consumer.model.TypedEvent;
 import com.exam.hei.endpoint.event.model.TranscriptGenerated;
@@ -80,7 +81,7 @@ class TranscriptGeneratedConsumerIT extends FacadeIT {
     var promotion =
         promotionRepository.save(
             Promotion.builder()
-                .ref(rand(5))
+                .ref(TestRefs.promotionRef())
                 .name("Promotion under test")
                 .startYear(2025)
                 .endYear(2028)

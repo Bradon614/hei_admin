@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Course;
 import com.exam.hei.repository.model.Group;
@@ -65,7 +66,7 @@ class TeachingAssignmentRepositoryIT extends FacadeIT {
     var promotion =
         promotionRepository.save(
             Promotion.builder()
-                .ref(rand(5))
+                .ref(TestRefs.promotionRef())
                 .name("Promotion under test")
                 .startYear(2025)
                 .endYear(2028)

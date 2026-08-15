@@ -7,6 +7,7 @@ import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.endpoint.rest.model.Grade;
 import com.exam.hei.endpoint.rest.model.GradeChange;
 import com.exam.hei.endpoint.rest.security.JwtService;
@@ -115,7 +116,7 @@ class GradesSurviveGroupChangeIT extends FacadeIT {
     var promotion =
         promotionRepository.save(
             Promotion.builder()
-                .ref(rand(5))
+                .ref(TestRefs.promotionRef())
                 .name("Promotion under test")
                 .startYear(2025)
                 .endYear(2028)
