@@ -111,9 +111,12 @@ public class SecurityConf {
                     // therefore cannot be expressed here.
                     .requestMatchers(HttpMethod.GET, "/students")
                     .hasAnyRole("ADMIN", "TEACHER")
-                    // A promotion-wide result listing is an administrative view; a single student's
-                    // own result is handled by StudentAuthorizer instead.
-                    .requestMatchers(HttpMethod.GET, "/promotions/*/results")
+                    // A promotion-wide result or graduate listing is an administrative view; a
+                    // single student's own result is handled by StudentAuthorizer instead. Not
+                    // optional here: GraduateService reuses ResultService#resultsOfPromotion, which
+                    // performs no per-student check, so this is the only gate either endpoint has.
+                    .requestMatchers(
+                        HttpMethod.GET, "/promotions/*/results", "/promotions/*/graduates")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
