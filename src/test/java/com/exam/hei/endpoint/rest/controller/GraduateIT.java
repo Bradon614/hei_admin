@@ -29,11 +29,13 @@ import com.exam.hei.repository.model.Role;
 import com.exam.hei.repository.model.SemesterRef;
 import com.exam.hei.repository.model.Student;
 import com.exam.hei.repository.model.StudentTrackChoice;
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -175,6 +177,14 @@ class GraduateIT extends FacadeIT {
         String.class);
   }
 
+  private ResponseEntity<byte[]> excel(Promotion promotion, String token) {
+    return restTemplate.exchange(
+        "/promotions/" + promotion.getId() + "/graduates/excel",
+        GET,
+        new HttpEntity<>(bearer(token)),
+        byte[].class);
+  }
+
   @Test
   void only_an_admin_reads_the_graduate_list() {
     var promotion = promotion();
@@ -245,5 +255,82 @@ class GraduateIT extends FacadeIT {
 
     assertTrue(raw.contains("\"general_average\""), "body was " + raw);
     assertTrue(raw.contains("\"track_code\""), "body was " + raw);
+  }
+
+  // --- Excel export -----------------------------------------------------------
+
+  @Test
+  void only_an_admin_downloads_the_graduate_excel_file() {
+    var promotion = promotion();
+
+    for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
+      assertEquals(
+          403,
+          restTemplate
+              .exchange(
+                  "/promotions/" + promotion.getId() + "/graduates/excel",
+                  GET,
+                  new HttpEntity<>(bearer(tokenFor(role))),
+                  String.class)
+              .getStatusCode()
+              .value(),
+          "role " + role);
+    }
+  }
+
+  @Test
+  void downloading_the_excel_of_an_unknown_promotion_is_not_found() {
+    var admin = tokenFor(Role.ADMIN);
+
+    assertEquals(
+        NOT_FOUND,
+        restTemplate
+            .exchange(
+                "/promotions/" + UUID.randomUUID() + "/graduates/excel",
+                GET,
+                new HttpEntity<>(bearer(admin)),
+                String.class)
+            .getStatusCode());
+  }
+
+  @Test
+  void the_excel_file_names_itself_after_the_promotion_and_the_correct_content_type() {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    graduate(student(promotion, "Rakoto", "Jean"), "14.00", admin);
+
+    var response = excel(promotion, admin);
+
+    assertEquals(OK, response.getStatusCode());
+    assertEquals(
+        "attachment; filename=\"graduates-" + promotion.getRef() + ".xlsx\"",
+        response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+    assertEquals(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        response.getHeaders().getContentType().toString());
+  }
+
+  @Test
+  void the_downloaded_file_carries_the_same_data_as_the_json_listing() throws Exception {
+    // Compared against the JSON response rather than a literal: courses are never scoped to a
+    // promotion, so the general average of a semester also reflects whichever other courses other
+    // tests created there, each counting as a missed exam. Only the JSON listing knows the true
+    // value for this run.
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    graduate(student(promotion, "Rakoto", "Jean"), "14.00", admin);
+    var expected = graduates(promotion, admin).getBody().get(0);
+
+    var bytes = excel(promotion, admin).getBody();
+
+    try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+      var row = workbook.getSheetAt(0).getRow(1);
+      assertEquals("Rakoto", row.getCell(2).getStringCellValue());
+      assertEquals(
+          0,
+          expected
+              .getGeneralAverage()
+              .compareTo(BigDecimal.valueOf(row.getCell(4).getNumericCellValue())));
+    }
   }
 }
