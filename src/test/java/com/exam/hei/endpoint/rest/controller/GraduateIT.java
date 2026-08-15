@@ -312,16 +312,25 @@ class GraduateIT extends FacadeIT {
 
   @Test
   void the_downloaded_file_carries_the_same_data_as_the_json_listing() throws Exception {
+    // Compared against the JSON response rather than a literal: courses are never scoped to a
+    // promotion, so the general average of a semester also reflects whichever other courses other
+    // tests created there, each counting as a missed exam. Only the JSON listing knows the true
+    // value for this run.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     graduate(student(promotion, "Rakoto", "Jean"), "14.00", admin);
+    var expected = graduates(promotion, admin).getBody().get(0);
 
     var bytes = excel(promotion, admin).getBody();
 
     try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
       var row = workbook.getSheetAt(0).getRow(1);
       assertEquals("Rakoto", row.getCell(2).getStringCellValue());
-      assertEquals(14.00, row.getCell(4).getNumericCellValue());
+      assertEquals(
+          0,
+          expected
+              .getGeneralAverage()
+              .compareTo(BigDecimal.valueOf(row.getCell(4).getNumericCellValue())));
     }
   }
 }
