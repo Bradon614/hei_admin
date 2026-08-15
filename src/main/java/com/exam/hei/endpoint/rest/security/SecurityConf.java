@@ -111,6 +111,10 @@ public class SecurityConf {
                     // therefore cannot be expressed here.
                     .requestMatchers(HttpMethod.GET, "/students")
                     .hasAnyRole("ADMIN", "TEACHER")
+                    // A promotion-wide result listing is an administrative view; a single student's
+                    // own result is handled by StudentAuthorizer instead.
+                    .requestMatchers(HttpMethod.GET, "/promotions/*/results")
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(
