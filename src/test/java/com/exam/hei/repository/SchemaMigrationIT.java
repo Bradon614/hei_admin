@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ class SchemaMigrationIT extends FacadeIT {
     return jdbcTemplate.queryForObject(
         "insert into promotion (ref, name, start_year, end_year) values (?, ?, ?, ?) returning id",
         UUID.class,
-        rand(5),
+        TestRefs.promotionRef(),
         "Promotion under test",
         startYear,
         endYear);

@@ -11,6 +11,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.endpoint.rest.model.Exam;
 import com.exam.hei.endpoint.rest.security.JwtService;
 import com.exam.hei.repository.AppUserRepository;
@@ -111,7 +112,7 @@ class ExamIT extends FacadeIT {
     var promotion =
         promotionRepository.save(
             Promotion.builder()
-                .ref(rand(5))
+                .ref(TestRefs.promotionRef())
                 .name("Promotion under test")
                 .startYear(2025)
                 .endYear(2028)

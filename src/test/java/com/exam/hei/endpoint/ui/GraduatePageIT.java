@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpMethod.PUT;
 
 import com.exam.hei.conf.FacadeIT;
+import com.exam.hei.conf.TestRefs;
 import com.exam.hei.endpoint.rest.model.GradeChange;
 import com.exam.hei.endpoint.rest.security.BearerAuthFilter;
 import com.exam.hei.endpoint.rest.security.JwtService;
@@ -77,7 +78,7 @@ class GraduatePageIT extends FacadeIT {
   private Promotion promotion() {
     return promotionRepository.save(
         Promotion.builder()
-            .ref(rand(5))
+            .ref(TestRefs.promotionRef())
             .name("Promotion under test")
             .startYear(2025)
             .endYear(2028)
