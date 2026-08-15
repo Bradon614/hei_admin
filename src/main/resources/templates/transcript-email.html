@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Your academic transcript</title>
+</head>
+<body style="margin:0;padding:24px;font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#1c2430;background:#f6f7f9;">
+<div style="max-width:520px;margin:0 auto;padding:24px;background:#ffffff;border:1px solid #dfe3e8;border-radius:10px;">
+
+  <p style="margin:0 0 4px;font-size:18px;font-weight:bold;">HEI</p>
+  <p style="margin:0 0 20px;color:#66717f;">Academic transcript</p>
+
+  <p style="margin:0 0 12px;">
+    Hello <span th:text="${firstName}">Jean</span>,
+  </p>
+
+  <p style="margin:0 0 12px;" th:if="${scope == null}">
+    Your transcript for the whole curriculum, S1 to S6, is ready.
+  </p>
+  <p style="margin:0 0 12px;" th:if="${scope != null}">
+    Your transcript for <span th:text="${scope}">S5</span> is ready.
+  </p>
+
+  <p style="margin:0 0 20px;">
+    <a th:href="${fileUrl}"
+       style="display:inline-block;padding:10px 18px;background:#1f5f8b;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
+      Download my transcript
+    </a>
+  </p>
+
+  <p style="margin:0 0 4px;color:#66717f;font-size:12px;">
+    <span th:text="'This link expires in ' + ${expiresInDays} + ' days.'">This link expires in 7 days.</span>
+    Ask for a new transcript from your student area once it has.
+  </p>
+  <p style="margin:0;color:#66717f;font-size:12px;">
+    <span th:text="'Reference ' + ${studentRef} + '.'">Reference STD22045.</span>
+  </p>
+
+</div>
+</body>
+</html>
