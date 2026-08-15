@@ -90,10 +90,13 @@ public class SecurityConf {
                         "/teachers",
                         "/promotions/*/groups",
                         "/courses",
-                        // Widened to the teachers assigned to the course once teaching assignments
-                        // exist: the specification allows them, nothing can check it yet.
-                        "/courses/*/exams")
+                        "/teaching-assignments")
                     .hasRole("ADMIN")
+                    // An exam belongs to a course, and a course is taught by whichever teachers a
+                    // teaching assignment names for it: TeacherAuthorizer compares caller to that
+                    // assignment, which the filter chain cannot express.
+                    .requestMatchers(HttpMethod.PUT, "/courses/*/exams")
+                    .hasAnyRole("ADMIN", "TEACHER")
                     // Moving a student between groups and recording the track they follow are
                     // administrative acts: neither the student nor their teachers decide them.
                     .requestMatchers(

@@ -1,5 +1,6 @@
 package com.exam.hei.service;
 
+import com.exam.hei.endpoint.rest.security.TeacherAuthorizer;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.ExamRepository;
@@ -18,6 +19,7 @@ public class ExamService {
 
   private final ExamRepository examRepository;
   private final CourseService courseService;
+  private final TeacherAuthorizer teacherAuthorizer;
 
   public List<Exam> findAllByCourseId(UUID courseId) {
     courseService.findById(courseId);
@@ -32,6 +34,7 @@ public class ExamService {
 
   @Transactional
   public List<Exam> saveAll(UUID courseId, List<Exam> exams) {
+    teacherAuthorizer.checkCanEditExamsOf(courseId);
     var course = courseService.findById(courseId);
     exams.forEach(exam -> attachTo(course, exam));
     return examRepository.saveAll(exams);
