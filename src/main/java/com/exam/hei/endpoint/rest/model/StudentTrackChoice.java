@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** The track a student follows from a given semester on, as exposed by the API. */
 @Getter
 @Setter
 @Builder

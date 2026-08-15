@@ -7,9 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion between the REST and the persistence representations of a promotion.
- *
- * <p>No repository here on purpose: resolving the tracks named by a payload is a business decision,
+ * No repository here on purpose: resolving the tracks named by a payload is a business decision,
  * including the 404 on an unknown one, so it belongs to the service. The mapper only carries ids
  * across, and the service replaces them with the persisted tracks.
  */

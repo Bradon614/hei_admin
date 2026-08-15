@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** A subject of the curriculum, as exposed by the API. */
 @Getter
 @Setter
 @Builder

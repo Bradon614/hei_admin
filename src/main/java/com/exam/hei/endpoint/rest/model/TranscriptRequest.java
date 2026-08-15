@@ -15,9 +15,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * State of a transcript request, as exposed by the API.
- *
- * <p>Carries no bucket key: where the object sits is infrastructure, and the caller has {@code
+ * Carries no bucket key: where the object sits is infrastructure, and the caller has {@code
  * fileUrl} once the consumer mints one. Read only — a request is created through {@link
  * TranscriptRequestCreation} and only ever moves forward on its own.
  */

@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Precise cause, attached to a semester, of a diploma not obtained, as exposed by the API. */
 @Getter
 @Setter
 @Builder

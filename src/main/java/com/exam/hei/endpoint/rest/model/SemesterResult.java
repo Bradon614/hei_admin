@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Result of a student for one semester, as exposed by the API. Read only, entirely computed. */
+/** Read only, entirely computed. */
 @Getter
 @Setter
 @Builder

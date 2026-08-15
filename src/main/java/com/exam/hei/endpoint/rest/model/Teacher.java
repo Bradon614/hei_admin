@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** A teacher, as exposed by the API. The API key of the underlying account is never exposed. */
+/** The password of the underlying account is write only and never returned. */
 @Getter
 @Setter
 @Builder

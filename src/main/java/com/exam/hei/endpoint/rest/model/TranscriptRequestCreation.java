@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** What a caller sends to ask for a transcript. */
 @Getter
 @Setter
 @Builder

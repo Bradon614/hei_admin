@@ -12,9 +12,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * One row of the graduate list, as exposed by the API. Matches exactly the columns of the Excel
- * export: rank, STD, last name, first name, general average. {@code trackCode} is added beyond what
- * the assignment requires.
+ * Matches exactly the columns of the Excel export: rank, STD, last name, first name, general
+ * average. {@code trackCode} is added beyond what the assignment requires.
  */
 @Getter
 @Setter

@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * HTTP surface of transcripts. The rule keeping a student away from another student's transcripts
- * lives in the security package, as everywhere else.
+ * The rule keeping a student away from another student's transcripts lives in the security package,
+ * as everywhere else.
  */
 @RestController
 @AllArgsConstructor

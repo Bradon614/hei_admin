@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** A cohort, as exposed by the API. */
 @Getter
 @Setter
 @Builder

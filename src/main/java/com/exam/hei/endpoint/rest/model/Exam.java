@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** One assessment of a course, as exposed by the API. */
 @Getter
 @Setter
 @Builder

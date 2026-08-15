@@ -8,10 +8,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion between the REST and the persistence representations of a teaching assignment.
- *
- * <p>The course, the teacher and the group are carried across as ids only on writes: resolving
- * them, and refusing ones that do not exist, is a business decision left to the service.
+ * The course, the teacher and the group are carried across as ids only on writes: resolving them,
+ * and refusing ones that do not exist, is a business decision left to the service.
  */
 @Component
 @AllArgsConstructor

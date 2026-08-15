@@ -4,7 +4,6 @@ import com.exam.hei.endpoint.rest.model.Exam;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** Pure conversion between the REST and the persistence representations of an exam. */
 @Component
 @AllArgsConstructor
 public class ExamMapper {

@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** One of the six semesters of the curriculum, as exposed by the API. */
 @Getter
 @Setter
 @Builder

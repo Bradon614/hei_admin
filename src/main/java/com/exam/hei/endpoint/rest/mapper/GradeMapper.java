@@ -5,7 +5,6 @@ import com.exam.hei.endpoint.rest.model.GradeChange;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** Pure conversion between the REST and the persistence representations of a grade. */
 @Component
 @AllArgsConstructor
 public class GradeMapper {

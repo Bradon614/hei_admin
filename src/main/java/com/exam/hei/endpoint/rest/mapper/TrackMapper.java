@@ -3,7 +3,6 @@ package com.exam.hei.endpoint.rest.mapper;
 import com.exam.hei.endpoint.rest.model.Track;
 import org.springframework.stereotype.Component;
 
-/** Pure conversion between the REST and the persistence representations of a track. */
 @Component
 public class TrackMapper {
 

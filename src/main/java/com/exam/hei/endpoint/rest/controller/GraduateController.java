@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of the graduate list. Role restrictions live in SecurityConf. */
+/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class GraduateController {

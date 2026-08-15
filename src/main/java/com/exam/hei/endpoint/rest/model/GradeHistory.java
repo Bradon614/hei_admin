@@ -14,9 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * One entry or update of a grade, as exposed by the API. Read only, never updated, never deleted.
- */
+/** Read only, never updated, never deleted. */
 @Getter
 @Setter
 @Builder
