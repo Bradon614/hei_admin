@@ -1,6 +1,7 @@
 package com.exam.hei.repository;
 
 import com.exam.hei.repository.model.AppUser;
+import com.exam.hei.repository.model.Role;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 
   Optional<AppUser> findByEmail(String email);
+
+  /** Reads as "is this deployment already bootstrapped?" — see {@code AdminBootstrapper}. */
+  boolean existsByRole(Role role);
 }
