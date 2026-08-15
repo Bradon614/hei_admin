@@ -17,10 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * HTTP surface of the group membership history.
- *
- * <p>No permission check here: the rule keeping a student away from another student's history lives
- * in the security package and is applied by the service.
+ * No permission check here: the rule keeping a student away from another student's history lives in
+ * the security package and is applied by the service.
  */
 @RestController
 @AllArgsConstructor

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of teaching assignments. Role restrictions live in SecurityConf. */
+/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class TeachingAssignmentController {

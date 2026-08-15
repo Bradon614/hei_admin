@@ -7,9 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion between the REST and the persistence representations of a group.
- *
- * <p>The named track is carried across as an id only: resolving it, and refusing one the promotion
+ * The named track is carried across as an id only: resolving it, and refusing one the promotion
  * does not open, is a business decision left to the service.
  */
 @Component

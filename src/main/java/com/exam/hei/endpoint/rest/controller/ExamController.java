@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of exams, always reached through the course that holds them. */
 @RestController
 @AllArgsConstructor
 public class ExamController {

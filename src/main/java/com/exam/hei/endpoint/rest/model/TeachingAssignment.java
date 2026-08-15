@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Binds a course, a teacher and a group, as exposed by the API. On writes, only ids are read. */
+/** On writes, only ids are read. */
 @Getter
 @Setter
 @Builder

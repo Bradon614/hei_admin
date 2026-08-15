@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * HTTP surface of promotions.
- *
- * <p>No permission check here: the ADMIN restriction on the write endpoint is declared in {@code
+ * No permission check here: the ADMIN restriction on the write endpoint is declared in {@code
  * SecurityConf}, so authorization stays in one place instead of being scattered across controllers.
  */
 @RestController

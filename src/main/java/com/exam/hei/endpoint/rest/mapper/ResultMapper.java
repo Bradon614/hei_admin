@@ -9,10 +9,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion from the computed domain results to their REST representation.
- *
- * <p>One way only: nothing behind these types is ever written. The REST {@link Student} is passed
- * in rather than built here, since resolving its computed {@code current_track} and {@code
+ * One way only: nothing behind these types is ever written. The REST {@link Student} is passed in
+ * rather than built here, since resolving its computed {@code current_track} and {@code
  * current_group} needs services this mapper has no business calling.
  */
 @Component

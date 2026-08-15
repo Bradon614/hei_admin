@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Request to move a student to another group. */
 @Getter
 @Setter
 @Builder

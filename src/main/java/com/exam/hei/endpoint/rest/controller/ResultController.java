@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of results. Role restrictions live in SecurityConf and in StudentAuthorizer. */
+/** Role restrictions live in SecurityConf and in StudentAuthorizer. */
 @RestController
 @AllArgsConstructor
 public class ResultController {

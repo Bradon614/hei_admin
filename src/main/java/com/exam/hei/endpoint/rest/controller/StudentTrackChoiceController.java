@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of track selection. Role restrictions live in SecurityConf. */
+/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class StudentTrackChoiceController {

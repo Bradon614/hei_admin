@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** One period a student spent in a group, as exposed by the API. */
 @Getter
 @Setter
 @Builder

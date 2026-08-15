@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion between the REST and the persistence representations of a student.
- *
- * <p>No repository here: resolving the promotion named by a payload, and the 404 that comes with an
+ * No repository here: resolving the promotion named by a payload, and the 404 that comes with an
  * unknown one, is a business decision left to the service. The mapper only carries the id across.
  */
 @Component

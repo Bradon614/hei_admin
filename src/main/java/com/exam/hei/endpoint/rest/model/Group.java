@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** A teaching group of a promotion, as exposed by the API. */
 @Getter
 @Setter
 @Builder

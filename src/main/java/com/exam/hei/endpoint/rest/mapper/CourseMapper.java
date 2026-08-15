@@ -7,9 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Pure conversion between the REST and the persistence representations of a course.
- *
- * <p>The named semester and track are carried across as they were written, by reference or by id.
+ * The named semester and track are carried across as they were written, by reference or by id.
  * Resolving them, and refusing a track on a common core semester, is a business decision left to
  * the service.
  */

@@ -18,10 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * HTTP surface of students.
- *
- * <p>No permission check here: role restrictions live in {@code SecurityConf}, and the rule keeping
- * a student away from another student's record lives in the security package too.
+ * No permission check here: role restrictions live in {@code SecurityConf}, and the rule keeping a
+ * student away from another student's record lives in the security package too.
  */
 @RestController
 @AllArgsConstructor

@@ -12,10 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Result of a student across the three years, as exposed by the API. Read only, entirely computed:
- * nothing behind this response is persisted.
- */
+/** Read only, entirely computed: nothing behind this response is persisted. */
 @Getter
 @Setter
 @Builder

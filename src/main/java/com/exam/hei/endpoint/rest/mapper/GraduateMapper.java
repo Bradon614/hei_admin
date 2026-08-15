@@ -3,7 +3,6 @@ package com.exam.hei.endpoint.rest.mapper;
 import com.exam.hei.endpoint.rest.model.Graduate;
 import org.springframework.stereotype.Component;
 
-/** Pure conversion from the computed domain graduate to its REST representation, read only. */
 @Component
 public class GraduateMapper {
 

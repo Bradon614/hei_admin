@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Request to record the track a student follows. */
 @Getter
 @Setter
 @Builder

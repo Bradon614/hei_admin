@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP surface of grades. Role restrictions live in SecurityConf and in the authorizers. */
+/** Role restrictions live in SecurityConf and in the authorizers. */
 @RestController
 @AllArgsConstructor
 public class GradeController {

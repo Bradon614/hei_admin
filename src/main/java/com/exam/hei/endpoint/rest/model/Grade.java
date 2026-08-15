@@ -14,9 +14,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Current grade of a student for an exam, as exposed by the API.
- *
- * <p>Read only: a grade is never written directly, only through {@link GradeChange} on {@code PUT
+ * Read only: a grade is never written directly, only through {@link GradeChange} on {@code PUT
  * /exams/{id}/grades}.
  */
 @Getter
