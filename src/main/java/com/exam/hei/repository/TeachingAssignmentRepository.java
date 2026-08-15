@@ -18,4 +18,10 @@ public interface TeachingAssignmentRepository extends JpaRepository<TeachingAssi
    * group.
    */
   boolean existsByCourseIdAndTeacherId(UUID courseId, UUID teacherId);
+
+  /**
+   * Which groups a teacher covers for a course, the filter {@code GradeService} reads a grade list
+   * against.
+   */
+  List<TeachingAssignment> findAllByCourseIdAndTeacherId(UUID courseId, UUID teacherId);
 }
