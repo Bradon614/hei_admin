@@ -162,8 +162,7 @@ class TranscriptServiceTest {
         ArgumentCaptor.forClass(Collection.class);
     verify(eventProducer).accept(captor.capture());
     assertEquals(1, captor.getValue().size());
-    assertEquals(
-        result.getId(), captor.getValue().iterator().next().getTranscriptRequestId());
+    assertEquals(result.getId(), captor.getValue().iterator().next().getTranscriptRequestId());
   }
 
   @Test

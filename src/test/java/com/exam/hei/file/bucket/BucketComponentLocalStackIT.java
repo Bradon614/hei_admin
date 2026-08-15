@@ -39,9 +39,9 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * The real {@link BucketComponent}, against a real S3 implementation, all the way from a real PDF.
  *
  * <p>Nothing here can reach the AWS account. The credentials are the throwaway pair the container
- * hands out, injected through a {@link StaticCredentialsProvider} so the default credential chain
- * — profiles, environment, instance roles — is never consulted; the endpoint points at the
- * container; the bucket is created inside it. One small object is uploaded, once.
+ * hands out, injected through a {@link StaticCredentialsProvider} so the default credential chain —
+ * profiles, environment, instance roles — is never consulted; the endpoint points at the container;
+ * the bucket is created inside it. One small object is uploaded, once.
  *
  * <p>{@code BucketConf} is {@code @PojaGenerated} and offers no endpoint override, so it is
  * subclassed here, in test scope only, to hand {@link BucketComponent} clients aimed at the
@@ -98,9 +98,9 @@ class BucketComponentLocalStackIT {
    * point them elsewhere. Its getters are overridable, which is enough: the component under test
    * still is the real one, it simply receives clients aimed at the container.
    *
-   * <p>The async client is the plain one rather than the CRT builder the generated class uses:
-   * that is the only concession, and it is a transport detail — the S3 protocol exercised below is
-   * the same.
+   * <p>The async client is the plain one rather than the CRT builder the generated class uses: that
+   * is the only concession, and it is a transport detail — the S3 protocol exercised below is the
+   * same.
    */
   private static BucketConf localStackConf(
       StaticCredentialsProvider credentials, Region region, URI endpoint) {
@@ -156,10 +156,19 @@ class BucketComponentLocalStackIT {
             .promotion(Promotion.builder().ref("K22").name("Promotion K 2022").build())
             .build();
     var course =
-        Course.builder().id(UUID.randomUUID()).ref("PROG1").title("Programming").credits(30).build();
+        Course.builder()
+            .id(UUID.randomUUID())
+            .ref("PROG1")
+            .title("Programming")
+            .credits(30)
+            .build();
     var semesterResult =
         new SemesterResult(
-            Semester.builder().id(UUID.randomUUID()).ref(SemesterRef.S1).requiredCredits(30).build(),
+            Semester.builder()
+                .id(UUID.randomUUID())
+                .ref(SemesterRef.S1)
+                .requiredCredits(30)
+                .build(),
             SemesterResultStatus.EVALUATED,
             null,
             30,
@@ -178,7 +187,8 @@ class BucketComponentLocalStackIT {
   @Test
   void a_transcript_pdf_survives_a_round_trip_through_s3() throws Exception {
     var pdf = transcriptPdf();
-    assertEquals("%PDF-", new String(pdf, 0, 5, StandardCharsets.US_ASCII), "fixture must be a PDF");
+    assertEquals(
+        "%PDF-", new String(pdf, 0, 5, StandardCharsets.US_ASCII), "fixture must be a PDF");
     var key = "transcripts/" + UUID.randomUUID() + ".pdf";
     var source = Files.createTempFile("transcript", ".pdf");
     Files.write(source, pdf);
@@ -194,8 +204,7 @@ class BucketComponentLocalStackIT {
                 AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())),
             Region.of(localstack.getRegion()),
             localstack.getEndpoint())) {
-      var head =
-          s3.headObject(HeadObjectRequest.builder().bucket(BUCKET).key(key).build());
+      var head = s3.headObject(HeadObjectRequest.builder().bucket(BUCKET).key(key).build());
       assertEquals(pdf.length, head.contentLength().intValue());
     }
 
