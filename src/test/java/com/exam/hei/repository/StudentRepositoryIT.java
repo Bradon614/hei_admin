@@ -8,8 +8,10 @@ import com.exam.hei.conf.FacadeIT;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Promotion;
 import com.exam.hei.repository.model.Role;
+import com.exam.hei.repository.model.SemesterRef;
 import com.exam.hei.repository.model.Student;
 import com.exam.hei.repository.model.StudentStatus;
+import com.exam.hei.repository.model.StudentTrackChoice;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,9 @@ class StudentRepositoryIT extends FacadeIT {
   @Autowired StudentRepository studentRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired AppUserRepository appUserRepository;
+  @Autowired StudentTrackChoiceRepository studentTrackChoiceRepository;
+  @Autowired TrackRepository trackRepository;
+  @Autowired SemesterRepository semesterRepository;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
@@ -172,5 +177,28 @@ class StudentRepositoryIT extends FacadeIT {
 
     assertEquals(1, page.getContent().size());
     assertEquals(2, page.getTotalElements());
+  }
+
+  @Test
+  void listing_by_promotion_and_track_excludes_students_of_another_promotion_or_track() {
+    var promotion = persistedPromotion();
+    var el = trackRepository.findByCode("EL").orElseThrow();
+    var s4 = semesterRepository.findByRef(SemesterRef.S4).orElseThrow();
+    var followsEl = studentRepository.save(validStudent().promotion(promotion).build());
+    studentTrackChoiceRepository.save(
+        StudentTrackChoice.builder().student(followsEl).track(el).fromSemester(s4).build());
+    // In the common core: no choice at all, must not be counted as following EL.
+    studentRepository.save(validStudent().promotion(promotion).build());
+    // Follows EL, but in a different promotion.
+    var elsewhere = studentRepository.save(validStudent().build());
+    studentTrackChoiceRepository.save(
+        StudentTrackChoice.builder().student(elsewhere).track(el).fromSemester(s4).build());
+
+    var page =
+        studentRepository.findAllByPromotionIdFollowingTrack(
+            promotion.getId(), "EL", PageRequest.of(0, 50));
+
+    assertEquals(1, page.getTotalElements());
+    assertEquals(followsEl.getId(), page.getContent().get(0).getId());
   }
 }

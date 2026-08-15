@@ -53,4 +53,19 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
           + "   (select max(latest.fromSemester.semOrder) from StudentTrackChoice latest"
           + "    where latest.student = s))")
   Page<Student> findAllFollowingTrack(@Param("trackCode") String trackCode, Pageable pageable);
+
+  /**
+   * Same rule as {@link #findAllFollowingTrack}, scoped to one promotion for the results listing.
+   */
+  @Query(
+      "select s from Student s where s.promotion.id = :promotionId and exists ("
+          + " select 1 from StudentTrackChoice c"
+          + " where c.student = s and c.track.code = :trackCode"
+          + " and c.fromSemester.semOrder ="
+          + "   (select max(latest.fromSemester.semOrder) from StudentTrackChoice latest"
+          + "    where latest.student = s))")
+  Page<Student> findAllByPromotionIdFollowingTrack(
+      @Param("promotionId") UUID promotionId,
+      @Param("trackCode") String trackCode,
+      Pageable pageable);
 }
