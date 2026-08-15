@@ -15,10 +15,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * A student, as exposed by the API.
- *
- * <p>The API key of the underlying account is deliberately absent: handing credentials out is an
- * administration task, not a payload.
+ * The password is write only: accepted on a write, never returned. Handing credentials back out is
+ * an administration task, not a payload.
  */
 @Getter
 @Setter

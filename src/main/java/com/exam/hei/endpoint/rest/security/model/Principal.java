@@ -11,7 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/** The authenticated caller, wrapping the account resolved from the bearer API key. */
+/** The authenticated caller, wrapping the account the bearer JWT was issued for. */
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -26,7 +26,7 @@ public class Principal implements UserDetails {
     return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
   }
 
-  /** Never exposed: authentication goes through the API key, not through a password. */
+  /** Never exposed: the filter chain authenticates a signed token, it never compares passwords. */
   @Override
   public String getPassword() {
     return null;
