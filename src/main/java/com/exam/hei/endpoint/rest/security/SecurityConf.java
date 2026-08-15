@@ -52,10 +52,17 @@ public class SecurityConf {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     var authenticationManager = new ProviderManager(authProvider);
-    var authenticationEntryPoint = new RestAuthenticationEntryPoint(objectMapper);
+    // Wrapped once and used both here and inside the filter, so a missing cookie and an expired one
+    // send a browser to the same place instead of one redirecting and the other answering JSON.
+    var authenticationEntryPoint =
+        new UiAwareAuthenticationEntryPoint(new RestAuthenticationEntryPoint(objectMapper));
     var accessDeniedHandler = new RestAccessDeniedHandler(objectMapper);
 
-    return http.csrf(AbstractHttpConfigurer::disable)
+    return http
+        // Left disabled even though the UI authenticates through a cookie, which would normally
+        // reopen CSRF: that cookie is written SameSite=Strict, so a browser never attaches it to a
+        // request another site started. See AuthPageController, where it is set.
+        .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
@@ -80,6 +87,17 @@ public class SecurityConf {
                     // hands one out.
                     .requestMatchers(HttpMethod.POST, "/auth/login")
                     .permitAll()
+                    // Its browser counterpart: the form that exchanges credentials for the cookie
+                    // every other /ui page needs.
+                    .requestMatchers("/ui/login")
+                    .permitAll()
+                    // Stylesheets carry nothing private, and the sign-in page needs them before
+                    // anyone is authenticated at all.
+                    .requestMatchers("/css/**")
+                    .permitAll()
+                    // The Thymeleaf pages render administrative listings and nothing else so far.
+                    .requestMatchers("/ui/**")
+                    .hasRole("ADMIN")
                     // Reference and structural data is administered, never edited by students or
                     // teachers. Reading stays open to any authenticated caller.
                     .requestMatchers(
