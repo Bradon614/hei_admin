@@ -1,0 +1,113 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Academic transcript</title>
+  <style>
+    @page { size: A4; margin: 1.6cm 1.4cm; }
+    body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #1c2430; }
+    .school { font-size: 16pt; font-weight: bold; margin: 0; }
+    .doc-title { font-size: 11pt; letter-spacing: 0.08em; text-transform: uppercase;
+                 color: #66717f; margin: 0.2cm 0 0.7cm 0; }
+    .identity td { padding: 2pt 0; }
+    .identity .label { color: #66717f; width: 3.4cm; }
+    h2 { font-size: 11pt; margin: 0.7cm 0 0.15cm 0;
+         border-bottom: 1pt solid #dfe3e8; padding-bottom: 3pt; }
+    .meta { color: #66717f; font-size: 9pt; margin: 0 0 0.15cm 0; }
+    table.courses { width: 100%; border-collapse: collapse; }
+    table.courses th { text-align: left; font-size: 8pt; text-transform: uppercase;
+                       color: #66717f; border-bottom: 1pt solid #dfe3e8; padding: 4pt 3pt; }
+    table.courses td { padding: 4pt 3pt; border-bottom: 0.5pt solid #eef1f4; }
+    .num { text-align: right; }
+    .summary { margin-top: 0.8cm; border-top: 1.5pt solid #1c2430; padding-top: 0.3cm; }
+    .summary td { padding: 3pt 0; }
+    .summary .label { color: #66717f; width: 4.6cm; }
+    .verdict { font-weight: bold; }
+    .not-evaluable { color: #b3261e; }
+  </style>
+</head>
+<body>
+
+<p class="school">HEI — Haute École d'Informatique</p>
+<p class="doc-title">Academic transcript</p>
+
+<table class="identity">
+  <tr>
+    <td class="label">Student</td>
+    <td th:text="${student.firstName + ' ' + student.lastName}">Jean Rakoto</td>
+  </tr>
+  <tr>
+    <td class="label">Reference</td>
+    <td th:text="${student.ref}">STD22045</td>
+  </tr>
+  <tr>
+    <td class="label">Email</td>
+    <td th:text="${student.email}">jean.rakoto@hei.school</td>
+  </tr>
+  <tr th:if="${student.promotion != null}">
+    <td class="label">Promotion</td>
+    <td th:text="${student.promotion.ref + ' — ' + student.promotion.name}">K22</td>
+  </tr>
+  <tr>
+    <td class="label">Scope</td>
+    <td th:text="${scope}">S1 to S6</td>
+  </tr>
+</table>
+
+<div th:each="semesterResult : ${semesterResults}">
+  <h2 th:text="${semesterResult.semester().ref}">S1</h2>
+
+  <p class="meta not-evaluable" th:if="${semesterResult.status().name() == 'TRACK_NOT_SELECTED'}">
+    Not evaluable: no track chosen for this semester.
+  </p>
+
+  <p class="meta" th:if="${semesterResult.status().name() != 'TRACK_NOT_SELECTED'}">
+    <span th:text="${semesterResult.track() != null ? 'Track ' + semesterResult.track().code : 'Common core'}">Common core</span>
+    <span th:text="' — ' + ${semesterResult.obtainedCredits()} + '/' + ${semesterResult.requiredCredits()} + ' credits'"> — 30/30 credits</span>
+    <span th:text="${semesterResult.validated()} ? ' — validated' : ' — not validated'"> — validated</span>
+  </p>
+
+  <table class="courses" th:if="${not #lists.isEmpty(semesterResult.courseResults())}">
+    <tr>
+      <th>Ref</th>
+      <th>Course</th>
+      <th class="num">Credits</th>
+      <th class="num">Final grade</th>
+      <th class="num">Obtained</th>
+    </tr>
+    <tr th:each="courseResult : ${semesterResult.courseResults()}">
+      <td th:text="${courseResult.course().ref}">PROG1</td>
+      <td th:text="${courseResult.course().title}">Programming</td>
+      <td class="num" th:text="${courseResult.course().credits}">6</td>
+      <td class="num" th:text="${courseResult.finalGrade() != null ? courseResult.finalGrade() : '—'}">14.00</td>
+      <td class="num" th:text="${courseResult.obtainedCredits()}">6</td>
+    </tr>
+  </table>
+</div>
+
+<table class="summary" th:if="${full}">
+  <tr>
+    <td class="label">Total credits</td>
+    <td th:text="${result.totalObtainedCredits()} + ' / 180'">180 / 180</td>
+  </tr>
+  <tr>
+    <td class="label">General average</td>
+    <td th:text="${result.generalAverage()}">15.42</td>
+  </tr>
+  <tr>
+    <td class="label">Diploma</td>
+    <td class="verdict" th:text="${result.graduated()} ? 'GRANTED' : 'NOT GRANTED'">GRANTED</td>
+  </tr>
+</table>
+
+<table class="summary" th:if="${full and not #lists.isEmpty(result.blockers())}">
+  <tr>
+    <td class="label">Blocking</td>
+    <td>
+      <span th:each="blocker : ${result.blockers()}"
+            th:text="${blocker.semesterRef()} + ': ' + ${blocker.message()} + ' '">S4: no track selected</span>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
