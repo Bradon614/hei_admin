@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class GroupService {
-
   private final GroupRepository groupRepository;
   private final PromotionService promotionService;
   private final TrackService trackService;
@@ -46,11 +45,6 @@ public class GroupService {
     group.setTrack(resolveTrack(promotion, group));
   }
 
-  /**
-   * A null track means a common core group, which every promotion may have. A track-bearing group
-   * has to name a track its promotion actually opens, otherwise the group would let students into a
-   * curriculum their cohort does not run.
-   */
   private Track resolveTrack(Promotion promotion, Group group) {
     if (group.getTrack() == null || group.getTrack().getId() == null) {
       return null;

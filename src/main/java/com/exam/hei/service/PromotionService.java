@@ -16,13 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class PromotionService {
-
   private final PromotionRepository promotionRepository;
   private final TrackService trackService;
 
-  /**
-   * @param page 1-based, as declared in doc/api.yml
-   */
   public List<Promotion> findAll(int page, int pageSize) {
     return promotionRepository
         .findAll(Pagination.toPageRequest(page, pageSize, Sort.by("ref")))
@@ -42,19 +38,12 @@ public class PromotionService {
     return promotionRepository.saveAll(promotions);
   }
 
-  /** An unknown id is a caller mistake rather than a request to create a promotion at that id. */
   private void checkIsKnownWhenIdentified(Promotion promotion) {
     if (promotion.getId() != null) {
       findById(promotion.getId());
     }
   }
 
-  /**
-   * Replaces the tracks named by the payload with the persisted ones.
-   *
-   * <p>Tracks are reference data with their own endpoint: naming an unknown one is a 404, never an
-   * implicit creation.
-   */
   private void resolveTracks(Promotion promotion) {
     if (promotion.getTracks() == null) {
       promotion.setTracks(List.of());

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthMapper {
-
   public Token toRest(IssuedToken issued) {
     return Token.builder()
         .accessToken(issued.token())

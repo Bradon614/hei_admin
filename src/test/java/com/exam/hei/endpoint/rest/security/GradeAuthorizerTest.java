@@ -15,7 +15,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class GradeAuthorizerTest {
-
   private final AuthenticatedResourceProvider authenticatedResourceProvider =
       mock(AuthenticatedResourceProvider.class);
   private final StudentAuthorizer studentAuthorizer = mock(StudentAuthorizer.class);
@@ -27,8 +26,6 @@ class GradeAuthorizerTest {
     when(authenticatedResourceProvider.getAuthenticatedUser())
         .thenReturn(AppUser.builder().id(UUID.randomUUID()).role(role).build());
   }
-
-  // --- checkCanRead -------------------------------------------------------------
 
   @Test
   void an_admin_reads_any_grade() {
@@ -73,8 +70,6 @@ class GradeAuthorizerTest {
 
   @Test
   void an_unassigned_teacher_is_refused_even_though_being_a_teacher_would_pass_studentAuthorizer() {
-    // The whole reason GradeAuthorizer exists rather than delegating straight to StudentAuthorizer:
-    // that one waves any teacher through, which is wrong here.
     callerIs(Role.TEACHER);
     doThrow(new ForbiddenException("This teacher is not assigned to this course"))
         .when(teacherAuthorizer)
@@ -83,8 +78,6 @@ class GradeAuthorizerTest {
     assertThrows(
         ForbiddenException.class, () -> subject.checkCanRead(UUID.randomUUID(), UUID.randomUUID()));
   }
-
-  // --- checkCanReadExamGrades ----------------------------------------------------
 
   @Test
   void a_student_never_reads_an_exam_s_grade_list() {

@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PromotionRepository extends JpaRepository<Promotion, UUID> {
-
   Optional<Promotion> findByRef(String ref);
 }

@@ -44,7 +44,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class GradeServiceTest {
-
   private final GradeRepository gradeRepository = mock(GradeRepository.class);
   private final GradeHistoryRepository gradeHistoryRepository = mock(GradeHistoryRepository.class);
   private final StudentRepository studentRepository = mock(StudentRepository.class);
@@ -98,8 +97,6 @@ class GradeServiceTest {
       BigDecimal value, GradeChangeReasonType reasonType, String reason) {
     return new GradeChange(STUDENT_ID, value, reasonType, reason);
   }
-
-  // --- creation and update ----------------------------------------------------
 
   @Test
   void a_first_grade_requires_reason_type_creation() {
@@ -224,8 +221,6 @@ class GradeServiceTest {
                         new BigDecimal("14.00"), GradeChangeReasonType.CORRECTION, "No change"))));
   }
 
-  // --- value and reason validation ---------------------------------------------
-
   @Test
   void a_negative_grade_is_refused() {
     examAndStudentExist();
@@ -281,8 +276,6 @@ class GradeServiceTest {
                 EXAM_ID, List.of(change(new BigDecimal("14.00"), null, "Initial entry"))));
   }
 
-  // --- authorization and track resolution ---------------------------------------
-
   @Test
   void writing_grades_is_authorized_against_the_exam_s_course() {
     examAndStudentExist();
@@ -330,8 +323,6 @@ class GradeServiceTest {
                         GradeChangeReasonType.CREATION,
                         "Initial entry"))));
   }
-
-  // --- GET /exams/{id}/grades ----------------------------------------------------
 
   @Test
   void an_admin_sees_every_grade_of_an_exam() {
@@ -392,8 +383,6 @@ class GradeServiceTest {
     assertEquals(List.of(gradeInCoveredGroup), found);
   }
 
-  // --- GET /students/{id}/grades --------------------------------------------------
-
   @Test
   void reading_a_student_s_grades_is_authorized_first() {
     when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(STUDENT));
@@ -415,8 +404,6 @@ class GradeServiceTest {
     verify(gradeRepository).findAllByStudentIdAndSemesterRef(STUDENT_ID, SemesterRef.S5);
     verify(gradeRepository, never()).findAllByStudentId(any());
   }
-
-  // --- GET /grades/{id} and history -----------------------------------------------
 
   @Test
   void an_unknown_grade_is_not_found() {

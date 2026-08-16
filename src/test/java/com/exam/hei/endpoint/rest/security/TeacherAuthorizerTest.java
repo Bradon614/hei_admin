@@ -14,7 +14,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class TeacherAuthorizerTest {
-
   private final AuthenticatedResourceProvider authenticatedResourceProvider =
       mock(AuthenticatedResourceProvider.class);
   private final TeachingAssignmentRepository teachingAssignmentRepository =
@@ -31,8 +30,6 @@ class TeacherAuthorizerTest {
     when(authenticatedResourceProvider.getAuthenticatedTeacherId())
         .thenReturn(Optional.of(teacherId));
   }
-
-  // --- checkCanRead -----------------------------------------------------------
 
   @Test
   void an_admin_reads_any_teacher() {
@@ -60,13 +57,10 @@ class TeacherAuthorizerTest {
 
   @Test
   void a_student_cannot_read_a_teacher_s_teaching_scope() {
-    // Unlike StudentAuthorizer, no third role is waved through here.
     callerIs(Role.STUDENT);
 
     assertThrows(ForbiddenException.class, () -> subject.checkCanRead(UUID.randomUUID()));
   }
-
-  // --- checkCanEditExamsOf -----------------------------------------------------
 
   @Test
   void an_admin_edits_the_exams_of_any_course() {

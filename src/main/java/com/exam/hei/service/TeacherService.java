@@ -19,14 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class TeacherService {
-
   private final TeacherRepository teacherRepository;
   private final AppUserRepository appUserRepository;
   private final PasswordEncoder passwordEncoder;
 
-  /**
-   * @param page 1-based, as declared in doc/api.yml
-   */
   public List<Teacher> findAll(int page, int pageSize) {
     return teacherRepository
         .findAll(Pagination.toPageRequest(page, pageSize, Sort.by("ref")))
@@ -51,10 +47,6 @@ public class TeacherService {
     return teacherRepository.saveAll(teachers);
   }
 
-  /**
-   * Same reasoning as for students: no account endpoint exists, so the profile creates its own, and
-   * only the password hash is ever stored.
-   */
   private void attachAccount(Teacher teacher) {
     if (teacher.getId() == null) {
       if (teacher.getPassword() == null) {

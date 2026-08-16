@@ -20,16 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * One row per entry or update of a {@link Grade}. Never updated, never deleted.
- *
- * <p>Example: a grade going from 10 to 14 then to 13 leaves three rows behind (null -&gt; 10, 10
- * -&gt; 14, 14 -&gt; 13), each with its own reason and author, while {@code Grade.value} only ever
- * holds 13.
- *
- * <p>DB constraints: {@code reason} NOT NULL and non blank, {@code old_value IS DISTINCT FROM
- * new_value} — a change that does not change anything cannot be recorded.
- */
 @Entity
 @Table(name = "grade_history")
 @Getter
@@ -39,7 +29,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class GradeHistory {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -49,7 +38,6 @@ public class GradeHistory {
   @ToString.Exclude
   private Grade grade;
 
-  /** Null on the first entry. */
   @Column(name = "old_value")
   private BigDecimal oldValue;
 
@@ -63,7 +51,6 @@ public class GradeHistory {
   @Column(name = "reason", nullable = false)
   private String reason;
 
-  /** The account that made the modification. */
   @ManyToOne(optional = false)
   @JoinColumn(name = "changed_by", nullable = false)
   @ToString.Exclude

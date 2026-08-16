@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class TeachingAssignmentRepositoryIT extends FacadeIT {
-
   @Autowired TeachingAssignmentRepository teachingAssignmentRepository;
   @Autowired CourseRepository courseRepository;
   @Autowired TeacherRepository teacherRepository;
@@ -108,8 +107,6 @@ class TeachingAssignmentRepositoryIT extends FacadeIT {
 
   @Test
   void a_teacher_may_be_assigned_the_same_course_for_two_different_groups() {
-    // Two rows, same (course, teacher), different group: the same teacher gives the same course to
-    // two groups. Not a duplicate, since the group is part of the key.
     var course = course();
     var teacher = teacher();
 

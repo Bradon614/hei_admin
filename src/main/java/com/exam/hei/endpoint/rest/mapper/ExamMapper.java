@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ExamMapper {
-
   private final CourseMapper courseMapper;
 
   public Exam toRest(com.exam.hei.repository.model.Exam domain) {
@@ -20,7 +19,6 @@ public class ExamMapper {
         .build();
   }
 
-  /** The course is not read from the payload: it comes from the path, and never changes. */
   public com.exam.hei.repository.model.Exam toDomain(Exam rest) {
     return com.exam.hei.repository.model.Exam.builder()
         .id(rest.getId())

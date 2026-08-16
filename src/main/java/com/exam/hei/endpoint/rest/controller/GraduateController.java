@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class GraduateController {
-
   private static final MediaType XLSX =
       MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
@@ -35,8 +33,6 @@ public class GraduateController {
 
   @GetMapping("/promotions/{promotionId}/graduates/excel")
   public ResponseEntity<byte[]> getPromotionGraduatesExcel(@PathVariable UUID promotionId) {
-    // Resolved first so a 404 on an unknown promotion never depends on evaluation order between
-    // this and the graduate computation below.
     var promotion = promotionService.findById(promotionId);
     var bytes = graduateExcelWriter.write(graduateService.graduatesOf(promotionId));
 

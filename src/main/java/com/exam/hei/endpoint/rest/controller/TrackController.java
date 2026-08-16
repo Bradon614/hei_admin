@@ -10,11 +10,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** The ADMIN restriction on the write endpoint lives in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class TrackController {
-
   private final TrackService trackService;
   private final TrackMapper trackMapper;
 

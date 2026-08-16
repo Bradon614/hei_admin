@@ -6,15 +6,9 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * No repository here on purpose: resolving the tracks named by a payload is a business decision,
- * including the 404 on an unknown one, so it belongs to the service. The mapper only carries ids
- * across, and the service replaces them with the persisted tracks.
- */
 @Component
 @AllArgsConstructor
 public class PromotionMapper {
-
   private final TrackMapper trackMapper;
 
   public Promotion toRest(com.exam.hei.repository.model.Promotion domain) {

@@ -20,20 +20,13 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Course {
-
   private UUID id;
   private String ref;
   private String title;
 
-  /** Credits earned when the course is validated. */
   private Integer credits;
 
-  /** On writes, the semester may be named by its reference rather than by its id. */
   private Semester semester;
 
-  /**
-   * Null for a course everyone follows: the whole common core, and the courses shared by both
-   * tracks afterwards. On writes, only the id is read.
-   */
   private Track track;
 }

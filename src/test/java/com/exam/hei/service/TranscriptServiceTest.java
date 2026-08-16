@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class TranscriptServiceTest {
-
   private final TranscriptRequestRepository transcriptRequestRepository =
       mock(TranscriptRequestRepository.class);
   private final StudentRepository studentRepository = mock(StudentRepository.class);
@@ -87,7 +86,7 @@ class TranscriptServiceTest {
     when(pdfGenerator.generate(any(), any())).thenReturn(PDF);
     when(bucketComponent.upload(any(), anyString()))
         .thenReturn(new FileHash(FileHashAlgorithm.SHA256, "hash"));
-    // Echo back whatever is saved, with an id on first save so the S3 key can be built.
+
     when(transcriptRequestRepository.save(any()))
         .thenAnswer(
             invocation -> {
@@ -104,8 +103,6 @@ class TranscriptServiceTest {
     verify(transcriptRequestRepository, org.mockito.Mockito.atLeastOnce()).save(captor.capture());
     return captor.getValue();
   }
-
-  // --- the successful synchronous flow -------------------------------------------
 
   @Test
   void a_successful_request_ends_generated() {
@@ -130,8 +127,6 @@ class TranscriptServiceTest {
 
   @Test
   void the_file_url_stays_null_until_the_consumer_fills_it() {
-    // The synchronous half stores the object; the link is only minted when the email goes out. A
-    // url set here would claim the student has been told, which is not yet true.
     happyPath();
 
     var result = subject.request(STUDENT_ID, null);
@@ -187,8 +182,6 @@ class TranscriptServiceTest {
     verify(pdfGenerator).generate(any(), org.mockito.ArgumentMatchers.eq(SemesterRef.S5));
   }
 
-  // --- failures -------------------------------------------------------------------
-
   @Test
   void an_upload_failure_ends_failed_and_publishes_nothing() {
     happyPath();
@@ -204,8 +197,6 @@ class TranscriptServiceTest {
 
   @Test
   void an_upload_failure_never_leaks_the_underlying_error() {
-    // A bucket name or an AWS message tells an outsider about the infrastructure and nothing about
-    // their request.
     happyPath();
     doThrow(new RuntimeException("software.amazon.awssdk NoSuchBucket: hei-prod-bucket"))
         .when(bucketComponent)
@@ -242,8 +233,6 @@ class TranscriptServiceTest {
 
     assertNull(savedState().getS3Key());
   }
-
-  // --- authorization and lookups ---------------------------------------------------
 
   @Test
   void authorization_is_checked_before_anything_is_written() {

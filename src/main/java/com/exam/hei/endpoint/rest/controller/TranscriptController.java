@@ -14,14 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * The rule keeping a student away from another student's transcripts lives in the security package,
- * as everywhere else.
- */
 @RestController
 @AllArgsConstructor
 public class TranscriptController {
-
   private final TranscriptService transcriptService;
   private final TranscriptRequestMapper transcriptRequestMapper;
 
@@ -32,11 +27,6 @@ public class TranscriptController {
         .toList();
   }
 
-  /**
-   * Answers 202, never 200: the PDF is stored by the time this returns, but the email that the
-   * request is really about has not been sent yet. The caller polls {@code
-   * /transcript-requests/{id}} or simply waits for the mail.
-   */
   @PostMapping("/students/{studentId}/transcript-requests")
   public ResponseEntity<TranscriptRequest> requestTranscript(
       @PathVariable UUID studentId, @RequestBody(required = false) TranscriptRequestCreation body) {

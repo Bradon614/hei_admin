@@ -18,19 +18,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * The membership of a student in a group, over a period.
- *
- * <p>A student may change group at any moment: during a year, during a semester, between two
- * semesters, and several times within the same year or the same semester. No academic year appears
- * here on purpose: only dates matter, so nothing limits how often a change may happen.
- *
- * <p>A null {@link #endDate} means the assignment is currently active.
- *
- * <p>The database forbids two overlapping periods for the same student through an exclusion
- * constraint. The service checks before writing so that a conflict surfaces as a clean 409, the
- * constraint staying as the last line of defence.
- */
 @Entity
 @Table(name = "student_group_assignment")
 @Getter
@@ -40,7 +27,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class StudentGroupAssignment {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -58,7 +44,6 @@ public class StudentGroupAssignment {
   @Column(name = "start_date", nullable = false)
   private LocalDate startDate;
 
-  /** Null while the assignment is the current one. */
   @Column(name = "end_date")
   private LocalDate endDate;
 

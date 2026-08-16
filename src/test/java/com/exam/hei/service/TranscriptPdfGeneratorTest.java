@@ -25,7 +25,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class TranscriptPdfGeneratorTest {
-
   private final TranscriptPdfGenerator subject = new TranscriptPdfGenerator();
 
   private static final Track EL = Track.builder().id(UUID.randomUUID()).code("EL").build();
@@ -91,8 +90,6 @@ class TranscriptPdfGeneratorTest {
     return text.toString();
   }
 
-  // --- the file itself ----------------------------------------------------------
-
   @Test
   void the_output_is_a_pdf() {
     var pdf = subject.generate(graduatedResult(), null);
@@ -103,16 +100,12 @@ class TranscriptPdfGeneratorTest {
 
   @Test
   void the_template_renders_as_well_formed_xml() throws Exception {
-    // Flying Saucer parses XML, so a malformed template must fail here rather than silently
-    // producing a document the renderer mangles. Parsing the render proves the contract holds.
     var xhtml = subject.render(graduatedResult(), null);
 
     javax.xml.parsers.DocumentBuilderFactory.newInstance()
         .newDocumentBuilder()
         .parse(new org.xml.sax.InputSource(new java.io.StringReader(xhtml)));
   }
-
-  // --- what the reader actually sees --------------------------------------------
 
   @Test
   void the_pdf_names_the_student_and_their_reference() throws Exception {
@@ -176,8 +169,6 @@ class TranscriptPdfGeneratorTest {
     assertTrue(text.contains("Not evaluable"), "text was " + text);
   }
 
-  // --- scopes --------------------------------------------------------------------
-
   @Test
   void a_single_semester_scope_prints_that_semester_only() throws Exception {
     var text = textOf(subject.generate(graduatedResult(), SemesterRef.S5));
@@ -189,7 +180,6 @@ class TranscriptPdfGeneratorTest {
 
   @Test
   void a_single_semester_scope_carries_no_diploma_verdict() throws Exception {
-    // Graduating is a statement about all six semesters; printing it next to one would misread.
     var text = textOf(subject.generate(graduatedResult(), SemesterRef.S5));
 
     assertFalse(text.contains("GRANTED"), "text was " + text);

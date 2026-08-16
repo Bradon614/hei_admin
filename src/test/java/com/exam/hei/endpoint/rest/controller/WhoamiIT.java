@@ -30,7 +30,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 class WhoamiIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired StudentRepository studentRepository;
@@ -105,8 +104,6 @@ class WhoamiIT extends FacadeIT {
         Role.TEACHER, whoamiAs(persistedUser(Role.TEACHER), Whoami.class).getBody().getRole());
   }
 
-  // --- profile resolution ---------------------------------------------------
-
   @Test
   void whoami_links_a_student_account_to_its_record() {
     var account = persistedUser(Role.STUDENT);
@@ -139,14 +136,11 @@ class WhoamiIT extends FacadeIT {
 
   @Test
   void an_account_without_a_profile_is_linked_to_nothing() {
-    // A student account may exist before its record does: whoami reports it rather than failing.
     var body = whoamiAs(persistedUser(Role.STUDENT), Whoami.class).getBody();
 
     assertNull(body.getStudentId());
     assertNull(body.getTeacherId());
   }
-
-  // --- payload contract -----------------------------------------------------
 
   @Test
   void whoami_is_serialized_in_snake_case() {

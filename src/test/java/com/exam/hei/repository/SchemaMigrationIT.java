@@ -14,22 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * Checks that the schema migration really applies and that the constraints carrying a business rule
- * reject what they are meant to reject.
- *
- * <p>Deliberately written against plain SQL rather than JPA entities: the database schema is its
- * own feature, entities belong to the features that need them.
- */
 class SchemaMigrationIT extends FacadeIT {
-
   @Autowired JdbcTemplate jdbcTemplate;
 
   private static String rand(int length) {
     return UUID.randomUUID().toString().replace("-", "").substring(0, length);
   }
-
-  // --- fixtures -------------------------------------------------------------
 
   private UUID insertPromotion(int startYear, int endYear) {
     return jdbcTemplate.queryForObject(
@@ -89,7 +79,6 @@ class SchemaMigrationIT extends FacadeIT {
         insertUser());
   }
 
-  /** Semesters are reference data seeded by a later feature, so insert on demand here. */
   private UUID semester(String ref, int order, int year, boolean commonCore) {
     jdbcTemplate.update(
         "insert into semester (ref, sem_order, year_number, common_core) values (?, ?, ?, ?)"
@@ -140,8 +129,6 @@ class SchemaMigrationIT extends FacadeIT {
         endDate);
   }
 
-  // --- migration itself -----------------------------------------------------
-
   @Test
   void migration_v43_is_applied() {
     var applied =
@@ -185,7 +172,6 @@ class SchemaMigrationIT extends FacadeIT {
 
   @Test
   void required_extensions_are_installed() {
-    // btree_gist is what makes the exclusion constraint on student_group_assignment possible.
     var count =
         jdbcTemplate.queryForObject(
             "select count(*) from pg_extension where extname in ('pgcrypto', 'btree_gist')",
@@ -193,8 +179,6 @@ class SchemaMigrationIT extends FacadeIT {
 
     assertEquals(2, count);
   }
-
-  // --- student_group_assignment: no overlapping periods ---------------------
 
   @Test
   void consecutive_group_assignments_are_accepted() {
@@ -237,7 +221,6 @@ class SchemaMigrationIT extends FacadeIT {
 
   @Test
   void two_students_may_share_the_same_period_in_the_same_group() {
-    // The exclusion constraint is scoped per student, not per group.
     var promotion = insertPromotion();
     var group = insertGroup(promotion, null);
     var jean = insertStudent(promotion);
@@ -248,11 +231,8 @@ class SchemaMigrationIT extends FacadeIT {
     assertDoesNotThrow(() -> assignGroup(alice, group, "2025-09-01", null));
   }
 
-  // --- student_group: track consistency ------------------------------------
-
   @Test
   void a_common_core_group_needs_no_track() {
-    // MATCH SIMPLE: a null track_id satisfies the composite foreign key.
     var promotion = insertPromotion();
 
     assertDoesNotThrow(() -> insertGroup(promotion, null));
@@ -275,8 +255,6 @@ class SchemaMigrationIT extends FacadeIT {
     assertThrows(
         DataIntegrityViolationException.class, () -> insertGroup(promotion, trackOpenedByNobody));
   }
-
-  // --- grade and its history -----------------------------------------------
 
   @Test
   void a_grade_value_stays_within_zero_and_twenty() {
@@ -333,8 +311,6 @@ class SchemaMigrationIT extends FacadeIT {
                 author));
   }
 
-  // --- student_track_choice -------------------------------------------------
-
   @Test
   void a_student_cannot_choose_two_tracks_from_the_same_semester() {
     var promotion = insertPromotion();
@@ -360,8 +336,6 @@ class SchemaMigrationIT extends FacadeIT {
                 tn,
                 s4));
   }
-
-  // --- promotion ------------------------------------------------------------
 
   @Test
   void a_promotion_ends_after_it_starts() {

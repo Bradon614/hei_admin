@@ -13,10 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Read only: a grade is never written directly, only through {@link GradeChange} on {@code PUT
- * /exams/{id}/grades}.
- */
 @Getter
 @Setter
 @Builder
@@ -26,7 +22,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Grade {
-
   private UUID id;
   private UUID studentId;
   private Exam exam;

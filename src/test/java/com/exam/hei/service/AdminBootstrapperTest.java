@@ -20,13 +20,11 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 class AdminBootstrapperTest {
-
   private static final String EMAIL = "admin@hei.school";
   private static final String PASSWORD = "correct-horse-battery";
 
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
 
-  /** A real encoder, not a mock: the point of several of these tests is the hashing itself. */
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
   private AdminBootstrapper bootstrapper(String email, String password) {
@@ -44,8 +42,6 @@ class AdminBootstrapperTest {
     verify(appUserRepository).save(captor.capture());
     return captor.getValue();
   }
-
-  // --- the one case that writes ---------------------------------------------------
 
   @Test
   void an_empty_deployment_gets_its_first_administrator() {
@@ -71,7 +67,6 @@ class AdminBootstrapperTest {
 
   @Test
   void the_stored_hash_actually_verifies_the_password() {
-    // Hashing something is not enough: the admin has to be able to sign in afterwards.
     noAdminYet();
 
     bootstrapper(EMAIL, PASSWORD).run(null);
@@ -80,11 +75,8 @@ class AdminBootstrapperTest {
     assertFalse(encoder.matches("wrong", created().getPasswordHash()));
   }
 
-  // --- every case that must not write ----------------------------------------------
-
   @Test
   void an_existing_administrator_is_never_replaced() {
-    // Idempotence: this is the branch that runs on every restart after the first.
     when(appUserRepository.existsByRole(Role.ADMIN)).thenReturn(true);
 
     bootstrapper(EMAIL, PASSWORD).run(null);
@@ -121,7 +113,6 @@ class AdminBootstrapperTest {
 
   @Test
   void blank_variables_count_as_missing() {
-    // An environment variable set to whitespace is a configuration mistake, not a password.
     bootstrapper("   ", "   ").run(null);
 
     verify(appUserRepository, never()).save(any());
@@ -129,7 +120,6 @@ class AdminBootstrapperTest {
 
   @Test
   void an_email_already_taken_is_reported_rather_than_crashing_the_startup() {
-    // app_user.email is UNIQUE: saving would throw and take the whole application down with it.
     when(appUserRepository.existsByRole(Role.ADMIN)).thenReturn(false);
     when(appUserRepository.findByEmail(EMAIL))
         .thenReturn(Optional.of(AppUser.builder().id(UUID.randomUUID()).email(EMAIL).build()));
@@ -141,7 +131,6 @@ class AdminBootstrapperTest {
 
   @Test
   void startup_never_fails_whatever_the_configuration() {
-    // The suite itself depends on this: 600 tests boot a context without these variables set.
     when(appUserRepository.existsByRole(Role.ADMIN)).thenReturn(false);
     when(appUserRepository.findByEmail(any())).thenReturn(Optional.empty());
     when(appUserRepository.save(any())).thenAnswer(i -> i.getArgument(0));

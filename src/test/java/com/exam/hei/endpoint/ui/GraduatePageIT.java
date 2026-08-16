@@ -43,9 +43,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
-/** The Thymeleaf page, driven the way a browser drives it: with a cookie, never a header. */
 class GraduatePageIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -204,8 +202,6 @@ class GraduatePageIT extends FacadeIT {
 
   @Test
   void the_download_button_points_at_the_excel_endpoint() throws Exception {
-    // The button is a plain link rather than a script: the SameSite=Strict cookie rides along on a
-    // same-site navigation, which is exactly what makes cookie authentication worth its cost here.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     graduate(student(promotion, "Rakoto", "Jean"), "14.00", admin);

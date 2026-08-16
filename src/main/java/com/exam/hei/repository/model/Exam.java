@@ -18,12 +18,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * One assessment of a course. A course may hold several, each with its own weight.
- *
- * <p>The date is not decoration: it is what resolves the group a student belonged to when the exam
- * took place, which the teacher authorization rule relies on.
- */
 @Entity
 @Table(name = "exam")
 @Getter
@@ -33,7 +27,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Exam {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -49,7 +42,6 @@ public class Exam {
   @Column(name = "date_exam", nullable = false)
   private Instant dateExam;
 
-  /** Weight of this exam in the final grade of its course. */
   @Column(name = "coefficient", nullable = false)
   private BigDecimal coefficient;
 }

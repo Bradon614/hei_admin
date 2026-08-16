@@ -13,12 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Entry or update of a grade, as sent to {@code PUT /exams/{id}/grades}.
- *
- * <p>{@code reason_type} and {@code reason} are mandatory: an update without a reason is refused,
- * both here and at the database level.
- */
 @Getter
 @Setter
 @Builder
@@ -28,7 +22,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GradeChange {
-
   private UUID studentId;
   private BigDecimal value;
   private GradeChangeReasonType reasonType;

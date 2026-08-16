@@ -46,7 +46,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class GraduateIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -258,8 +257,6 @@ class GraduateIT extends FacadeIT {
     assertTrue(raw.contains("\"track_code\""), "body was " + raw);
   }
 
-  // --- Excel export -----------------------------------------------------------
-
   @Test
   void only_an_admin_downloads_the_graduate_excel_file() {
     var promotion = promotion();
@@ -313,10 +310,6 @@ class GraduateIT extends FacadeIT {
 
   @Test
   void the_downloaded_file_carries_the_same_data_as_the_json_listing() throws Exception {
-    // Compared against the JSON response rather than a literal: courses are never scoped to a
-    // promotion, so the general average of a semester also reflects whichever other courses other
-    // tests created there, each counting as a missed exam. Only the JSON listing knows the true
-    // value for this run.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     graduate(student(promotion, "Rakoto", "Jean"), "14.00", admin);

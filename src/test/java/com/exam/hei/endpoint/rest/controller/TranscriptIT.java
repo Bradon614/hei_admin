@@ -47,7 +47,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class TranscriptIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired StudentRepository studentRepository;
@@ -55,12 +54,6 @@ class TranscriptIT extends FacadeIT {
   @Autowired JwtService jwtService;
   @Autowired ObjectMapper objectMapper;
 
-  /**
-   * Mocked out of necessity, not convenience: the application context wires {@code BucketComponent}
-   * to the real eu-west-3 endpoint, so letting it through would have this test reach for the AWS
-   * account. The real component against a real S3 is covered by {@code BucketComponentLocalStackIT}
-   * instead, which talks to a container.
-   */
   @MockBean BucketComponent bucketComponent;
 
   @MockBean EventProducer<?> eventProducer;
@@ -128,7 +121,6 @@ class TranscriptIT extends FacadeIT {
     return headers;
   }
 
-  /** See {@code AuthIT}: the JDK's HttpURLConnection cannot process a 4xx answer to a POST body. */
   private HttpResponse<String> post(UUID studentId, String semesterRef, String token)
       throws Exception {
     var body =
@@ -168,11 +160,8 @@ class TranscriptIT extends FacadeIT {
         new ParameterizedTypeReference<>() {});
   }
 
-  // --- requesting -----------------------------------------------------------------
-
   @Test
   void requesting_a_transcript_is_accepted_not_completed() throws Exception {
-    // 202 rather than 200: the PDF is stored, but the email the request is about has not gone out.
     var account = studentAccount();
 
     var response = post(account.student().getId(), null, account.token());
@@ -238,8 +227,6 @@ class TranscriptIT extends FacadeIT {
 
     assertNull(created.getSemesterRef());
   }
-
-  // --- reading --------------------------------------------------------------------
 
   @Test
   void a_request_is_readable_by_its_id() throws Exception {
@@ -324,7 +311,6 @@ class TranscriptIT extends FacadeIT {
 
   @Test
   void the_bucket_key_is_never_exposed() throws Exception {
-    // Where the object sits is infrastructure; the contract exposes file_url and nothing else.
     var account = studentAccount();
     var created = parse(post(account.student().getId(), null, account.token()).body());
 

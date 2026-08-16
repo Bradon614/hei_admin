@@ -17,11 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf and in the authorizers. */
 @RestController
 @AllArgsConstructor
 public class GradeController {
-
   private final GradeService gradeService;
   private final GradeMapper gradeMapper;
   private final GradeHistoryMapper gradeHistoryMapper;

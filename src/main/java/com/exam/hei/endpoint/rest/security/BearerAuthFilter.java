@@ -17,26 +17,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * Turns a JWT into an authenticated security context, read from {@code Authorization: Bearer
- * <token>} or, failing that, from the {@value #COOKIE_NAME} cookie.
- *
- * <p>Deliberately not a {@code @Component}: it is wired by {@link SecurityConf} only, so that
- * Spring Boot does not also register it as a plain servlet filter and run it twice per request.
- *
- * <p>The cookie exists for the Thymeleaf pages only: a browser loading a page sends no {@code
- * Authorization} header, so header-only authentication would make every page a 401. The header
- * keeps priority, so an API client's behaviour is unchanged whatever cookies its jar happens to
- * hold.
- *
- * <p>A request carrying neither goes through untouched, which is what keeps the public endpoints
- * reachable. A request carrying an invalid token is rejected right here rather than being treated
- * as anonymous, so a malformed or expired token never looks like a missing permission.
- */
 @AllArgsConstructor
 public class BearerAuthFilter extends OncePerRequestFilter {
-
-  /** Set by the UI login, never by the REST API. See {@code AuthPageController}. */
   public static final String COOKIE_NAME = "access_token";
 
   private static final String BEARER_PREFIX = "Bearer ";

@@ -8,7 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TranscriptRequestRepository extends JpaRepository<TranscriptRequest, UUID> {
-
-  /** Most recent first, which is the order the index on (student_id, requested_at desc) serves. */
   List<TranscriptRequest> findAllByStudentIdOrderByRequestedAtDesc(UUID studentId);
 }

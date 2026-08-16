@@ -24,9 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-/** Where the token is read from: the header first, the UI cookie as a fallback. */
 class BearerAuthFilterTest {
-
   private final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
   private final AuthenticationEntryPoint entryPoint = mock(AuthenticationEntryPoint.class);
   private final BearerAuthFilter subject = new BearerAuthFilter(authenticationManager, entryPoint);
@@ -63,7 +61,6 @@ class BearerAuthFilterTest {
 
   @Test
   void the_ui_cookie_authenticates_when_no_header_is_present() throws Exception {
-    // The whole reason the cookie exists: a browser loading a page sends no Authorization header.
     resolves(COOKIE_TOKEN);
     var request = new MockHttpServletRequest();
     request.setCookies(new Cookie(BearerAuthFilter.COOKIE_NAME, COOKIE_TOKEN));
@@ -73,7 +70,6 @@ class BearerAuthFilterTest {
 
   @Test
   void the_header_wins_over_the_cookie() throws Exception {
-    // An API client's behaviour must not change because its cookie jar happens to hold a session.
     resolves(HEADER_TOKEN);
     var request = new MockHttpServletRequest();
     request.addHeader("Authorization", "Bearer " + HEADER_TOKEN);
@@ -99,8 +95,6 @@ class BearerAuthFilterTest {
 
   @Test
   void a_blank_cookie_is_ignored_rather_than_rejected() throws Exception {
-    // A browser clearing the cookie leaves an empty value behind; that is a signed-out visitor, not
-    // a bad credential.
     var request = new MockHttpServletRequest();
     request.setCookies(new Cookie(BearerAuthFilter.COOKIE_NAME, ""));
 

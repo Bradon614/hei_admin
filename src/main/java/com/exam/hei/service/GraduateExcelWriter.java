@@ -8,13 +8,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
-/**
- * Renders a graduate list as an XLSX workbook. Kept apart from {@link GraduateService}: producing
- * bytes for a specific file format is a rendering concern, not a business one.
- */
 @Component
 public class GraduateExcelWriter {
-
   private static final List<String> HEADER =
       List.of("Rank", "STD", "Last name", "First name", "General average");
 
@@ -29,8 +24,6 @@ public class GraduateExcelWriter {
       workbook.write(out);
       return out.toByteArray();
     } catch (java.io.IOException e) {
-      // An in-memory workbook writing to a ByteArrayOutputStream has no real failure mode; the
-      // checked signature is POI's, not a case this API can meaningfully recover from.
       throw new UncheckedIOException(e);
     }
   }
@@ -41,7 +34,6 @@ public class GraduateExcelWriter {
     }
   }
 
-  /** Rank and average as numeric cells, so a spreadsheet can sort or format them as numbers. */
   private void writeRow(Row row, Graduate graduate) {
     row.createCell(0).setCellValue(graduate.rank());
     row.createCell(1).setCellValue(graduate.std());

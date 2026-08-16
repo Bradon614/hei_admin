@@ -32,7 +32,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class CourseIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired TrackRepository trackRepository;
@@ -117,7 +116,6 @@ class CourseIT extends FacadeIT {
 
   @Test
   void a_semester_is_named_by_its_reference() {
-    // Semesters are reference data: S5 is what a human writes, and the enum makes it typo proof.
     var created =
         put(List.of(aCourse(SemesterRef.S5, null, 12)), keyOf(Role.ADMIN)).getBody().get(0);
 

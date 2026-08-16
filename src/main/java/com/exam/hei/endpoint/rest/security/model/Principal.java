@@ -11,22 +11,18 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/** The authenticated caller, wrapping the account the bearer JWT was issued for. */
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class Principal implements UserDetails {
-
   private final AppUser user;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    // Spring Security expects the ROLE_ prefix for hasRole() checks.
     return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
   }
 
-  /** Never exposed: the filter chain authenticates a signed token, it never compares passwords. */
   @Override
   public String getPassword() {
     return null;

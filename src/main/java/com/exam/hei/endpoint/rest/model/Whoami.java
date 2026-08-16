@@ -11,12 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Identity and role of the authenticated caller.
- *
- * <p>doc/api.yml uses snake_case property names, hence the naming strategy: the generated
- * ObjectMapper of POJA keeps Jackson defaults, so each REST model states its own convention.
- */
 @Getter
 @Setter
 @Builder
@@ -25,19 +19,11 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Whoami {
-
   private UUID userId;
   private String email;
   private Role role;
 
-  /**
-   * Filled in only when the role is STUDENT.
-   *
-   * <p>Always null for now: the student profile is introduced by its own feature. Same for {@link
-   * #teacherId}.
-   */
   private UUID studentId;
 
-  /** Filled in only when the role is TEACHER. */
   private UUID teacherId;
 }

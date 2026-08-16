@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** On writes, only ids are read. */
 @Getter
 @Setter
 @Builder
@@ -21,7 +20,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TeachingAssignment {
-
   private UUID id;
   private Course course;
   private Teacher teacher;

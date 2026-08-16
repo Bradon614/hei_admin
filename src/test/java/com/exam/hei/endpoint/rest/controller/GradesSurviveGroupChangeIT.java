@@ -46,12 +46,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
-/**
- * A grade is attached to a student and an exam, never to a group: the structural guarantee that a
- * later group change cannot make it disappear, nor make it visible to the wrong teacher.
- */
 class GradesSurviveGroupChangeIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -174,7 +169,6 @@ class GradesSurviveGroupChangeIT extends FacadeIT {
                 .user(user)
                 .build());
 
-    // The student sat the exam while in group A.
     studentGroupAssignmentRepository.save(
         StudentGroupAssignment.builder()
             .student(student)
@@ -200,18 +194,15 @@ class GradesSurviveGroupChangeIT extends FacadeIT {
             .getBody()
             .get(0);
 
-    // Only later does the student move to group B, well after the exam took place.
     studentGroupAssignmentService.changeGroup(
         student.getId(), groupB.getId(), LocalDate.of(2026, 2, 1), "Reorganization");
 
-    // The grade itself is untouched by the move.
     var stillThere =
         restTemplate.exchange(
             "/grades/" + created.getId(), GET, new HttpEntity<>(bearer(admin)), Grade.class);
     assertEquals(OK, stillThere.getStatusCode());
     assertEquals(0, new BigDecimal("14.00").compareTo(stillThere.getBody().getValue()));
 
-    // The teacher who covered group A, where the student sat the exam, still sees the grade.
     var seenByTeacherOfA =
         restTemplate.exchange(
             "/exams/" + exam.getId() + "/grades",
@@ -220,8 +211,6 @@ class GradesSurviveGroupChangeIT extends FacadeIT {
             new ParameterizedTypeReference<List<Grade>>() {});
     assertEquals(1, seenByTeacherOfA.getBody().size());
 
-    // The teacher of group B, the student's group today, never covered them at exam time and does
-    // not see the grade: resolution goes by the exam date, never by the current group.
     var seenByTeacherOfB =
         restTemplate.exchange(
             "/exams/" + exam.getId() + "/grades",

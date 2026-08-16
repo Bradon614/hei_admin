@@ -12,15 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
-/**
- * Renders authorization failures as the {@code Error} payload of doc/api.yml.
- *
- * <p>Needed as soon as a per role rule exists: an authenticated caller without the required role
- * would otherwise get an empty 403 body, which does not match the specification.
- */
 @AllArgsConstructor
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
-
   private final ObjectMapper objectMapper;
 
   @Override

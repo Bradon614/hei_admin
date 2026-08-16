@@ -19,7 +19,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class TeachingAssignmentServiceTest {
-
   private final TeachingAssignmentRepository teachingAssignmentRepository =
       mock(TeachingAssignmentRepository.class);
   private final CourseService courseService = mock(CourseService.class);

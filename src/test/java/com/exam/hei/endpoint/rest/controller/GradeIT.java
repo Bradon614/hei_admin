@@ -58,7 +58,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class GradeIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -74,7 +73,6 @@ class GradeIT extends FacadeIT {
   @Autowired TrackRepository trackRepository;
   @Autowired JwtService jwtService;
 
-  /** See {@code AuthIT}: HttpURLConnection cannot process a 401 answer to a PUT carrying a body. */
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   private static String rand(int length) {
@@ -284,8 +282,6 @@ class GradeIT extends FacadeIT {
         new ParameterizedTypeReference<>() {});
   }
 
-  // --- writing ------------------------------------------------------------------
-
   @Test
   void writing_grades_requires_authentication() throws Exception {
     var request =
@@ -435,7 +431,6 @@ class GradeIT extends FacadeIT {
     var admin = tokenFor(Role.ADMIN);
     var exam = exam(course(SemesterRef.S5), "2026-01-15T08:00:00Z");
     var student = studentAccount(promotion()).student();
-    // No track choice recorded for this student: S5 expects one.
 
     assertEquals(
         CONFLICT, putRaw(exam, List.of(creation(student.getId(), "14.00")), admin).getStatusCode());
@@ -450,8 +445,6 @@ class GradeIT extends FacadeIT {
 
     assertEquals(OK, put(exam, List.of(creation(student.getId(), "14.00")), admin).getStatusCode());
   }
-
-  // --- reading a student's grades -------------------------------------------------
 
   @Test
   void a_student_reads_their_own_grades() {
@@ -492,8 +485,6 @@ class GradeIT extends FacadeIT {
 
     assertEquals(1, found.size());
   }
-
-  // --- reading an exam's grades, filtered by covered group -------------------------
 
   @Test
   void an_admin_sees_every_grade_of_an_exam() {
@@ -556,8 +547,6 @@ class GradeIT extends FacadeIT {
             .getStatusCode()
             .value());
   }
-
-  // --- a single grade and its history ----------------------------------------------
 
   @Test
   void an_unknown_grade_is_not_found() {

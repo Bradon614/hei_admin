@@ -10,15 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * Pins the academic reference data seeded by the schema migrations.
- *
- * <p>These rows are not test fixtures: they are the structural constants of the curriculum, and
- * {@code common_core} in particular is what keeps the common core / EL-TN rule out of the business
- * code. Getting them wrong would silently change how every transcript and diploma is computed.
- */
 class AcademicReferenceDataIT extends FacadeIT {
-
   @Autowired JdbcTemplate jdbcTemplate;
 
   private List<String> semesterRefs(String whereClause) {
@@ -52,8 +44,6 @@ class AcademicReferenceDataIT extends FacadeIT {
 
   @Test
   void a_track_must_be_chosen_from_s4_on() {
-    // The mandatory track choice is defined as "the first non common core semester".
-    // This test pins that it resolves to S4 through the data, never through a constant in code.
     var firstTrackSemester =
         jdbcTemplate.queryForObject(
             "select ref from semester where not common_core order by sem_order limit 1",
@@ -75,7 +65,6 @@ class AcademicReferenceDataIT extends FacadeIT {
 
   @Test
   void the_six_semesters_are_spread_over_three_years() {
-    // Two semesters per year. The common core boundary deliberately falls inside year 2.
     var yearByRef =
         jdbcTemplate
             .queryForList("select ref, year_number from semester order by sem_order")
@@ -88,8 +77,6 @@ class AcademicReferenceDataIT extends FacadeIT {
 
   @Test
   void both_hei_tracks_are_seeded() {
-    // Filtered on purpose: the Postgres container is shared across test classes, and other
-    // integration tests insert throwaway tracks of their own.
     var seeded =
         jdbcTemplate.queryForList(
             "select code from track where code in ('EL', 'TN') order by code", String.class);

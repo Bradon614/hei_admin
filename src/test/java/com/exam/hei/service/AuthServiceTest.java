@@ -17,7 +17,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class AuthServiceTest {
-
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
   private final JwtService jwtService = mock(JwtService.class);
@@ -61,7 +60,6 @@ class AuthServiceTest {
 
   @Test
   void an_unknown_email_and_a_wrong_password_report_the_exact_same_message() {
-    // Neither answer may let a caller work out which emails have an account.
     when(appUserRepository.findByEmail("nobody@hei.test")).thenReturn(Optional.empty());
     when(appUserRepository.findByEmail("jean@hei.test")).thenReturn(Optional.of(user()));
     when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);

@@ -9,9 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
-
   Optional<AppUser> findByEmail(String email);
 
-  /** Reads as "is this deployment already bootstrapped?" — see {@code AdminBootstrapper}. */
   boolean existsByRole(Role role);
 }

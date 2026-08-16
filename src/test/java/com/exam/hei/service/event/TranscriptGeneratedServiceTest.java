@@ -30,12 +30,10 @@ import org.mockito.ArgumentCaptor;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 class TranscriptGeneratedServiceTest {
-
   private final TranscriptRequestRepository transcriptRequestRepository =
       mock(TranscriptRequestRepository.class);
   private final BucketComponent bucketComponent = mock(BucketComponent.class);
 
-  /** Never a real one: sending would call SES, which costs money and needs a verified identity. */
   private final Mailer mailer = mock(Mailer.class);
 
   private final SpringTemplateEngine templateEngine = mock(SpringTemplateEngine.class);
@@ -85,8 +83,6 @@ class TranscriptGeneratedServiceTest {
     return captor.getValue();
   }
 
-  // --- the successful asynchronous half -------------------------------------------
-
   @Test
   void a_generated_request_ends_sent() throws Exception {
     var request = request(TranscriptStatus.GENERATED);
@@ -131,8 +127,6 @@ class TranscriptGeneratedServiceTest {
 
   @Test
   void the_email_carries_a_body_and_no_attachment() throws Exception {
-    // The specification has the consumer email a link; attaching the PDF would leave a transcript
-    // sitting in a mailbox for good.
     generatedRequest(request(TranscriptStatus.GENERATED));
 
     subject.accept(event());
@@ -167,11 +161,8 @@ class TranscriptGeneratedServiceTest {
     assertNull(context.getValue().getVariable("scope"));
   }
 
-  // --- redelivery -----------------------------------------------------------------
-
   @Test
   void an_already_sent_request_is_not_emailed_twice() throws Exception {
-    // SQS delivers at least once. Without this guard a redelivery mails the student again.
     var request = request(TranscriptStatus.SENT);
     when(transcriptRequestRepository.findById(REQUEST_ID)).thenReturn(Optional.of(request));
 
@@ -181,8 +172,6 @@ class TranscriptGeneratedServiceTest {
     verify(bucketComponent, never()).presign(anyString(), any());
     verify(transcriptRequestRepository, never()).save(any());
   }
-
-  // --- failures -------------------------------------------------------------------
 
   @Test
   void a_vanished_request_is_dropped_rather_than_retried_forever() {

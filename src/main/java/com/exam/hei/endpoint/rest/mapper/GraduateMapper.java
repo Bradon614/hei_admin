@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GraduateMapper {
-
   public Graduate toRest(com.exam.hei.model.Graduate domain) {
     return Graduate.builder()
         .rank(domain.rank())

@@ -37,7 +37,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class StudentTrackChoiceIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
@@ -143,8 +142,6 @@ class StudentTrackChoiceIT extends FacadeIT {
         .getBody();
   }
 
-  // --- choosing -------------------------------------------------------------
-
   @Test
   void a_student_chooses_a_track_from_the_first_track_semester() {
     var admin = adminKey();
@@ -225,8 +222,6 @@ class StudentTrackChoiceIT extends FacadeIT {
     assertEquals(400, chooseRaw(jean, tn(), SemesterRef.S4, admin).getStatusCode().value());
   }
 
-  // --- authorization --------------------------------------------------------
-
   @Test
   void reading_the_choices_requires_authentication() {
     var jean = studentOfPromotionOpening(el());
@@ -244,7 +239,6 @@ class StudentTrackChoiceIT extends FacadeIT {
 
   @Test
   void only_an_admin_can_record_a_choice() {
-    // A student does not record their own track: it is an administrative act.
     var jean = studentOfPromotionOpening(el(), tn());
     var jeanKey =
         jwtService.issue(studentRepository.findById(jean.getId()).orElseThrow().getUser()).token();

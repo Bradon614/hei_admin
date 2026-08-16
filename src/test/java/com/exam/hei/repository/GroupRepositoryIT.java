@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class GroupRepositoryIT extends FacadeIT {
-
   @Autowired GroupRepository groupRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired TrackRepository trackRepository;
@@ -67,7 +66,6 @@ class GroupRepositoryIT extends FacadeIT {
 
   @Test
   void a_group_cannot_carry_a_track_its_promotion_does_not_open() {
-    // Guarded by the composite foreign key to promotion_track.
     var promotionOpeningOnlyEl = promotionOpening(el());
 
     assertThrows(
@@ -94,7 +92,6 @@ class GroupRepositoryIT extends FacadeIT {
 
   @Test
   void two_promotions_may_each_have_a_group_of_the_same_ref() {
-    // Group refs are only unique within a promotion: two cohorts can each have their own "1".
     var ref = rand(10);
     groupRepository.saveAndFlush(Group.builder().ref(ref).promotion(promotionOpening()).build());
 

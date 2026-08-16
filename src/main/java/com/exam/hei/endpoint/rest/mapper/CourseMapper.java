@@ -6,15 +6,9 @@ import com.exam.hei.repository.model.Track;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * The named semester and track are carried across as they were written, by reference or by id.
- * Resolving them, and refusing a track on a common core semester, is a business decision left to
- * the service.
- */
 @Component
 @AllArgsConstructor
 public class CourseMapper {
-
   private final SemesterMapper semesterMapper;
   private final TrackMapper trackMapper;
 

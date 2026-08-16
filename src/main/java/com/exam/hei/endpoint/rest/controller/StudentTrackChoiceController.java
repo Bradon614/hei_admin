@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class StudentTrackChoiceController {
-
   private final StudentTrackChoiceService trackChoiceService;
   private final StudentTrackChoiceMapper trackChoiceMapper;
 

@@ -7,14 +7,9 @@ import com.exam.hei.repository.model.Teacher;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * The course, the teacher and the group are carried across as ids only on writes: resolving them,
- * and refusing ones that do not exist, is a business decision left to the service.
- */
 @Component
 @AllArgsConstructor
 public class TeachingAssignmentMapper {
-
   private final CourseMapper courseMapper;
   private final TeacherMapper teacherMapper;
   private final GroupMapper groupMapper;

@@ -42,7 +42,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class ExamIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -253,8 +252,6 @@ class ExamIT extends FacadeIT {
 
   @Test
   void an_unassigned_teacher_cannot_write_the_exams_of_a_course() {
-    // No teaching assignment names this teacher for that course: the specification allows an
-    // assigned teacher to write exams, not every teacher.
     var course = course();
     var teacher = teacherAccount();
 

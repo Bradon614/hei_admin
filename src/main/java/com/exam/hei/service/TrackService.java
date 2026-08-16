@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class TrackService {
-
   private final TrackRepository trackRepository;
 
   public List<Track> findAll() {
@@ -28,7 +27,6 @@ public class TrackService {
 
   @Transactional
   public List<Track> saveAll(List<Track> tracks) {
-    // A track that names an unknown id is a caller mistake, not an implicit creation at that id.
     tracks.stream().map(Track::getId).filter(java.util.Objects::nonNull).forEach(this::findById);
     return trackRepository.saveAll(tracks);
   }

@@ -7,11 +7,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WhoamiMapper {
-
-  /**
-   * @param studentId null unless the caller owns a student record
-   * @param teacherId null unless the caller owns a teacher record
-   */
   public Whoami toRest(AppUser user, UUID studentId, UUID teacherId) {
     return Whoami.builder()
         .userId(user.getId())

@@ -8,12 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 class PaginationTest {
-
   private static final Sort ANY_SORT = Sort.by("ref");
 
   @Test
   void the_first_page_of_the_api_is_the_first_page_of_spring_data() {
-    // doc/api.yml numbers pages from 1, Spring Data from 0.
     assertEquals(0, Pagination.toPageRequest(1, 50, ANY_SORT).getPageNumber());
     assertEquals(1, Pagination.toPageRequest(2, 50, ANY_SORT).getPageNumber());
   }

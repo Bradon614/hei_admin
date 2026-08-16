@@ -17,33 +17,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
-/**
- * Closes the API by default and opens only what has to stay reachable.
- *
- * <p>All authorization rules live in this package. Controllers never carry permission logic: they
- * handle HTTP and delegate to the service layer, which reads its caller through {@link
- * AuthenticatedResourceProvider}.
- *
- * <p>Per role rules are added by the features that introduce the endpoints they protect, and are
- * consolidated later; this configuration only establishes authentication.
- */
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConf {
-
-  /**
-   * Endpoints that must stay public.
-   *
-   * <p>This is not a convenience: the POJA delivery pipeline probes them with {@code curl --fail}
-   * through .shell/checkHealth.sh. Requiring a token here would fail every deployment.
-   */
   private static final String[] PUBLIC_PATHS = {"/ping", "/health/**"};
 
   private final AuthProvider authProvider;
   private final ObjectMapper objectMapper;
 
-  /** Used to hash a password on write and to check one on {@code POST /auth/login}. */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
@@ -52,21 +34,15 @@ public class SecurityConf {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     var authenticationManager = new ProviderManager(authProvider);
-    // Wrapped once and used both here and inside the filter, so a missing cookie and an expired one
-    // send a browser to the same place instead of one redirecting and the other answering JSON.
+
     var authenticationEntryPoint =
         new UiAwareAuthenticationEntryPoint(new RestAuthenticationEntryPoint(objectMapper));
     var accessDeniedHandler = new RestAccessDeniedHandler(objectMapper);
 
-    return http
-        // Left disabled even though the UI authenticates through a cookie, which would normally
-        // reopen CSRF: that cookie is written SameSite=Strict, so a browser never attaches it to a
-        // request another site started. See AuthPageController, where it is set.
-        .csrf(AbstractHttpConfigurer::disable)
+    return http.csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
-        // Stateless: the API runs behind Lambda, there is no session to carry.
         .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
         .exceptionHandling(
             handling ->
@@ -76,30 +52,18 @@ public class SecurityConf {
         .authorizeHttpRequests(
             requests ->
                 requests
-                    // When a handler throws, Spring re-dispatches to /error. That dispatch must not
-                    // be authenticated again: the original request was already authorized, and
-                    // securing it would surface every 500 as a misleading 401.
                     .dispatcherTypeMatchers(DispatcherType.ERROR)
                     .permitAll()
                     .requestMatchers(PUBLIC_PATHS)
                     .permitAll()
-                    // The one endpoint a caller can reach before holding a token, since it is what
-                    // hands one out.
                     .requestMatchers(HttpMethod.POST, "/auth/login")
                     .permitAll()
-                    // Its browser counterpart: the form that exchanges credentials for the cookie
-                    // every other /ui page needs.
                     .requestMatchers("/ui/login")
                     .permitAll()
-                    // Stylesheets carry nothing private, and the sign-in page needs them before
-                    // anyone is authenticated at all.
                     .requestMatchers("/css/**")
                     .permitAll()
-                    // The Thymeleaf pages render administrative listings and nothing else so far.
                     .requestMatchers("/ui/**")
                     .hasRole("ADMIN")
-                    // Reference and structural data is administered, never edited by students or
-                    // teachers. Reading stays open to any authenticated caller.
                     .requestMatchers(
                         HttpMethod.PUT,
                         "/promotions",
@@ -110,29 +74,17 @@ public class SecurityConf {
                         "/courses",
                         "/teaching-assignments")
                     .hasRole("ADMIN")
-                    // An exam belongs to a course, and a course is taught by whichever teachers a
-                    // teaching assignment names for it: TeacherAuthorizer compares caller to that
-                    // assignment, which the filter chain cannot express. Grades follow the same
-                    // rule, one level down: an exam's grades are only ever written by whoever could
-                    // already write that exam.
                     .requestMatchers(HttpMethod.PUT, "/courses/*/exams", "/exams/*/grades")
                     .hasAnyRole("ADMIN", "TEACHER")
-                    // Moving a student between groups and recording the track they follow are
-                    // administrative acts: neither the student nor their teachers decide them.
                     .requestMatchers(
                         HttpMethod.POST,
                         "/students/*/group-assignments",
                         "/students/*/track-choices")
                     .hasRole("ADMIN")
-                    // Browsing the whole student body is not a student's business. Reading one
-                    // record is handled by StudentAuthorizer, which compares caller to resource and
-                    // therefore cannot be expressed here.
                     .requestMatchers(HttpMethod.GET, "/students")
                     .hasAnyRole("ADMIN", "TEACHER")
-                    // A promotion-wide result or graduate listing is an administrative view; a
-                    // single student's own result is handled by StudentAuthorizer instead. Not
-                    // optional here: GraduateService reuses ResultService#resultsOfPromotion, which
-                    // performs no per-student check, so this is the only gate either endpoint has.
+                    .requestMatchers(HttpMethod.GET, "/teachers")
+                    .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(
                         HttpMethod.GET,
                         "/promotions/*/results",

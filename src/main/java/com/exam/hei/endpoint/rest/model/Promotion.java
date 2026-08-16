@@ -21,13 +21,11 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Promotion {
-
   private UUID id;
   private String ref;
   private String name;
   private Integer startYear;
   private Integer endYear;
 
-  /** Tracks opened by this promotion. On writes, only the id of each track is read. */
   private List<Track> tracks;
 }

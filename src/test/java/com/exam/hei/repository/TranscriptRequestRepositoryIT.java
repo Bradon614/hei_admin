@@ -22,7 +22,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 class TranscriptRequestRepositoryIT extends FacadeIT {
-
   @Autowired TranscriptRequestRepository transcriptRequestRepository;
   @Autowired StudentRepository studentRepository;
   @Autowired PromotionRepository promotionRepository;
@@ -78,7 +77,6 @@ class TranscriptRequestRepositoryIT extends FacadeIT {
 
   @Test
   void a_full_curriculum_request_names_no_semester() {
-    // Null semester is the documented way of asking for the whole S1 to S6 transcript.
     var saved = transcriptRequestRepository.save(request(student()).build());
 
     assertNull(transcriptRequestRepository.findById(saved.getId()).orElseThrow().getSemester());
@@ -109,8 +107,6 @@ class TranscriptRequestRepositoryIT extends FacadeIT {
 
   @Test
   void a_status_outside_the_contract_is_refused_by_the_database() {
-    // The CHECK constraint is the last line of defence behind the enum, and worth proving: it is
-    // what stops a future migration or a raw script from inventing a fifth state.
     var student = student();
     var author = account(Role.ADMIN);
 

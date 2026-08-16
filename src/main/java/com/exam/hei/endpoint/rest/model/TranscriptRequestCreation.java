@@ -20,7 +20,5 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TranscriptRequestCreation {
-
-  /** Null for a full S1 to S6 transcript. */
   private SemesterRef semesterRef;
 }

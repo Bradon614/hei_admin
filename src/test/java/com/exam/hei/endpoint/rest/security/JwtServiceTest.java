@@ -14,9 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.BadCredentialsException;
 
 class JwtServiceTest {
-
   private static SecretKey key(String seed) {
-    // 32+ bytes: the minimum io.jsonwebtoken.security.Keys.hmacShaKeyFor accepts for HS256.
     return io.jsonwebtoken.security.Keys.hmacShaKeyFor((seed + "-".repeat(32)).getBytes());
   }
 
@@ -74,7 +72,6 @@ class JwtServiceTest {
     assertThrows(BadCredentialsException.class, () -> subject.parse(expired));
   }
 
-  /** What a JWT brings over an API key: a forged claim never validates against the signature. */
   @Test
   void a_tampered_token_is_rejected() {
     var issued = subject.issue(user());

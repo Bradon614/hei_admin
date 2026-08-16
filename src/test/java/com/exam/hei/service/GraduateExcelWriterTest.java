@@ -13,7 +13,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 
 class GraduateExcelWriterTest {
-
   private final GraduateExcelWriter subject = new GraduateExcelWriter();
 
   private static Graduate graduate(

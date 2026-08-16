@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TrackMapper {
-
   public Track toRest(com.exam.hei.repository.model.Track domain) {
     return Track.builder().id(domain.getId()).code(domain.getCode()).name(domain.getName()).build();
   }

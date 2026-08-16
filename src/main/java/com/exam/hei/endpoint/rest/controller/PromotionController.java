@@ -13,14 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * No permission check here: the ADMIN restriction on the write endpoint is declared in {@code
- * SecurityConf}, so authorization stays in one place instead of being scattered across controllers.
- */
 @RestController
 @AllArgsConstructor
 public class PromotionController {
-
   private final PromotionService promotionService;
   private final PromotionMapper promotionMapper;
 

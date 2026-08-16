@@ -21,14 +21,10 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class StudentTrackChoice {
-
   private UUID id;
   private UUID studentId;
   private Track track;
 
-  /**
-   * First semester this track applies to, and every later one unless a new choice supersedes it.
-   */
   private Semester fromSemester;
 
   private Instant decidedAt;

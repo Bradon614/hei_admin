@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class TeacherRepositoryIT extends FacadeIT {
-
   @Autowired TeacherRepository teacherRepository;
   @Autowired AppUserRepository appUserRepository;
 

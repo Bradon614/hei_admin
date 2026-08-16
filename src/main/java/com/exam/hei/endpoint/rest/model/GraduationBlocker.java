@@ -21,7 +21,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GraduationBlocker {
-
   private GraduationBlockerCode code;
   private SemesterRef semesterRef;
   private String message;

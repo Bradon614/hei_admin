@@ -14,11 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Carries no bucket key: where the object sits is infrastructure, and the caller has {@code
- * fileUrl} once the consumer mints one. Read only — a request is created through {@link
- * TranscriptRequestCreation} and only ever moves forward on its own.
- */
 @Getter
 @Setter
 @Builder
@@ -28,16 +23,13 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TranscriptRequest {
-
   private UUID id;
   private UUID studentId;
 
-  /** Null for a full S1 to S6 transcript. */
   private SemesterRef semesterRef;
 
   private TranscriptStatus status;
 
-  /** Presigned link, available only once the consumer has emailed it. */
   private String fileUrl;
 
   private Instant requestedAt;

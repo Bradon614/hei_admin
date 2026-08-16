@@ -30,7 +30,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class StudentServiceTest {
-
   private final StudentRepository studentRepository = mock(StudentRepository.class);
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PromotionService promotionService = mock(PromotionService.class);
@@ -71,11 +70,8 @@ class StudentServiceTest {
         .thenAnswer(invocation -> "hashed:" + invocation.getArgument(0));
   }
 
-  // --- account creation -----------------------------------------------------
-
   @Test
   void creating_a_student_creates_the_account_it_signs_in_with() {
-    // doc/api.yml exposes no account endpoint, yet student.user_id is mandatory.
     when(promotionService.findById(PROMOTION_ID)).thenReturn(promotion());
     repositoryEchoesWhatItIsGiven();
 
@@ -137,8 +133,6 @@ class StudentServiceTest {
 
   @Test
   void renaming_the_email_of_a_student_keeps_its_account_in_step() {
-    // Profile and account both carry a unique email: letting them drift apart would be a latent
-    // bug.
     var id = UUID.randomUUID();
     var account =
         AppUser.builder().id(UUID.randomUUID()).email("old@hei.test").passwordHash("old").build();
@@ -156,8 +150,6 @@ class StudentServiceTest {
     assertEquals("new@hei.test", account.getEmail());
     verify(appUserRepository).save(account);
   }
-
-  // --- referenced resources -------------------------------------------------
 
   @Test
   void a_student_naming_an_unknown_promotion_is_not_found() {
@@ -198,8 +190,6 @@ class StudentServiceTest {
 
     assertThrows(NotFoundException.class, () -> subject.findByUserId(userId));
   }
-
-  // --- listing --------------------------------------------------------------
 
   @Test
   void listing_without_any_filter_returns_every_student() {
@@ -259,7 +249,6 @@ class StudentServiceTest {
 
   @Test
   void the_group_filter_takes_precedence_over_the_others() {
-    // Documented precedence: group, then track, then promotion. Combining them is not required.
     var groupId = UUID.randomUUID();
     when(studentRepository.findAllInGroupAt(any(), any(), any(Pageable.class)))
         .thenReturn(Page.empty(PageRequest.of(0, 50)));

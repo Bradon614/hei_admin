@@ -13,22 +13,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, UUID> {
-
   Optional<Student> findByRef(String ref);
 
   Optional<Student> findByEmail(String email);
 
-  /** Resolves the profile behind an authenticated account. */
   Optional<Student> findByUserId(UUID userId);
 
   Page<Student> findAllByPromotionId(UUID promotionId, Pageable pageable);
 
-  /**
-   * Students who belonged to that group on that date, bounds inclusive.
-   *
-   * <p>Rooted on the student rather than on the assignment so that the caller can sort by a student
-   * attribute: a sort is applied to the root of the query, and an assignment has no reference.
-   */
   @Query(
       "select s from Student s where exists ("
           + " select 1 from StudentGroupAssignment a"
@@ -39,12 +31,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
   Page<Student> findAllInGroupAt(
       @Param("groupId") UUID groupId, @Param("date") LocalDate date, Pageable pageable);
 
-  /**
-   * Students whose most recent track choice is that track.
-   *
-   * <p>Compares against the latest choice rather than any choice, so that a student who reoriented
-   * is counted in the track they now follow and not in both.
-   */
   @Query(
       "select s from Student s where exists ("
           + " select 1 from StudentTrackChoice c"
@@ -54,9 +40,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
           + "    where latest.student = s))")
   Page<Student> findAllFollowingTrack(@Param("trackCode") String trackCode, Pageable pageable);
 
-  /**
-   * Same rule as {@link #findAllFollowingTrack}, scoped to one promotion for the results listing.
-   */
   @Query(
       "select s from Student s where s.promotion.id = :promotionId and exists ("
           + " select 1 from StudentTrackChoice c"

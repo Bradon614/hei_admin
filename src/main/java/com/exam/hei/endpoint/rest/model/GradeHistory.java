@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Read only, never updated, never deleted. */
 @Getter
 @Setter
 @Builder
@@ -24,18 +23,15 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GradeHistory {
-
   private UUID id;
   private UUID gradeId;
 
-  /** Null on the first entry. */
   private BigDecimal oldValue;
 
   private BigDecimal newValue;
   private GradeChangeReasonType reasonType;
   private String reason;
 
-  /** Account that made the modification. */
   private UUID changedBy;
 
   private String changedByEmail;

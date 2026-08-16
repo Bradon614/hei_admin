@@ -20,15 +20,9 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Group {
-
   private UUID id;
   private String ref;
   private Promotion promotion;
 
-  /**
-   * Null for a common core group. On writes, only the id is read.
-   *
-   * <p>Never used to work out which courses a student follows: that comes from their track choice.
-   */
   private Track track;
 }

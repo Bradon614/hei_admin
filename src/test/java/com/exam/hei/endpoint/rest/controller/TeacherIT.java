@@ -29,7 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class TeacherIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired JwtService jwtService;
@@ -39,12 +38,16 @@ class TeacherIT extends FacadeIT {
   }
 
   private String adminKey() {
+    return tokenFor(Role.ADMIN);
+  }
+
+  private String tokenFor(Role role) {
     var user =
         appUserRepository.save(
             AppUser.builder()
                 .email(rand(12) + "@hei.test")
                 .passwordHash("hash")
-                .role(Role.ADMIN)
+                .role(role)
                 .build());
     return jwtService.issue(user).token();
   }
@@ -177,6 +180,38 @@ class TeacherIT extends FacadeIT {
         restTemplate.exchange("/teachers", GET, new HttpEntity<>(new HttpHeaders()), String.class);
 
     assertEquals(UNAUTHORIZED, response.getStatusCode());
+  }
+
+  @Test
+  void a_student_cannot_harvest_the_teacher_directory() {
+    var response =
+        restTemplate.exchange(
+            "/teachers", GET, new HttpEntity<>(bearer(tokenFor(Role.STUDENT))), String.class);
+
+    assertEquals(FORBIDDEN, response.getStatusCode());
+  }
+
+  @Test
+  void a_teacher_lists_the_directory() {
+    var response =
+        restTemplate.exchange(
+            "/teachers", GET, new HttpEntity<>(bearer(tokenFor(Role.TEACHER))), String.class);
+
+    assertEquals(OK, response.getStatusCode());
+  }
+
+  @Test
+  void a_student_can_still_read_a_single_teacher() {
+    var teacher = created(adminKey());
+
+    var response =
+        restTemplate.exchange(
+            "/teachers/" + teacher.getId(),
+            GET,
+            new HttpEntity<>(bearer(tokenFor(Role.STUDENT))),
+            String.class);
+
+    assertEquals(OK, response.getStatusCode());
   }
 
   @Test

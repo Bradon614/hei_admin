@@ -17,15 +17,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * An authenticable account.
- *
- * <p>Named {@code AppUser} after its table rather than {@code User}, which would collide with
- * {@link org.springframework.security.core.userdetails.User}.
- *
- * <p>A student and a teacher are business profiles, not accounts: {@code student.user_id} and
- * {@code teacher.user_id} point here, which is why accounts have to exist before either of them.
- */
 @Entity
 @Table(name = "app_user")
 @Getter
@@ -35,7 +26,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class AppUser {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -43,10 +33,6 @@ public class AppUser {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
-  /**
-   * BCrypt hash checked by {@code POST /auth/login}. Never returned by any endpoint, and a hash
-   * cannot be turned back into the password it came from.
-   */
   @Column(name = "password_hash", nullable = false)
   @ToString.Exclude
   private String passwordHash;

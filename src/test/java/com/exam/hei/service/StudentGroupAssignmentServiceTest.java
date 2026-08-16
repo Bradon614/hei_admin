@@ -27,7 +27,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class StudentGroupAssignmentServiceTest {
-
   private final StudentGroupAssignmentRepository assignmentRepository =
       mock(StudentGroupAssignmentRepository.class);
   private final StudentRepository studentRepository = mock(StudentRepository.class);
@@ -102,8 +101,6 @@ class StudentGroupAssignmentServiceTest {
   private void studentFollows(Track track) {
     when(trackChoiceService.exitTrackOf(STUDENT_ID)).thenReturn(Optional.ofNullable(track));
   }
-
-  // --- moving between groups ------------------------------------------------
 
   @Test
   void a_first_assignment_opens_without_closing_anything() {
@@ -180,8 +177,6 @@ class StudentGroupAssignmentServiceTest {
         () -> subject.changeGroup(STUDENT_ID, foreign.getId(), FIRST_OF_SEPTEMBER, null));
   }
 
-  // --- R1: entering a track group needs a matching choice -------------------
-
   @Test
   void a_student_without_a_track_cannot_enter_a_track_group() {
     studentExists();
@@ -210,8 +205,6 @@ class StudentGroupAssignmentServiceTest {
         k1, subject.changeGroup(STUDENT_ID, k1.getId(), FIRST_OF_SEPTEMBER, null).getGroup());
   }
 
-  // --- R2: once chosen, assignments follow the track ------------------------
-
   @Test
   void an_el_student_joins_an_el_group() {
     studentExists();
@@ -227,7 +220,6 @@ class StudentGroupAssignmentServiceTest {
 
   @Test
   void an_el_student_moves_freely_between_el_groups() {
-    // K3-EL then K4-EL: allowed and unlimited, the track is untouched.
     studentExists();
     studentFollows(EL);
     repositoryEchoesWhatItIsGiven();
@@ -242,7 +234,6 @@ class StudentGroupAssignmentServiceTest {
 
   @Test
   void an_el_student_cannot_join_a_tn_group() {
-    // The rule the subject states: switching track takes a new track choice, not a reassignment.
     studentExists();
     studentFollows(EL);
     noAssignmentYet();
@@ -277,8 +268,6 @@ class StudentGroupAssignmentServiceTest {
         () -> subject.changeGroup(STUDENT_ID, k5tn.getId(), FIFTEENTH_OF_NOVEMBER, null));
     verify(assignmentRepository, never()).save(any());
   }
-
-  // --- reading --------------------------------------------------------------
 
   @Test
   void reading_the_history_of_a_student_is_authorized_first() {

@@ -47,7 +47,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class ResultIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -117,7 +116,6 @@ class ResultIT extends FacadeIT {
     return headers;
   }
 
-  /** One course worth the whole 30 required credits of the semester, one exam. */
   private Exam soleExamOf(SemesterRef semesterRef) {
     var course =
         courseRepository.save(
@@ -188,8 +186,6 @@ class ResultIT extends FacadeIT {
         url, GET, new HttpEntity<>(bearer(token)), new ParameterizedTypeReference<>() {});
   }
 
-  // --- basics ---------------------------------------------------------------------
-
   @Test
   void reading_a_result_requires_authentication() {
     var student = studentAccount(promotion()).student();
@@ -214,8 +210,6 @@ class ResultIT extends FacadeIT {
 
     assertEquals(403, resultRaw(account.student(), another.token()).getStatusCode().value());
   }
-
-  // --- the S1-S6 computation, end to end -------------------------------------------
 
   @Test
   void a_student_who_validates_all_six_semesters_graduates() {
@@ -242,7 +236,6 @@ class ResultIT extends FacadeIT {
     for (var ref : List.of(SemesterRef.S1, SemesterRef.S2, SemesterRef.S3)) {
       grade(soleExamOf(ref), account.student().getId(), "14.00", admin);
     }
-    // No track choice: S4, S5, S6 are not evaluable.
 
     var found = result(account.student(), admin).getBody();
 
@@ -266,7 +259,7 @@ class ResultIT extends FacadeIT {
     var admin = tokenFor(Role.ADMIN);
     var account = studentAccount(promotion());
     var exam = soleExamOf(SemesterRef.S1);
-    grade(exam, account.student().getId(), "5.00", admin); // below 10, course and semester fail
+    grade(exam, account.student().getId(), "5.00", admin);
 
     var found = result(account.student(), admin).getBody();
 
@@ -278,8 +271,6 @@ class ResultIT extends FacadeIT {
                     b.getCode() == GraduationBlockerCode.SEMESTER_NOT_VALIDATED
                         && b.getSemesterRef() == SemesterRef.S1));
   }
-
-  // --- promotion listing ----------------------------------------------------------
 
   @Test
   void only_an_admin_reads_a_promotion_s_results() {
@@ -318,7 +309,7 @@ class ResultIT extends FacadeIT {
     var promotion = promotion();
     var chose = studentAccount(promotion);
     chooseElFromS4(chose.student());
-    studentAccount(promotion); // still in the common core, no track choice
+    studentAccount(promotion);
 
     var found = promotionResults(promotion, "EL", admin).getBody();
 

@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class GradeRepositoryIT extends FacadeIT {
-
   @Autowired GradeRepository gradeRepository;
   @Autowired GradeHistoryRepository gradeHistoryRepository;
   @Autowired CourseRepository courseRepository;
@@ -167,8 +166,6 @@ class GradeRepositoryIT extends FacadeIT {
     assertEquals(1, found.size());
     assertEquals(inS1.getId(), found.get(0).getId());
   }
-
-  // --- history ----------------------------------------------------------------
 
   private GradeHistory.GradeHistoryBuilder history(
       Grade grade, BigDecimal oldValue, String newValue, AppUser author) {

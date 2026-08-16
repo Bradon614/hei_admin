@@ -6,14 +6,9 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * The named track is carried across as an id only: resolving it, and refusing one the promotion
- * does not open, is a business decision left to the service.
- */
 @Component
 @AllArgsConstructor
 public class GroupMapper {
-
   private final PromotionMapper promotionMapper;
   private final TrackMapper trackMapper;
 

@@ -28,15 +28,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-/**
- * Result of a student across the curriculum, and diploma eligibility. Entirely computed on read:
- * nothing here is persisted, so there is never a stored value to reconcile with the grades and
- * track choices it is derived from.
- */
 @Service
 @AllArgsConstructor
 public class ResultService {
-
   private static final int SCALE = 2;
 
   private final StudentRepository studentRepository;
@@ -116,11 +110,6 @@ public class ResultService {
         courseResults);
   }
 
-  /**
-   * A missing grade counts as 0 in the numerator, its coefficient staying in the denominator: a
-   * student who never sat an exam is not spared the weight of it. A course with no exam at all is a
-   * different case entirely, told apart by a null final grade.
-   */
   private CourseResult courseResultOf(Course course, Map<UUID, Grade> gradesByExamId) {
     List<Exam> exams = examService.findAllByCourseId(course.getId());
     if (exams.isEmpty()) {
@@ -141,11 +130,6 @@ public class ResultService {
     return new CourseResult(course, finalGrade, validated, validated ? course.getCredits() : 0);
   }
 
-  /**
-   * Weighted by credits, over every course from S1 to S6 that carries an actual final grade. A
-   * course without an exam contributes to neither side rather than being treated as a zero: it was
-   * never gradable in the first place.
-   */
   private BigDecimal generalAverageOf(List<SemesterResult> semesterResults) {
     var numerator = BigDecimal.ZERO;
     var denominator = BigDecimal.ZERO;

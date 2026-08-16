@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Read only, entirely computed. */
 @Getter
 @Setter
 @Builder
@@ -22,17 +21,14 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class SemesterResult {
-
   private Semester semester;
   private SemesterResultStatus status;
 
-  /** Null in the common core, and null when {@code status} is TRACK_NOT_SELECTED. */
   private Track track;
 
   private int obtainedCredits;
   private int requiredCredits;
 
-  /** Always false when {@code status} is TRACK_NOT_SELECTED. */
   private boolean validated;
 
   private List<CourseResult> courseResults;

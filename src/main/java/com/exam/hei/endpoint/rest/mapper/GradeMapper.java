@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class GradeMapper {
-
   private final ExamMapper examMapper;
 
   public Grade toRest(com.exam.hei.repository.model.Grade domain) {
@@ -22,7 +21,6 @@ public class GradeMapper {
         .build();
   }
 
-  /** No domain equivalent: {@code GradeService} turns this straight into a write, not an entity. */
   public com.exam.hei.model.GradeChange toDomain(GradeChange rest) {
     return new com.exam.hei.model.GradeChange(
         rest.getStudentId(), rest.getValue(), rest.getReasonType(), rest.getReason());

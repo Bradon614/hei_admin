@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class ExamService {
-
   private final ExamRepository examRepository;
   private final CourseService courseService;
   private final TeacherAuthorizer teacherAuthorizer;
@@ -51,7 +50,6 @@ public class ExamService {
     exam.setCourse(course);
   }
 
-  /** An exam is edited through the course that holds it, never moved from one course to another. */
   private void checkBelongsTo(Course course, Exam existing) {
     if (!existing.getCourse().getId().equals(course.getId())) {
       throw new BadRequestException(
@@ -59,10 +57,6 @@ public class ExamService {
     }
   }
 
-  /**
-   * A weightless exam would contribute nothing to the final grade of its course while still
-   * counting in the denominator, quietly dragging the result down.
-   */
   private void checkWeighsSomething(Exam exam) {
     if (exam.getCoefficient() == null || exam.getCoefficient().compareTo(BigDecimal.ZERO) <= 0) {
       throw new BadRequestException("An exam carries a coefficient greater than zero");

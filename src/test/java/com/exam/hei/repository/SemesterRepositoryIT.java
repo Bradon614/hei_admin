@@ -11,9 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** Reads the reference data seeded by the migrations through the entity mapping. */
 class SemesterRepositoryIT extends FacadeIT {
-
   @Autowired SemesterRepository semesterRepository;
 
   @Test
@@ -48,7 +46,6 @@ class SemesterRepositoryIT extends FacadeIT {
 
   @Test
   void the_semester_a_track_is_chosen_at_is_read_from_the_data() {
-    // The rule says "the first non common core semester". Nothing anywhere says "S4".
     var first = semesterRepository.findFirstByCommonCoreFalseOrderBySemOrderAsc().orElseThrow();
 
     assertEquals(SemesterRef.S4, first.getRef());

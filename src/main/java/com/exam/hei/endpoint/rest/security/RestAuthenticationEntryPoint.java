@@ -12,13 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-/**
- * Renders authentication failures as the {@code Error} payload of doc/api.yml instead of the
- * default Spring Security HTML page.
- */
 @AllArgsConstructor
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
   private final ObjectMapper objectMapper;
 
   @Override

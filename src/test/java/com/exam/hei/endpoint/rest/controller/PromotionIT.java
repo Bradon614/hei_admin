@@ -31,7 +31,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 class PromotionIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired TrackRepository trackRepository;
@@ -57,7 +56,6 @@ class PromotionIT extends FacadeIT {
   }
 
   private static Promotion aPromotion() {
-    // ref is a varchar(5) and unique across the shared test container.
     return Promotion.builder()
         .ref(UUID.randomUUID().toString().substring(0, 5))
         .name("Promotion under test")
@@ -66,7 +64,6 @@ class PromotionIT extends FacadeIT {
         .build();
   }
 
-  /** Typed variant, for calls expected to succeed. */
   private ResponseEntity<List<Promotion>> put(List<Promotion> body, String apiKey) {
     return restTemplate.exchange(
         "/promotions",
@@ -75,10 +72,6 @@ class PromotionIT extends FacadeIT {
         new ParameterizedTypeReference<>() {});
   }
 
-  /**
-   * Raw variant, for calls expected to fail: an error response carries the Error object, which
-   * cannot be read into a list of promotions.
-   */
   private ResponseEntity<String> putRaw(List<Promotion> body, String apiKey) {
     return restTemplate.exchange(
         "/promotions", PUT, new HttpEntity<>(body, bearer(apiKey)), String.class);
@@ -88,8 +81,6 @@ class PromotionIT extends FacadeIT {
     var created = put(List.of(promotion), adminKey).getBody();
     return created.get(0);
   }
-
-  // --- authorization --------------------------------------------------------
 
   @Test
   void listing_promotions_requires_authentication() {
@@ -129,8 +120,6 @@ class PromotionIT extends FacadeIT {
     assertEquals(FORBIDDEN, response.getStatusCode());
     assertTrue(response.getBody().contains("\"type\""), "body was " + response.getBody());
   }
-
-  // --- crupdate then read ---------------------------------------------------
 
   @Test
   void a_promotion_is_created_then_readable_by_its_id() {
@@ -179,7 +168,6 @@ class PromotionIT extends FacadeIT {
 
   @Test
   void writing_a_promotion_at_an_unknown_id_is_not_found() {
-    // Decided convention: an unknown id never creates a promotion at that id.
     var ghost = aPromotion();
     ghost.setId(UUID.randomUUID());
 
@@ -192,8 +180,6 @@ class PromotionIT extends FacadeIT {
 
     assertEquals(NOT_FOUND, response.getStatusCode());
   }
-
-  // --- tracks opened by a promotion ----------------------------------------
 
   @Test
   void the_tracks_opened_by_a_promotion_are_persisted() {
@@ -234,8 +220,6 @@ class PromotionIT extends FacadeIT {
 
     assertEquals(NOT_FOUND, response.getStatusCode());
   }
-
-  // --- pagination -----------------------------------------------------------
 
   @Test
   void an_invalid_page_is_a_bad_request() {

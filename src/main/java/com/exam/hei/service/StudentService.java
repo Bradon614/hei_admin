@@ -21,19 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class StudentService {
-
   private final StudentRepository studentRepository;
   private final AppUserRepository appUserRepository;
   private final PromotionService promotionService;
   private final StudentAuthorizer studentAuthorizer;
   private final PasswordEncoder passwordEncoder;
 
-  /**
-   * @param page 1-based, as declared in doc/api.yml
-   * @param at the date the group filter applies to, today when left out
-   *     <p>Filters are applied by precedence rather than combined: group, then track, then
-   *     promotion. Combining them would take a criteria builder for a need no requirement states.
-   */
   public List<Student> findAll(
       int page, int pageSize, UUID promotionId, UUID groupId, LocalDate at, String trackCode) {
     var pageRequest = Pagination.toPageRequest(page, pageSize, Sort.by("ref"));
@@ -51,12 +44,6 @@ public class StudentService {
     return studentRepository.findAll(pageRequest).getContent();
   }
 
-  /**
-   * Read path: a student may only reach their own record.
-   *
-   * <p>The rule itself lives in the security package; this only invokes it. Write paths use {@link
-   * #getById} instead, which does not check: they are already restricted to admins.
-   */
   public Student findById(UUID id) {
     studentAuthorizer.checkCanRead(id);
     return getById(id);
@@ -81,7 +68,6 @@ public class StudentService {
     return studentRepository.saveAll(students);
   }
 
-  /** An unknown id is a caller mistake rather than a request to create a student at that id. */
   private void attachPromotion(Student student) {
     if (student.getId() != null) {
       getById(student.getId());
@@ -93,17 +79,6 @@ public class StudentService {
     student.setPromotion(promotionService.findById(promotionId));
   }
 
-  /**
-   * Gives every student the account they sign in with.
-   *
-   * <p>doc/api.yml exposes no endpoint to create an account, and {@code student.user_id} is
-   * mandatory, so creating a student has to create its account. Only the hash is ever stored: the
-   * password itself is discarded the moment this method returns.
-   *
-   * <p>On an update the existing account is kept; its email always follows the profile, and its
-   * password follows it only when one is given, so that leaving the field out keeps the current
-   * password unchanged.
-   */
   private void attachAccount(Student student) {
     if (student.getId() == null) {
       if (student.getPassword() == null) {

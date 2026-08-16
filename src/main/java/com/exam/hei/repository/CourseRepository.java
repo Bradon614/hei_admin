@@ -14,24 +14,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
-
   Optional<Course> findByRef(String ref);
 
   Page<Course> findAllBySemesterRef(SemesterRef semesterRef, Pageable pageable);
 
-  /**
-   * Courses a student of that track follows: the ones specific to it and the ones common to all.
-   *
-   * <p>Not "the courses whose track is that one": a common course belongs to the programme of every
-   * track, and is counted in the credits of each.
-   */
-  // Left join, never c.track.code: navigating a nullable association implicitly builds an inner
-  // join, which drops the courses carrying no track before the "is null" branch is ever evaluated.
-  // Every common course would silently vanish from a track filter.
   @Query("select c from Course c left join c.track t where t is null or t.code = :trackCode")
   Page<Course> findAllFollowedByTrack(@Param("trackCode") String trackCode, Pageable pageable);
 
-  /** Both filters at once: the courses of a semester that a student of that track follows. */
   @Query(
       "select c from Course c left join c.track t"
           + " where c.semester.ref = :semesterRef"
@@ -41,7 +30,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
       @Param("trackCode") String trackCode,
       Pageable pageable);
 
-  /** Courses of a semester that a student of that track follows. */
   @Query(
       "select c from Course c"
           + " where c.semester.id = :semesterId"
@@ -50,6 +38,5 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
   List<Course> findAllOfSemesterFollowedByTrack(
       @Param("semesterId") UUID semesterId, @Param("trackId") UUID trackId);
 
-  /** Courses of a common core semester: every student follows all of them. */
   List<Course> findAllBySemesterIdOrderByRefAsc(UUID semesterId);
 }
