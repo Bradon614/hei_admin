@@ -19,7 +19,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class GroupServiceTest {
-
   private final GroupRepository groupRepository = mock(GroupRepository.class);
   private final PromotionService promotionService = mock(PromotionService.class);
   private final TrackService trackService = mock(TrackService.class);

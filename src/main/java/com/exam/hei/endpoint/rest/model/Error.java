@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Error payload of doc/api.yml, returned by every non 2xx response. */
 @Getter
 @Setter
 @Builder
@@ -15,7 +14,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Error {
-
   private String type;
   private String message;
 }

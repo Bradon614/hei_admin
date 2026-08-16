@@ -22,7 +22,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class ExamServiceTest {
-
   private final ExamRepository examRepository = mock(ExamRepository.class);
   private final CourseService courseService = mock(CourseService.class);
   private final TeacherAuthorizer teacherAuthorizer = mock(TeacherAuthorizer.class);
@@ -67,8 +66,6 @@ class ExamServiceTest {
 
   @Test
   void a_weightless_exam_is_refused() {
-    // It would add nothing to the numerator of the final grade while still counting in the
-    // denominator, quietly dragging the result down.
     courseExists();
 
     assertThrows(
@@ -92,7 +89,6 @@ class ExamServiceTest {
 
   @Test
   void an_exam_states_when_it_takes_place() {
-    // The date resolves the group a student belonged to at the time, which authorization relies on.
     courseExists();
     var undated = exam("2.00");
     undated.setDateExam(null);

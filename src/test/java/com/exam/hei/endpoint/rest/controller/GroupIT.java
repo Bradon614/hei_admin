@@ -33,7 +33,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class GroupIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;

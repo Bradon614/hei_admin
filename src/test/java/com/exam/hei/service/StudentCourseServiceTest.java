@@ -23,9 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** The critical EL / TN rule: what a student follows, and what they must never see. */
 class StudentCourseServiceTest {
-
   private final CourseRepository courseRepository = mock(CourseRepository.class);
   private final SemesterRepository semesterRepository = mock(SemesterRepository.class);
   private final StudentRepository studentRepository = mock(StudentRepository.class);
@@ -60,7 +58,6 @@ class StudentCourseServiceTest {
   private static final Semester S2 = semester(SemesterRef.S2, 2, true);
   private static final Semester S5 = semester(SemesterRef.S5, 5, false);
 
-  // A realistic S5 curriculum: 12 common credits, then 18 on each side.
   private static final Course COMMON_S5 = course("MATH5", 12, null);
   private static final Course EL_ONLY = course("PROG_AV", 18, EL);
   private static final Course TN_ONLY = course("TRANSFO", 18, TN);
@@ -84,8 +81,6 @@ class StudentCourseServiceTest {
   private List<String> refsOf(List<Course> courses) {
     return courses.stream().map(Course::getRef).toList();
   }
-
-  // --- the rule -------------------------------------------------------------
 
   @Test
   void an_el_student_follows_the_common_courses_and_the_el_ones() {
@@ -131,8 +126,6 @@ class StudentCourseServiceTest {
 
   @Test
   void a_semester_without_a_track_choice_yields_no_course_at_all() {
-    // Not an empty curriculum by accident: the resolution says TRACK_NOT_SELECTED, and the reason
-    // travels with it so a student who never chose is not mistaken for one who failed.
     studentExists();
     when(trackChoiceService.resolve(STUDENT_ID, S5)).thenReturn(TrackResolution.notSelected());
 
@@ -150,12 +143,8 @@ class StudentCourseServiceTest {
         .findAllBySemesterIdOrderByRefAsc(S5.getId());
   }
 
-  // --- credits --------------------------------------------------------------
-
   @Test
   void each_programme_totals_thirty_credits_over_the_same_semester() {
-    // The rule the subject insists on: 30 credits per semester per programme. Here the three
-    // courses total 48, because the common one is counted in both programmes and not once overall.
     studentExists();
 
     followsInS5(EL);
@@ -175,8 +164,6 @@ class StudentCourseServiceTest {
     assertEquals(48, COMMON_S5.getCredits() + EL_ONLY.getCredits() + TN_ONLY.getCredits());
   }
 
-  // --- the whole curriculum -------------------------------------------------
-
   @Test
   void without_a_semester_every_one_of_them_is_resolved_on_its_own() {
     when(studentRepository.existsById(STUDENT_ID)).thenReturn(true);
@@ -193,7 +180,6 @@ class StudentCourseServiceTest {
 
   @Test
   void a_student_in_the_common_core_still_gets_their_first_semesters() {
-    // S1 to S3 apply, S4 to S6 yield nothing until a track is chosen.
     when(studentRepository.existsById(STUDENT_ID)).thenReturn(true);
     when(semesterRepository.findAllByOrderBySemOrderAsc()).thenReturn(List.of(S2, S5));
     when(trackChoiceService.resolve(STUDENT_ID, S2)).thenReturn(TrackResolution.commonCore());
@@ -203,8 +189,6 @@ class StudentCourseServiceTest {
 
     assertEquals(List.of("MATH2"), refsOf(subject.findApplicable(STUDENT_ID, null)));
   }
-
-  // --- guards ---------------------------------------------------------------
 
   @Test
   void reading_a_curriculum_is_authorized_first() {

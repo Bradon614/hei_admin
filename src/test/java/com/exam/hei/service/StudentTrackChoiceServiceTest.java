@@ -31,7 +31,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class StudentTrackChoiceServiceTest {
-
   private final StudentTrackChoiceRepository trackChoiceRepository =
       mock(StudentTrackChoiceRepository.class);
   private final StudentRepository studentRepository = mock(StudentRepository.class);
@@ -89,11 +88,8 @@ class StudentTrackChoiceServiceTest {
         .thenReturn(List.of());
   }
 
-  // --- resolution -----------------------------------------------------------
-
   @Test
   void a_common_core_semester_resolves_to_no_track_at_all() {
-    // Not an error and not a missing choice: the normal state of S1 to S3.
     var resolution = subject.resolve(STUDENT_ID, S1);
 
     assertEquals(COMMON_CORE, resolution.status());
@@ -113,7 +109,6 @@ class StudentTrackChoiceServiceTest {
 
   @Test
   void a_track_semester_without_a_choice_is_an_error_not_an_absence() {
-    // The distinction the specification insists on: never mistaken for a student who simply failed.
     when(trackChoiceRepository.findRulingChoice(STUDENT_ID, 4)).thenReturn(Optional.empty());
 
     var resolution = subject.resolve(STUDENT_ID, S4);
@@ -146,8 +141,6 @@ class StudentTrackChoiceServiceTest {
     assertTrue(subject.exitTrackOf(STUDENT_ID).isEmpty());
   }
 
-  // --- choosing -------------------------------------------------------------
-
   @Test
   void a_first_choice_takes_effect_where_tracks_begin() {
     studentExistsOpening(EL);
@@ -178,7 +171,6 @@ class StudentTrackChoiceServiceTest {
 
   @Test
   void a_first_choice_cannot_start_after_tracks_begin() {
-    // Starting at S5 would leave S4 uncovered, hence not evaluable. Refused at write time.
     studentExistsOpening(EL);
     when(trackService.findById(EL.getId())).thenReturn(EL);
     when(semesterRepository.findByRef(SemesterRef.S5)).thenReturn(Optional.of(S5));
@@ -252,8 +244,6 @@ class StudentTrackChoiceServiceTest {
         NotFoundException.class,
         () -> subject.choose(STUDENT_ID, EL.getId(), SemesterRef.S4, null));
   }
-
-  // --- reading --------------------------------------------------------------
 
   @Test
   void reading_the_choices_of_a_student_is_authorized_first() {

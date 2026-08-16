@@ -20,9 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/** Covers the resolution that makes a track depend on the semester rather than on the student. */
 class StudentTrackChoiceRepositoryIT extends FacadeIT {
-
   @Autowired StudentTrackChoiceRepository trackChoiceRepository;
   @Autowired SemesterRepository semesterRepository;
   @Autowired StudentRepository studentRepository;
@@ -90,8 +88,6 @@ class StudentTrackChoiceRepositoryIT extends FacadeIT {
         .orElse(null);
   }
 
-  // --- resolution -----------------------------------------------------------
-
   @Test
   void a_single_choice_rules_every_semester_from_its_own_onwards() {
     var jean = student();
@@ -104,7 +100,6 @@ class StudentTrackChoiceRepositoryIT extends FacadeIT {
 
   @Test
   void no_choice_rules_the_semesters_before_it() {
-    // S1 to S3 are common core: nothing rules them, and that is not an error at this level.
     var jean = student();
     choose(jean, el(), SemesterRef.S4);
 
@@ -119,11 +114,8 @@ class StudentTrackChoiceRepositoryIT extends FacadeIT {
     assertTrue(trackChoiceRepository.findRulingChoice(jean.getId(), 4).isEmpty());
   }
 
-  // --- reorientation --------------------------------------------------------
-
   @Test
   void a_reorientation_leaves_the_semesters_already_covered_untouched() {
-    // EL from S4, then TN from S5: S4 stays EL.
     var jean = student();
     choose(jean, el(), SemesterRef.S4);
     choose(jean, tn(), SemesterRef.S5);
@@ -161,8 +153,6 @@ class StudentTrackChoiceRepositoryIT extends FacadeIT {
     assertEquals(SemesterRef.S4, choices.get(0).getFromSemester().getRef());
     assertEquals(SemesterRef.S5, choices.get(1).getFromSemester().getRef());
   }
-
-  // --- constraints ----------------------------------------------------------
 
   @Test
   void a_student_cannot_choose_twice_from_the_same_semester() {

@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Read only, entirely computed. */
 @Getter
 @Setter
 @Builder
@@ -21,10 +20,8 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CourseResult {
-
   private Course course;
 
-  /** Null when the course has no exam at all. */
   private BigDecimal finalGrade;
 
   private boolean validated;

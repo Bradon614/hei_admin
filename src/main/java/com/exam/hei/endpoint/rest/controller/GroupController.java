@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class GroupController {
-
   private final GroupService groupService;
   private final GroupMapper groupMapper;
 

@@ -11,21 +11,13 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Ranks the graduates of a promotion. Computed dynamically from {@link ResultService}: no {@code
- * graduated} field is ever persisted.
- */
 @Service
 @AllArgsConstructor
 public class GraduateService {
-
   private final ResultService resultService;
   private final StudentTrackChoiceService trackChoiceService;
 
   public List<Graduate> graduatesOf(UUID promotionId) {
-    // 404 on an unknown promotion comes for free from resultsOfPromotion. The page size is the
-    // widest allowed rather than a real page: this endpoint is not paginated by doc/api.yml, and a
-    // promotion never approaches that many students.
     var graduated =
         resultService.resultsOfPromotion(promotionId, null, 1, Pagination.MAX_PAGE_SIZE).stream()
             .filter(StudentResult::graduated)

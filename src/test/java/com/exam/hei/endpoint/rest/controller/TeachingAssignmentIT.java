@@ -40,7 +40,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class TeachingAssignmentIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired CourseRepository courseRepository;
@@ -50,10 +49,6 @@ class TeachingAssignmentIT extends FacadeIT {
   @Autowired PromotionRepository promotionRepository;
   @Autowired JwtService jwtService;
 
-  /**
-   * See {@code AuthIT} and {@code SecurityIT}: the JDK's {@code HttpURLConnection}, behind {@code
-   * TestRestTemplate} here, cannot process a 401 answer to a PUT carrying a body at all.
-   */
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   private static String rand(int length) {

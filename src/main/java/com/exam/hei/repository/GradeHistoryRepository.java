@@ -8,9 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GradeHistoryRepository extends JpaRepository<GradeHistory, UUID> {
-
-  /**
-   * Most recent first, matching what doc/api.yml documents for {@code GET /grades/{id}/history}.
-   */
   List<GradeHistory> findAllByGradeIdOrderByChangedAtDesc(UUID gradeId);
 }

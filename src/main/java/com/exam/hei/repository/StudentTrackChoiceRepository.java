@@ -11,18 +11,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentTrackChoiceRepository extends JpaRepository<StudentTrackChoice, UUID> {
-
-  /** Choices of the student, earliest effective semester first. */
   List<StudentTrackChoice> findAllByStudentIdOrderByFromSemesterSemOrderAsc(UUID studentId);
 
   Optional<StudentTrackChoice> findByStudentIdAndFromSemesterId(UUID studentId, UUID semesterId);
 
-  /**
-   * The choice ruling a given semester: the latest one taking effect at or before it.
-   *
-   * <p>This is what makes a track depend on the semester rather than on the student, and it backs
-   * the resolution used by transcripts, credits and diploma eligibility.
-   */
   @Query(
       "select c from StudentTrackChoice c"
           + " where c.student.id = :studentId"
@@ -32,8 +24,5 @@ public interface StudentTrackChoiceRepository extends JpaRepository<StudentTrack
   Optional<StudentTrackChoice> findRulingChoice(
       @Param("studentId") UUID studentId, @Param("semOrder") int semOrder);
 
-  /**
-   * The most recent choice, whatever the semester: the track the student ends the curriculum in.
-   */
   Optional<StudentTrackChoice> findFirstByStudentIdOrderByFromSemesterSemOrderDesc(UUID studentId);
 }

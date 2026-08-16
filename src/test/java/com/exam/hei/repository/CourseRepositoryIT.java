@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class CourseRepositoryIT extends FacadeIT {
-
   @Autowired CourseRepository courseRepository;
   @Autowired SemesterRepository semesterRepository;
   @Autowired TrackRepository trackRepository;
@@ -111,8 +110,6 @@ class CourseRepositoryIT extends FacadeIT {
                     .build()));
   }
 
-  // --- the critical EL / TN rule, at query level ----------------------------
-
   @Test
   void a_track_follows_its_own_courses_and_the_common_ones() {
     var common = course(SemesterRef.S5, null, 12);
@@ -149,14 +146,11 @@ class CourseRepositoryIT extends FacadeIT {
 
   @Test
   void a_common_course_is_counted_in_the_credits_of_both_programmes() {
-    // Each semester is worth 30 credits per programme, never 30 across the whole semester: here the
-    // three courses total 48, yet each programme sees exactly 30.
     var s4 = semester(SemesterRef.S4);
     var common = course(SemesterRef.S4, null, 12);
     var forEl = course(SemesterRef.S4, el(), 18);
     var forTn = course(SemesterRef.S4, tn(), 18);
-    // Scoped to this curriculum: the Postgres container is shared, other tests add courses of their
-    // own to the same semesters.
+
     var thisCurriculum = Set.of(common.getId(), forEl.getId(), forTn.getId());
 
     var creditsForEl = creditsOf(s4.getId(), el().getId(), thisCurriculum);

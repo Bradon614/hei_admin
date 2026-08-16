@@ -15,13 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * An HEI track: EL (Software Ecosystem) or TN (Digital Transformation).
- *
- * <p>Global reference data reused by every promotion, seeded by the V44 migration. A track only
- * applies from the first non common core semester on, and is never attached directly to a student:
- * the student track choice carries that.
- */
 @Entity
 @Table(name = "track")
 @Getter
@@ -32,7 +25,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class Track {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;

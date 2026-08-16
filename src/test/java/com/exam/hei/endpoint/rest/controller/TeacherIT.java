@@ -29,7 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class TeacherIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired JwtService jwtService;
@@ -185,8 +184,6 @@ class TeacherIT extends FacadeIT {
 
   @Test
   void a_student_cannot_harvest_the_teacher_directory() {
-    // The listing hands out every teacher's email address at once, which is what makes it worth
-    // closing while reading one teacher stays open.
     var response =
         restTemplate.exchange(
             "/teachers", GET, new HttpEntity<>(bearer(tokenFor(Role.STUDENT))), String.class);
@@ -205,8 +202,6 @@ class TeacherIT extends FacadeIT {
 
   @Test
   void a_student_can_still_read_a_single_teacher() {
-    // Deliberately left open: a student has a legitimate reason to see who teaches them, and the
-    // contract asks for no restriction here.
     var teacher = created(adminKey());
 
     var response =

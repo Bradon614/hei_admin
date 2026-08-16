@@ -13,29 +13,15 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Which courses a student actually follows.
- *
- * <p>This is the critical rule of the assignment: an EL student never has a TN-only course in their
- * transcript, and the other way round. It holds because the answer is derived, semester by
- * semester, from the track ruling that semester — never from a property of the student, and never
- * from the group they belong to, which plays no part here at all.
- */
 @Service
 @AllArgsConstructor
 public class StudentCourseService {
-
   private final CourseRepository courseRepository;
   private final SemesterRepository semesterRepository;
   private final StudentRepository studentRepository;
   private final StudentTrackChoiceService trackChoiceService;
   private final StudentAuthorizer studentAuthorizer;
 
-  /**
-   * Read path: a student may only read their own curriculum.
-   *
-   * @param semesterRef one semester, or every one of them when left out
-   */
   public List<Course> findApplicable(UUID studentId, SemesterRef semesterRef) {
     studentAuthorizer.checkCanRead(studentId);
     requireStudent(studentId);
@@ -50,17 +36,6 @@ public class StudentCourseService {
         .toList();
   }
 
-  /**
-   * The three cases of the resolution, and nothing else:
-   *
-   * <ul>
-   *   <li>common core: every course of the semester, all of them common by construction;
-   *   <li>a track applies: the common courses plus those of that track, so a common course counts
-   *       in the programme of both tracks;
-   *   <li>no choice covers the semester: no course at all. The reason is carried by the resolution
-   *       itself, so that a student who never chose is never mistaken for one who simply failed.
-   * </ul>
-   */
   private List<Course> applicableAt(UUID studentId, Semester semester) {
     var resolution = trackChoiceService.resolve(studentId, semester);
     return switch (resolution.status()) {

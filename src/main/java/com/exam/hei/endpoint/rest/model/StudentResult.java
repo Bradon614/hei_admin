@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Read only, entirely computed: nothing behind this response is persisted. */
 @Getter
 @Setter
 @Builder
@@ -22,18 +21,14 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class StudentResult {
-
   private Student student;
 
-  /** Six elements, from S1 to S6. */
   private List<SemesterResult> semesterResults;
 
-  /** Out of 180. */
   private int totalObtainedCredits;
 
   private BigDecimal generalAverage;
   private boolean graduated;
 
-  /** Empty if and only if {@code graduated} is true. */
   private List<GraduationBlocker> blockers;
 }

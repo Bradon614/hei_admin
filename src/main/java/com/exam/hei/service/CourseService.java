@@ -18,16 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 public class CourseService {
-
   private final CourseRepository courseRepository;
   private final SemesterRepository semesterRepository;
   private final TrackService trackService;
 
-  /**
-   * @param semesterRef optional filter
-   * @param trackCode optional filter, meaning "followed by that track": its own courses and the
-   *     common ones, since a common course belongs to every programme
-   */
   public List<Course> findAll(
       int page,
       int pageSize,
@@ -73,10 +67,6 @@ public class CourseService {
     course.setTrack(resolveTrack(course, semester));
   }
 
-  /**
-   * Semesters are reference data, so a payload may name one by its reference rather than by its id.
-   * The reference wins when both are given: it is the one a human writes.
-   */
   private Semester requireSemester(Course course) {
     if (course.getSemester() == null) {
       throw new NotFoundException("A course must name the semester it belongs to");
@@ -96,14 +86,6 @@ public class CourseService {
         .orElseThrow(() -> new NotFoundException("Semester " + id + " not found"));
   }
 
-  /**
-   * A null track means the course is common: followed by everyone in a common core semester, and by
-   * both tracks afterwards.
-   *
-   * <p>A common core semester never carries a track-specific course: no track has been chosen at
-   * that point, so such a course would be followed by nobody. The rule spans two tables, which is
-   * why it lives here rather than in the schema.
-   */
   private Track resolveTrack(Course course, Semester semester) {
     if (course.getTrack() == null || course.getTrack().getId() == null) {
       return null;

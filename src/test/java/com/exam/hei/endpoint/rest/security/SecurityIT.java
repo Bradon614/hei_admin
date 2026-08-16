@@ -27,16 +27,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 class SecurityIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired JwtService jwtService;
   @Autowired javax.crypto.SecretKey jwtSigningKey;
 
-  /**
-   * See {@code AuthIT}: the JDK's {@code HttpURLConnection}, behind {@code TestRestTemplate} here,
-   * cannot process a 401 answer to a POST at all.
-   */
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   private String tokenOf(Role role) {
@@ -61,26 +56,18 @@ class SecurityIT extends FacadeIT {
             .getStatusCode();
   }
 
-  // --- public endpoints -----------------------------------------------------
-
   @Test
   void ping_stays_reachable_without_a_token() {
-    // The POJA delivery pipeline probes this endpoint with curl --fail.
     assertEquals(OK, statusOf("/ping", null));
   }
 
   @Test
   void health_endpoints_stay_reachable_without_a_token() {
-    // Asserting "not 401" rather than 200 on purpose: a health endpoint may legitimately report a
-    // failure, what matters here is that security does not stand in front of it.
     assertNotEquals(UNAUTHORIZED, statusOf("/health/db", null));
   }
 
   @Test
   void a_failing_endpoint_reports_its_failure_rather_than_a_401() {
-    // /health/bucket really uploads to S3 and fails against the dummy test bucket, so it exercises
-    // the error dispatch. Spring re-dispatches to /error when a handler throws, and securing that
-    // dispatch would turn every 500 into a misleading 401 — including on public endpoints.
     assertNotEquals(UNAUTHORIZED, statusOf("/health/bucket", null));
   }
 
@@ -96,12 +83,9 @@ class SecurityIT extends FacadeIT {
             .build();
     var response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
-    // Reached the handler and was rejected for the credentials, not for a missing token.
     assertEquals(401, response.statusCode());
     assertTrue(response.body().contains("UnauthorizedException"), "body was " + response.body());
   }
-
-  // --- everything else is closed -------------------------------------------
 
   @Test
   void whoami_without_a_token_is_unauthorized() {
@@ -115,7 +99,6 @@ class SecurityIT extends FacadeIT {
 
   @Test
   void an_unknown_path_is_closed_by_default() {
-    // Guards the "deny by default" rule: a new endpoint is protected before anyone thinks about it.
     assertEquals(UNAUTHORIZED, statusOf("/promotions", null));
   }
 
@@ -130,8 +113,6 @@ class SecurityIT extends FacadeIT {
     assertEquals(OK, statusOf("/whoami", tokenOf(Role.TEACHER)));
     assertEquals(OK, statusOf("/whoami", tokenOf(Role.ADMIN)));
   }
-
-  // --- what a JWT brings over an API key: a signature to forge ---------------
 
   @Test
   void an_expired_token_is_unauthorized() {
@@ -174,8 +155,6 @@ class SecurityIT extends FacadeIT {
 
     assertEquals(UNAUTHORIZED, statusOf("/whoami", tampered));
   }
-
-  // --- error contract -------------------------------------------------------
 
   @Test
   void an_authentication_failure_is_rendered_as_the_spec_error_payload() {

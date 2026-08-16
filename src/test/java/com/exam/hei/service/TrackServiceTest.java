@@ -15,7 +15,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class TrackServiceTest {
-
   private final TrackRepository trackRepository = mock(TrackRepository.class);
   private final TrackService subject = new TrackService(trackRepository);
 

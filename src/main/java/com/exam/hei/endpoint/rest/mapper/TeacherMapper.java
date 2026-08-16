@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TeacherMapper {
-
   public Teacher toRest(com.exam.hei.repository.model.Teacher domain) {
     return Teacher.builder()
         .id(domain.getId())

@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class TeacherServiceTest {
-
   private final TeacherRepository teacherRepository = mock(TeacherRepository.class);
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);

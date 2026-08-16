@@ -14,18 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf. */
 @RestController
 @AllArgsConstructor
 public class CourseController {
-
   private final CourseService courseService;
   private final CourseMapper courseMapper;
 
-  /**
-   * @param trackCode courses followed by that track: its own and the common ones, a common course
-   *     belonging to every programme
-   */
   @GetMapping("/courses")
   public List<Course> getCourses(
       @RequestParam(defaultValue = "1") int page,

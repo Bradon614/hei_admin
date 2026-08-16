@@ -20,12 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/**
- * Covers the scenario the assignment states in detail: a student changing group at arbitrary
- * moments, several times within the same year or the same semester.
- */
 class StudentGroupAssignmentRepositoryIT extends FacadeIT {
-
   @Autowired StudentGroupAssignmentRepository assignmentRepository;
   @Autowired StudentRepository studentRepository;
   @Autowired GroupRepository groupRepository;
@@ -86,11 +81,8 @@ class StudentGroupAssignmentRepositoryIT extends FacadeIT {
             .build());
   }
 
-  // --- the scenario of the assignment ---------------------------------------
-
   @Test
   void a_student_can_go_through_four_groups_at_arbitrary_moments() {
-    // Jean: K1 then K2 then K3 then back to K1, twice within the same semester.
     var jean = student();
     var k1 = group();
     var k2 = group();
@@ -172,8 +164,6 @@ class StudentGroupAssignmentRepositoryIT extends FacadeIT {
             .getId());
   }
 
-  // --- no two simultaneous assignments --------------------------------------
-
   @Test
   void consecutive_periods_do_not_overlap() {
     var jean = student();
@@ -194,7 +184,6 @@ class StudentGroupAssignmentRepositoryIT extends FacadeIT {
 
   @Test
   void a_conflicting_period_is_detectable_before_writing() {
-    // What lets the service answer with a clean conflict instead of letting the constraint fire.
     var jean = student();
     assign(jean, group(), "2025-09-01", "2025-11-30");
 

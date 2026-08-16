@@ -6,11 +6,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-/** Resolves a bearer JWT into the account it was issued for. */
 @Component
 @AllArgsConstructor
 public class AuthProvider implements AuthenticationProvider {
-
   private final JwtService jwtService;
 
   @Override

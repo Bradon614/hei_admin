@@ -20,12 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * A cohort identified by a letter: K, H, N.
- *
- * <p>A promotion holds several groups and opens one or more tracks. Promotion, track, group and
- * student are four distinct concepts.
- */
 @Entity
 @Table(name = "promotion")
 @Getter
@@ -35,7 +29,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Promotion {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -52,13 +45,6 @@ public class Promotion {
   @Column(name = "end_year", nullable = false)
   private int endYear;
 
-  /**
-   * Tracks opened by this promotion, from the first non common core semester on. A student track
-   * choice is only accepted when the chosen track appears here.
-   *
-   * <p>Fetched eagerly: a promotion opens two tracks at most in practice, and the REST payload
-   * always carries them, so lazy loading would only trade a join for a second query.
-   */
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
       name = "promotion_track",

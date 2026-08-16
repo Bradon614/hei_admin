@@ -19,7 +19,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class GraduateServiceTest {
-
   private final ResultService resultService = mock(ResultService.class);
   private final StudentTrackChoiceService trackChoiceService =
       mock(StudentTrackChoiceService.class);
@@ -63,7 +62,6 @@ class GraduateServiceTest {
 
   @Test
   void tied_students_share_the_same_rank_and_the_next_one_skips_ahead() {
-    // Two tied at rank 1, the third is rank 3, not 2: a competition ranking, not a dense one.
     var first = student("STD1", "Andria", "Zo");
     var second = student("STD2", "Zafy", "Ary");
     var third = student("STD3", "Rakoto", "Jean");

@@ -26,7 +26,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
 class TrackIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired JwtService jwtService;
@@ -70,8 +69,6 @@ class TrackIT extends FacadeIT {
 
   @Test
   void the_two_hei_tracks_are_exposed() {
-    // Filtered rather than counted: the Postgres container is shared, and other suites insert
-    // throwaway tracks of their own.
     var codes = getTracks(apiKeyOf(Role.STUDENT)).stream().map(Track::getCode).toList();
 
     assertTrue(codes.contains("EL"), "tracks were " + codes);

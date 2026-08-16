@@ -22,14 +22,11 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Exam {
-
   private UUID id;
   private String title;
   private Instant dateExam;
 
-  /** Weight of this exam in the final grade of its course. */
   private BigDecimal coefficient;
 
-  /** Read only: an exam is written through the course that holds it, and never moved elsewhere. */
   private Course course;
 }

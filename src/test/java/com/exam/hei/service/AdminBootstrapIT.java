@@ -18,25 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.TestPropertySource;
 
-/**
- * The deadlock this feature exists to break, end to end.
- *
- * <p>Accounts are only ever created by {@code PUT /students} and {@code PUT /teachers}, both of
- * which require an ADMIN. On an empty database that means nobody can sign in and nobody can create
- * anyone. Asserting that the bootstrapped administrator can actually obtain a token is what proves
- * a fresh deployment is usable — checking that a row exists would not.
- *
- * <p>On {@link IsolatedFacadeIT} rather than the usual facade: the bootstrapper stands down as soon
- * as any administrator exists, and the database every other test shares is full of them within
- * seconds. A fresh deployment is only observable on a fresh schema.
- */
 @TestPropertySource(
     properties = {
       "ADMIN_EMAIL=bootstrapped.admin@hei.school",
       "ADMIN_PASSWORD=correct-horse-battery"
     })
 class AdminBootstrapIT extends IsolatedFacadeIT {
-
   private static final String EMAIL = "bootstrapped.admin@hei.school";
   private static final String PASSWORD = "correct-horse-battery";
 
@@ -44,9 +31,6 @@ class AdminBootstrapIT extends IsolatedFacadeIT {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
 
-  /**
-   * See {@code AuthIT}: HttpURLConnection cannot process a 401 answer to a POST carrying a body.
-   */
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   private HttpResponse<String> login(String email, String password) throws Exception {
@@ -102,7 +86,6 @@ class AdminBootstrapIT extends IsolatedFacadeIT {
 
   @Test
   void exactly_one_administrator_was_created() {
-    // The runner fires once per context; a second one would mean the idempotency guard is broken.
     var admins =
         appUserRepository.findAll().stream().filter(u -> u.getRole() == Role.ADMIN).toList();
 

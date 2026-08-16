@@ -39,9 +39,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
-/** Walks the scenario of the assignment over HTTP, then the rules that constrain it. */
 class StudentGroupAssignmentIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
@@ -174,8 +172,6 @@ class StudentGroupAssignmentIT extends FacadeIT {
         String.class);
   }
 
-  // --- the scenario ---------------------------------------------------------
-
   @Test
   void a_student_goes_through_four_groups_and_keeps_the_whole_history() {
     var admin = adminKey();
@@ -234,8 +230,6 @@ class StudentGroupAssignmentIT extends FacadeIT {
     assertTrue(before.getBody().isEmpty());
   }
 
-  // --- track consistency ----------------------------------------------------
-
   @Test
   void a_student_without_a_track_cannot_enter_a_track_group() {
     var admin = adminKey();
@@ -291,8 +285,6 @@ class StudentGroupAssignmentIT extends FacadeIT {
     assertNull(history(jean, admin).get(0).getEndDate());
   }
 
-  // --- authorization --------------------------------------------------------
-
   @Test
   void reading_a_history_requires_authentication() {
     var jean = student();
@@ -321,7 +313,6 @@ class StudentGroupAssignmentIT extends FacadeIT {
 
   @Test
   void only_an_admin_can_move_a_student() {
-    // Being moved between groups is decided for a student, never by them nor by their teachers.
     var jean = student();
     var jeanKey =
         jwtService.issue(studentRepository.findById(jean.getId()).orElseThrow().getUser()).token();

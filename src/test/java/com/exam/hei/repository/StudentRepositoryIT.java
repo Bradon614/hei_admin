@@ -21,7 +21,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 
 class StudentRepositoryIT extends FacadeIT {
-
   @Autowired StudentRepository studentRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired AppUserRepository appUserRepository;
@@ -103,7 +102,6 @@ class StudentRepositoryIT extends FacadeIT {
 
   @Test
   void a_student_is_findable_from_its_account() {
-    // This is what lets an authenticated caller be resolved to their own profile.
     var saved = studentRepository.save(validStudent().build());
 
     assertEquals(
@@ -188,9 +186,9 @@ class StudentRepositoryIT extends FacadeIT {
     var followsEl = studentRepository.save(validStudent().promotion(promotion).build());
     studentTrackChoiceRepository.save(
         StudentTrackChoice.builder().student(followsEl).track(el).fromSemester(s4).build());
-    // In the common core: no choice at all, must not be counted as following EL.
+
     studentRepository.save(validStudent().promotion(promotion).build());
-    // Follows EL, but in a different promotion.
+
     var elsewhere = studentRepository.save(validStudent().build());
     studentTrackChoiceRepository.save(
         StudentTrackChoice.builder().student(elsewhere).track(el).fromSemester(s4).build());

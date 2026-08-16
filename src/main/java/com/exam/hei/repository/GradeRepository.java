@@ -12,15 +12,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GradeRepository extends JpaRepository<Grade, UUID> {
-
-  /** Identity of a grade: at most one per (student, exam), the source of the upsert decision. */
   Optional<Grade> findByExamIdAndStudentId(UUID examId, UUID studentId);
 
   List<Grade> findAllByExamId(UUID examId);
 
   List<Grade> findAllByStudentId(UUID studentId);
 
-  /** The semester of a grade is derived through exam -&gt; course, never stored on the grade. */
   @Query(
       "select g from Grade g where g.student.id = :studentId and g.exam.course.semester.ref ="
           + " :semesterRef")

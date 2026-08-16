@@ -20,37 +20,21 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Records which track a student follows, and answers which one applies to a given semester.
- *
- * <p>A track is never a permanent property of a student: they follow the common core until the last
- * common core semester, then choose. Everything downstream that needs to know a track asks {@link
- * #resolve} rather than reading a column.
- */
 @Service
 @AllArgsConstructor
 public class StudentTrackChoiceService {
-
   private final StudentTrackChoiceRepository trackChoiceRepository;
   private final StudentRepository studentRepository;
   private final SemesterRepository semesterRepository;
   private final TrackService trackService;
   private final StudentAuthorizer studentAuthorizer;
 
-  /** Read path: a student may only read their own choices. */
   public List<StudentTrackChoice> findAllByStudentId(UUID studentId) {
     studentAuthorizer.checkCanRead(studentId);
     requireStudent(studentId);
     return trackChoiceRepository.findAllByStudentIdOrderByFromSemesterSemOrderAsc(studentId);
   }
 
-  /**
-   * Which track applies to the student for that semester.
-   *
-   * <p>The resolution doc/api.yml specifies: nothing applies to a common core semester, otherwise
-   * the choice with the highest effective semester at or below it, and a missing choice is an error
-   * rather than an absence.
-   */
   public TrackResolution resolve(UUID studentId, Semester semester) {
     if (semester.isCommonCore()) {
       return TrackResolution.commonCore();
@@ -61,9 +45,6 @@ public class StudentTrackChoiceService {
         .orElseGet(TrackResolution::notSelected);
   }
 
-  /**
-   * The track the student ends the curriculum in, empty while they are still in the common core.
-   */
   public Optional<Track> exitTrackOf(UUID studentId) {
     return trackChoiceRepository
         .findFirstByStudentIdOrderByFromSemesterSemOrderDesc(studentId)
@@ -110,10 +91,6 @@ public class StudentTrackChoiceService {
     }
   }
 
-  /**
-   * A choice starting later than the first track semester would leave that semester uncovered, and
-   * therefore not evaluable. Refusing it at write time beats reporting it at diploma time.
-   */
   private void checkFirstChoiceStartsWhereTracksBegin(UUID studentId, Semester fromSemester) {
     var hasChosenBefore =
         !trackChoiceRepository

@@ -17,14 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * No permission check here: role restrictions live in {@code SecurityConf}, and the rule keeping a
- * student away from another student's record lives in the security package too.
- */
 @RestController
 @AllArgsConstructor
 public class StudentController {
-
   private final StudentService studentService;
   private final StudentTrackChoiceService trackChoiceService;
   private final StudentGroupAssignmentService assignmentService;
@@ -55,11 +50,6 @@ public class StudentController {
     return saved.stream().map(this::enriched).toList();
   }
 
-  /**
-   * Adds the two computed fields of the payload. They are resolved per student rather than joined
-   * in, which costs a query each on a listing: acceptable at the scale of a promotion, and worth
-   * revisiting if a page ever grows large.
-   */
   private Student enriched(com.exam.hei.repository.model.Student student) {
     return studentMapper.toRest(
         student,

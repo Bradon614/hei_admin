@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class TestRefsTest {
-
   @Test
   void a_reference_fits_the_five_characters_the_column_allows() {
     assertEquals(5, TestRefs.promotionRef().length());
@@ -19,7 +18,6 @@ class TestRefsTest {
 
   @Test
   void ten_thousand_references_never_repeat() {
-    // The point of the class: not "unlikely to repeat", but cannot.
     var seen = new HashSet<String>();
 
     for (var i = 0; i < 10_000; i++) {
@@ -29,7 +27,6 @@ class TestRefsTest {
 
   @Test
   void references_stay_unique_when_handed_out_from_several_threads() throws Exception {
-    // Test classes run concurrently inside a worker, so the counter has to hold under contention.
     List<Callable<String>> calls =
         IntStream.range(0, 2_000).<Callable<String>>mapToObj(i -> TestRefs::promotionRef).toList();
 

@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 class PromotionServiceTest {
-
   private final PromotionRepository promotionRepository = mock(PromotionRepository.class);
   private final TrackService trackService = mock(TrackService.class);
   private final PromotionService subject = new PromotionService(promotionRepository, trackService);
@@ -38,11 +37,8 @@ class PromotionServiceTest {
         .build();
   }
 
-  // --- pagination -----------------------------------------------------------
-
   @Test
   void the_first_page_of_the_api_is_the_first_page_of_the_repository() {
-    // doc/api.yml numbers pages from 1, Spring Data from 0.
     when(promotionRepository.findAll(any(Pageable.class)))
         .thenReturn(Page.empty(PageRequest.of(0, 50)));
 
@@ -68,8 +64,6 @@ class PromotionServiceTest {
     assertThrows(BadRequestException.class, () -> subject.findAll(1, 501));
   }
 
-  // --- lookup ---------------------------------------------------------------
-
   @Test
   void an_unknown_promotion_is_not_found() {
     var id = UUID.randomUUID();
@@ -77,8 +71,6 @@ class PromotionServiceTest {
 
     assertThrows(NotFoundException.class, () -> subject.findById(id));
   }
-
-  // --- crupdate -------------------------------------------------------------
 
   @Test
   void a_promotion_without_an_id_is_created() {
@@ -90,7 +82,6 @@ class PromotionServiceTest {
 
   @Test
   void a_promotion_naming_an_unknown_id_is_not_found() {
-    // Decided convention: an unknown id is a caller mistake, never a creation at that id.
     var id = UUID.randomUUID();
     when(promotionRepository.findById(id)).thenReturn(Optional.empty());
 

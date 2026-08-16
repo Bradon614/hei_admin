@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class ExamController {
-
   private final ExamService examService;
   private final ExamMapper examMapper;
 

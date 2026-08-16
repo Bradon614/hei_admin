@@ -8,15 +8,9 @@ import com.exam.hei.endpoint.rest.model.StudentResult;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * One way only: nothing behind these types is ever written. The REST {@link Student} is passed in
- * rather than built here, since resolving its computed {@code current_track} and {@code
- * current_group} needs services this mapper has no business calling.
- */
 @Component
 @AllArgsConstructor
 public class ResultMapper {
-
   private final CourseMapper courseMapper;
   private final SemesterMapper semesterMapper;
   private final TrackMapper trackMapper;

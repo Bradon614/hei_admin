@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GradeHistoryMapper {
-
   public GradeHistory toRest(com.exam.hei.repository.model.GradeHistory domain) {
     return GradeHistory.builder()
         .id(domain.getId())

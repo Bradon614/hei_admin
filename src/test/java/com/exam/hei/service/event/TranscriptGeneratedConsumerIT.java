@@ -36,24 +36,13 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-/**
- * Proves the asynchronous half is actually reachable.
- *
- * <p>{@code EventServiceInvoker} finds its consumer by building the class name {@code
- * com.exam.hei.service.event.<EventName>Service} and loading it reflectively. Nothing about that
- * resolution is checked by the compiler: rename the event, move the service, and the code still
- * builds while every transcript silently stops being emailed. This test drives the real invoker so
- * a break shows up here rather than in production.
- */
 class TranscriptGeneratedConsumerIT extends FacadeIT {
-
   @Autowired EventServiceInvoker eventServiceInvoker;
   @Autowired TranscriptRequestRepository transcriptRequestRepository;
   @Autowired StudentRepository studentRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired AppUserRepository appUserRepository;
 
-  /** Mocked without exception: a real one would call SES, which is billed and needs an identity. */
   @MockBean Mailer mailer;
 
   @MockBean BucketComponent bucketComponent;
@@ -148,7 +137,6 @@ class TranscriptGeneratedConsumerIT extends FacadeIT {
 
   @Test
   void the_email_template_renders_through_the_spring_engine() {
-    // The body is a real Thymeleaf render, not a stub: a broken template must fail here.
     var request = generatedRequest();
 
     dispatch(TranscriptGenerated.builder().transcriptRequestId(request.getId()).build());
@@ -161,7 +149,6 @@ class TranscriptGeneratedConsumerIT extends FacadeIT {
 
   @Test
   void an_event_whose_service_does_not_exist_is_rejected_loudly() {
-    // The counterpart of the routing above: an unknown type is a failure, never a silent no-op.
     assertThrows(
         RuntimeException.class,
         () -> eventServiceInvoker.accept(new TypedEvent("com.exam.hei.Nope", null)));

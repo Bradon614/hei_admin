@@ -10,17 +10,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * The graduate list, rendered server side.
- *
- * <p>Calls the services directly rather than its own REST endpoints over HTTP: the data is already
- * one method call away, and going back out through the network would only add a round trip and a
- * second authentication to cross.
- */
 @Controller
 @AllArgsConstructor
 public class GraduatePageController {
-
   private final GraduateService graduateService;
   private final PromotionService promotionService;
 
@@ -29,7 +21,6 @@ public class GraduatePageController {
       @RequestParam(name = "promotion_id", required = false) UUID promotionId, Model model) {
     model.addAttribute("promotions", promotionService.findAll(1, Pagination.MAX_PAGE_SIZE));
 
-    // No promotion chosen yet: render the picker alone rather than guessing one for the user.
     if (promotionId == null) {
       return "graduates";
     }

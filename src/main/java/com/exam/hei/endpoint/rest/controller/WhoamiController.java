@@ -10,14 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class WhoamiController {
-
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
   private final WhoamiMapper whoamiMapper;
 
-  /**
-   * No permission check here: reaching this method already means the caller is authenticated, which
-   * {@code SecurityConf} enforces. The controller only maps and returns.
-   */
   @GetMapping("/whoami")
   public Whoami whoami() {
     return whoamiMapper.toRest(

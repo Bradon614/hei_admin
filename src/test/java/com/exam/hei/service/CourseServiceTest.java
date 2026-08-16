@@ -27,7 +27,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 class CourseServiceTest {
-
   private final CourseRepository courseRepository = mock(CourseRepository.class);
   private final SemesterRepository semesterRepository = mock(SemesterRepository.class);
   private final TrackService trackService = mock(TrackService.class);
@@ -70,8 +69,6 @@ class CourseServiceTest {
         .build();
   }
 
-  // --- the common core rule -------------------------------------------------
-
   @Test
   void a_common_core_course_carries_no_track() {
     semesterExists(S1);
@@ -82,7 +79,6 @@ class CourseServiceTest {
 
   @Test
   void a_common_core_semester_refuses_a_track_specific_course() {
-    // No track has been chosen at that point, so such a course would be followed by nobody.
     semesterExists(S1);
 
     var thrown =
@@ -103,14 +99,11 @@ class CourseServiceTest {
 
   @Test
   void a_track_semester_also_accepts_a_common_course() {
-    // Followed by both programmes, and counted in the credits of each.
     semesterExists(S5);
     repositoryEchoesWhatItIsGiven();
 
     assertNull(subject.saveAll(List.of(course(S5, null, 12))).get(0).getTrack());
   }
-
-  // --- referenced resources -------------------------------------------------
 
   @Test
   void a_course_names_the_semester_it_belongs_to() {
@@ -169,8 +162,6 @@ class CourseServiceTest {
 
     assertThrows(NotFoundException.class, () -> subject.findById(id));
   }
-
-  // --- listing --------------------------------------------------------------
 
   @Test
   void listing_without_a_filter_returns_every_course() {

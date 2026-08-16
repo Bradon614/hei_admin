@@ -4,14 +4,7 @@ import com.exam.hei.model.exception.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-/**
- * Translates the paging of doc/api.yml into the paging of Spring Data.
- *
- * <p>The API numbers pages from 1, Spring Data from 0. Keeping that single subtraction in one place
- * is what prevents an off-by-one from appearing in one endpoint and not another.
- */
 public final class Pagination {
-
   public static final int MAX_PAGE_SIZE = 500;
 
   private Pagination() {}

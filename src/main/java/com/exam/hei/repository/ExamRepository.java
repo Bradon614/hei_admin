@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExamRepository extends JpaRepository<Exam, UUID> {
-
   List<Exam> findAllByCourseIdOrderByDateExamAsc(UUID courseId);
 
   Optional<Exam> findByCourseIdAndTitle(UUID courseId, String title);

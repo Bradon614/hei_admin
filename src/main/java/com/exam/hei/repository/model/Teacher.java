@@ -18,12 +18,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * A teacher.
- *
- * <p>What a teacher actually teaches is not held here: a course is taught by several teachers to
- * several groups, which is a ternary relation carried by its own teaching assignment.
- */
 @Entity
 @Table(name = "teacher")
 @Getter
@@ -33,7 +27,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Teacher {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -50,7 +43,6 @@ public class Teacher {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
-  /** The account this teacher signs in with. One account backs at most one profile. */
   @OneToOne(optional = false)
   @JoinColumn(name = "user_id", nullable = false, unique = true)
   @ToString.Exclude
@@ -59,9 +51,5 @@ public class Teacher {
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;
 
-  /**
-   * Plaintext password carried from the REST payload to {@code TeacherService}, which hashes it
-   * into the account and discards it. Never persisted, never read back.
-   */
   @Transient @ToString.Exclude private String password;
 }

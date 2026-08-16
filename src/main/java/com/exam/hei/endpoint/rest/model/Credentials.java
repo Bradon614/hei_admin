@@ -9,13 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Payload of {@code POST /auth/login}.
- *
- * <p>Never serialized by this application: {@code AuthController} only ever reads it as a request
- * body. No write-only marker is needed for that reason, unlike {@link Student#getPassword()} and
- * {@link Teacher#getPassword()}, which the same process also serializes back as a response.
- */
 @Getter
 @Setter
 @Builder
@@ -24,7 +17,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Credentials {
-
   private String email;
 
   @ToString.Exclude private String password;

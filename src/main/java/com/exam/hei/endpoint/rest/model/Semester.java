@@ -21,13 +21,11 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Semester {
-
   private UUID id;
   private SemesterRef ref;
   private Integer semOrder;
   private Integer yearNumber;
   private Integer requiredCredits;
 
-  /** True for the common core semesters, where no track applies. */
   private Boolean commonCore;
 }

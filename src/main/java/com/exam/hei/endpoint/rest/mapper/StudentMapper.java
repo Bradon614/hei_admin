@@ -7,22 +7,13 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * No repository here: resolving the promotion named by a payload, and the 404 that comes with an
- * unknown one, is a business decision left to the service. The mapper only carries the id across.
- */
 @Component
 @AllArgsConstructor
 public class StudentMapper {
-
   private final PromotionMapper promotionMapper;
   private final TrackMapper trackMapper;
   private final GroupMapper groupMapper;
 
-  /**
-   * @param currentTrack null while the student is still in the common core
-   * @param currentGroup null while the student has never been assigned a group
-   */
   public Student toRest(
       com.exam.hei.repository.model.Student domain,
       com.exam.hei.repository.model.Track currentTrack,
@@ -57,7 +48,6 @@ public class StudentMapper {
         .build();
   }
 
-  /** Carries the named promotion as an id only: the service replaces it with the persisted one. */
   private Promotion promotionOf(Student rest) {
     UUID promotionId = rest.getPromotion() == null ? null : rest.getPromotion().getId();
     return promotionId == null ? null : Promotion.builder().id(promotionId).build();

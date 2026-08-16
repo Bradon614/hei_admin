@@ -16,21 +16,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * No permission check here: the rule keeping a student away from another student's history lives in
- * the security package and is applied by the service.
- */
 @RestController
 @AllArgsConstructor
 public class StudentGroupAssignmentController {
-
   private final StudentGroupAssignmentService assignmentService;
   private final StudentGroupAssignmentMapper assignmentMapper;
 
-  /**
-   * Every group the student went through, or only the one in force on {@code at} when that date is
-   * given.
-   */
   @GetMapping("/students/{studentId}/group-assignments")
   public List<StudentGroupAssignment> getStudentGroupAssignments(
       @PathVariable UUID studentId,

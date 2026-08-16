@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Role restrictions live in SecurityConf and in StudentAuthorizer. */
 @RestController
 @AllArgsConstructor
 public class ResultController {
-
   private final ResultService resultService;
   private final ResultMapper resultMapper;
   private final StudentMapper studentMapper;
@@ -41,11 +39,6 @@ public class ResultController {
         .toList();
   }
 
-  /**
-   * Mirrors {@code StudentController#enriched}: the computed {@code current_track} and {@code
-   * current_group} of the embedded student cost one query each, resolved per student rather than
-   * joined in, which is acceptable at the scale of a promotion.
-   */
   private StudentResult toRest(com.exam.hei.model.StudentResult domain) {
     var student = domain.student();
     var restStudent =

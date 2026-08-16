@@ -14,17 +14,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
-/**
- * Issues and validates the JWT that {@code Authorization: Bearer <token>} carries.
- *
- * <p>The token is self contained: it carries the account id, its email and its role, signed so that
- * a caller cannot alter them. Validating a request therefore never reads the database, which is
- * what {@link AuthProvider} relies on.
- */
 @Service
 @AllArgsConstructor
 public class JwtService {
-
   private static final String EMAIL_CLAIM = "email";
   private static final String ROLE_CLAIM = "role";
 
@@ -45,11 +37,6 @@ public class JwtService {
     return new IssuedToken(token, JwtConf.TTL_SECONDS);
   }
 
-  /**
-   * @throws BadCredentialsException the token is malformed, its signature does not match, or it has
-   *     expired. One exception for all three: which one it is tells an attacker something about the
-   *     token they are probing.
-   */
   public Principal parse(String token) {
     try {
       var claims =

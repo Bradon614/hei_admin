@@ -4,11 +4,9 @@ import com.exam.hei.endpoint.rest.model.StudentGroupAssignment;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** One way only: an assignment is created through a group change, never written wholesale. */
 @Component
 @AllArgsConstructor
 public class StudentGroupAssignmentMapper {
-
   private final GroupMapper groupMapper;
 
   public StudentGroupAssignment toRest(

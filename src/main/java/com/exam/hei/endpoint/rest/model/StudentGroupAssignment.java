@@ -21,13 +21,11 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class StudentGroupAssignment {
-
   private UUID id;
   private UUID studentId;
   private Group group;
   private LocalDate startDate;
 
-  /** Null while this is the assignment currently in force. */
   private LocalDate endDate;
 
   private String reason;

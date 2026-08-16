@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, UUID> {
-
   List<Group> findAllByPromotionIdOrderByRefAsc(UUID promotionId);
 
   Optional<Group> findByPromotionIdAndRef(UUID promotionId, String ref);

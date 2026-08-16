@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 class ResultServiceTest {
-
   private final StudentRepository studentRepository = mock(StudentRepository.class);
   private final SemesterRepository semesterRepository = mock(SemesterRepository.class);
   private final GradeRepository gradeRepository = mock(GradeRepository.class);
@@ -94,8 +93,6 @@ class ResultServiceTest {
     when(semesterRepository.findAllByOrderBySemOrderAsc()).thenReturn(List.of(semester));
   }
 
-  // --- course result ----------------------------------------------------------
-
   @Test
   void a_course_s_final_grade_weighs_each_exam_by_its_coefficient() {
     studentExists();
@@ -113,7 +110,6 @@ class ResultServiceTest {
 
     var result = subject.resultOf(STUDENT_ID);
 
-    // (8*1 + 16*3) / (1+3) = 56/4 = 14.00
     var courseResult = result.semesterResults().get(0).courseResults().get(0);
     assertEquals(0, new BigDecimal("14.00").compareTo(courseResult.finalGrade()));
     assertTrue(courseResult.validated());
@@ -136,7 +132,6 @@ class ResultServiceTest {
 
     var courseResult = subject.resultOf(STUDENT_ID).semesterResults().get(0).courseResults().get(0);
 
-    // (20*1 + 0*1) / (1+1) = 10.00
     assertEquals(0, new BigDecimal("10.00").compareTo(courseResult.finalGrade()));
   }
 
@@ -176,8 +171,6 @@ class ResultServiceTest {
     assertFalse(courseResult.validated());
     assertEquals(0, courseResult.obtainedCredits());
   }
-
-  // --- semester result ----------------------------------------------------------
 
   @Test
   void a_semester_without_a_track_choice_is_not_evaluable() {
@@ -237,8 +230,6 @@ class ResultServiceTest {
     assertTrue(subject.resultOf(STUDENT_ID).semesterResults().get(0).validated());
   }
 
-  // --- student result -------------------------------------------------------------
-
   @Test
   void the_general_average_excludes_courses_with_no_grade_at_all() {
     studentExists();
@@ -257,7 +248,6 @@ class ResultServiceTest {
 
     var average = subject.resultOf(STUDENT_ID).generalAverage();
 
-    // Only the graded course counts: 16.00, not diluted by the ungradable one.
     assertEquals(0, new BigDecimal("16.00").compareTo(average));
   }
 
@@ -317,8 +307,6 @@ class ResultServiceTest {
 
     assertThrows(NotFoundException.class, () -> subject.resultOf(STUDENT_ID));
   }
-
-  // --- promotion listing ----------------------------------------------------------
 
   @Test
   void an_unknown_promotion_is_not_found() {

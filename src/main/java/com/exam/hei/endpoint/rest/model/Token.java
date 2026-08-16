@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** Response of {@code POST /auth/login}. */
 @Getter
 @Setter
 @Builder
@@ -18,7 +17,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Token {
-
   @ToString.Exclude private String accessToken;
   private String tokenType;
   private Long expiresIn;

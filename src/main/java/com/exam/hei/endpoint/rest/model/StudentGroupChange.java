@@ -19,10 +19,8 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class StudentGroupChange {
-
   private UUID groupId;
 
-  /** The assignment in force is closed on the day before this date. */
   private LocalDate startDate;
 
   private String reason;

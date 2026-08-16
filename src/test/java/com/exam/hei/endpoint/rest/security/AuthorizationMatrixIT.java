@@ -17,24 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-/**
- * Every role against every endpoint whose access depends on a role, in one table.
- *
- * <p>The table is the specification. Moving a rule in {@code SecurityConf} breaks one named line
- * here rather than some assertion buried in a feature test, and a reader sees the whole security
- * surface without opening thirty files.
- *
- * <p>Only filter-chain rules belong here — the ones a role alone decides. The rules that compare
- * the caller to the resource, such as a student reaching another student's grades, need fixtures
- * and stay in the feature tests that build them; {@code StudentAuthorizer} and {@code
- * GradeAuthorizer} are covered there.
- *
- * <p>Every case below asserts the status the filter chain returns before any business logic runs,
- * so a 404 on a random UUID reads as "allowed through" just as much as a 200 does. What is being
- * asserted is 403 or not 403.
- */
 class AuthorizationMatrixIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired JwtService jwtService;
@@ -78,8 +61,7 @@ class AuthorizationMatrixIT extends FacadeIT {
     if (token != null) {
       headers.set(AUTHORIZATION, "Bearer " + token);
     }
-    // An empty array body keeps the PUT endpoints from failing on a missing payload before the
-    // filter chain has had its say.
+
     var body = method == HttpMethod.PUT || method == HttpMethod.POST ? "[]" : null;
     if (body != null) {
       headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
@@ -101,8 +83,6 @@ class AuthorizationMatrixIT extends FacadeIT {
         status == 403 || status == 401,
         role + " " + method + " " + path + " was refused with " + status);
   }
-
-  // --- administration only ---------------------------------------------------------
 
   @ParameterizedTest
   @CsvSource({
@@ -156,12 +136,9 @@ class AuthorizationMatrixIT extends FacadeIT {
     assertAllowedThrough("ADMIN", method, resolved);
   }
 
-  // --- shared between admins and teachers -------------------------------------------
-
   @ParameterizedTest
   @CsvSource({"GET, /students", "GET, /teachers"})
   void a_directory_is_never_handed_to_a_student(HttpMethod method, String path) {
-    // Both listings expose an email address per row; neither is a student's business to harvest.
     assertForbidden("STUDENT", method, path);
     assertAllowedThrough("TEACHER", method, path);
     assertAllowedThrough("ADMIN", method, path);
@@ -170,17 +147,11 @@ class AuthorizationMatrixIT extends FacadeIT {
   @ParameterizedTest
   @CsvSource({"PUT, /courses/{id}/exams", "PUT, /exams/{id}/grades"})
   void teaching_writes_are_closed_to_students(HttpMethod method, String path) {
-    // Only the student row belongs here. A teacher reaching these paths is refused or not depending
-    // on whether a teaching assignment names them for that course, which is TeacherAuthorizer's
-    // call on real data — asserting it here would be asserting a fixture, not a rule. ExamIT and
-    // GradeIT build that fixture and cover both outcomes.
     var resolved = path.replace("{id}", ANY.toString());
 
     assertForbidden("STUDENT", method, resolved);
     assertAllowedThrough("ADMIN", method, resolved);
   }
-
-  // --- open to any authenticated caller ----------------------------------------------
 
   @ParameterizedTest
   @CsvSource({
@@ -194,8 +165,6 @@ class AuthorizationMatrixIT extends FacadeIT {
     assertAllowedThrough("TEACHER", method, path);
     assertAllowedThrough("ADMIN", method, path);
   }
-
-  // --- nothing at all without a token ------------------------------------------------
 
   @ParameterizedTest
   @CsvSource({
@@ -213,8 +182,6 @@ class AuthorizationMatrixIT extends FacadeIT {
   @ParameterizedTest
   @CsvSource({"GET, /ping", "GET, /health/db"})
   void the_probes_stay_public(HttpMethod method, String path) {
-    // Not a convenience: the POJA delivery pipeline curls these, and a token requirement here would
-    // fail every deployment.
     var status = statusOf("ANONYMOUS", method, path);
 
     assertEquals(false, status == 401 || status == 403, path + " answered " + status);

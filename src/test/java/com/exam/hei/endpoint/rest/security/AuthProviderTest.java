@@ -17,7 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 class AuthProviderTest {
-
   private final JwtService jwtService = mock(JwtService.class);
   private final AuthProvider subject = new AuthProvider(jwtService);
 

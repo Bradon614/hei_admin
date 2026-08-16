@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** The password of the underlying account is write only and never returned. */
 @Getter
 @Setter
 @Builder
@@ -22,20 +21,12 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Teacher {
-
   private UUID id;
   private String ref;
   private String firstName;
   private String lastName;
   private String email;
 
-  /**
-   * WRITE ONLY by convention: accepted on creation and update, never set by {@code toRest}. {@link
-   * JsonInclude.Include#NON_NULL} drops the field from a response entirely rather than serializing
-   * it as {@code "password":null}, since the mapper leaves it unset. Only its BCrypt hash is
-   * stored, so this field is the sole way to give a teacher a password; left out on update, the
-   * current password is kept.
-   */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   @ToString.Exclude
   private String password;

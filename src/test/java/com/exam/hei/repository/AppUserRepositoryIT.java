@@ -12,9 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/** Covers the credential column an account signs in with, checked by {@code POST /auth/login}. */
 class AppUserRepositoryIT extends FacadeIT {
-
   @Autowired AppUserRepository appUserRepository;
 
   private static AppUser.AppUserBuilder validUser() {

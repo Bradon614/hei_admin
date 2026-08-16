@@ -36,12 +36,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
-/**
- * The critical rule, end to end, against a real curriculum in the database: an EL student never
- * sees a TN course, and the other way round.
- */
 class StudentCourseIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
@@ -151,7 +146,6 @@ class StudentCourseIT extends FacadeIT {
         .getBody();
   }
 
-  /** Scoped to this test's own courses: the Postgres container is shared. */
   private List<Course> only(List<Course> courses, Set<UUID> mine) {
     return courses.stream().filter(course -> mine.contains(course.getId())).toList();
   }
@@ -159,8 +153,6 @@ class StudentCourseIT extends FacadeIT {
   private int creditsOf(List<Course> courses) {
     return courses.stream().mapToInt(Course::getCredits).sum();
   }
-
-  // --- the critical rule ----------------------------------------------------
 
   @Test
   void an_el_student_follows_the_common_and_el_courses_and_never_a_tn_one() {
@@ -196,7 +188,6 @@ class StudentCourseIT extends FacadeIT {
 
   @Test
   void each_programme_is_worth_thirty_credits_over_the_same_semester() {
-    // 12 common + 18 on each side: 30 per programme, 48 across the semester.
     var admin = adminKey();
     var jean = student();
     var alice = student();
@@ -213,8 +204,6 @@ class StudentCourseIT extends FacadeIT {
     assertEquals(30, creditsForEl);
     assertEquals(30, creditsForTn);
   }
-
-  // --- common core ----------------------------------------------------------
 
   @Test
   void every_student_follows_the_same_common_core() {
@@ -233,8 +222,6 @@ class StudentCourseIT extends FacadeIT {
     assertEquals(forJean, forAlice, "the common core does not depend on any track");
     assertEquals(30, creditsOf(forJean));
   }
-
-  // --- no track chosen ------------------------------------------------------
 
   @Test
   void a_student_without_a_track_follows_nothing_from_the_track_semesters() {
@@ -274,8 +261,6 @@ class StudentCourseIT extends FacadeIT {
     assertTrue(whole.contains(forEl.getId()));
     assertFalse(whole.contains(forTn.getId()));
   }
-
-  // --- authorization --------------------------------------------------------
 
   @Test
   void reading_a_curriculum_requires_authentication() {

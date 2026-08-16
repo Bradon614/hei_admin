@@ -20,7 +20,6 @@ import lombok.ToString;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Track {
-
   private UUID id;
   private String code;
   private String name;

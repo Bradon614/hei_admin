@@ -21,13 +21,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 class AuthPageIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
 
   private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
 
-  /** Redirects are the assertion here, so they must not be followed away. See {@code AuthIT}. */
   private static final HttpClient HTTP_CLIENT =
       HttpClient.newBuilder().followRedirects(NEVER).build();
 
@@ -90,8 +88,6 @@ class AuthPageIT extends FacadeIT {
 
   @Test
   void the_cookie_is_http_only_and_same_site_strict() throws Exception {
-    // SameSite=Strict is what keeps CSRF closed while CSRF protection stays disabled; HttpOnly is
-    // what keeps a script from reading the token. Both are load-bearing, hence asserted.
     var email = rand(12) + "@hei.test";
     account(email, "correct-horse", Role.ADMIN);
 
@@ -118,7 +114,6 @@ class AuthPageIT extends FacadeIT {
 
   @Test
   void an_unknown_email_is_refused_the_same_way_as_a_wrong_password() throws Exception {
-    // Identical answer on purpose: telling them apart would let anyone enumerate the accounts.
     var response = postLogin(rand(12) + "@hei.test", "whatever");
 
     assertEquals(200, response.statusCode());

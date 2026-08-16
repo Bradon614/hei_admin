@@ -9,11 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/** The only endpoint a caller reaches before holding a token: it is what hands one out. */
 @RestController
 @AllArgsConstructor
 public class AuthController {
-
   private final AuthService authService;
   private final AuthMapper authMapper;
 

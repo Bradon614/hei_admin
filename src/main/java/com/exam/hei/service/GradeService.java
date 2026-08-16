@@ -32,17 +32,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Entry and consultation of grades, with an immutable history of every change.
- *
- * <p>A grade is attached to a student and an exam, never to a group: this is what lets a grade
- * survive a group change. Every write here also appends one {@link GradeHistory} row; {@code
- * Grade.value} is only ever the current state, the trail lives entirely in that other table.
- */
 @Service
 @AllArgsConstructor
 public class GradeService {
-
   private final GradeRepository gradeRepository;
   private final GradeHistoryRepository gradeHistoryRepository;
   private final StudentRepository studentRepository;
@@ -131,11 +123,6 @@ public class GradeService {
         .orElseThrow(() -> new NotFoundException("Student " + studentId + " not found"));
   }
 
-  /**
-   * A course belongs to a student's curriculum only once their track choice covers its semester,
-   * from S4 on. The specification narrows the 409 to exactly this case: a grade on a course the
-   * student's chosen track does not follow is not additionally blocked here.
-   */
   private void checkTrackCoversTheCourse(UUID studentId, Exam exam) {
     var resolution = trackChoiceService.resolve(studentId, exam.getCourse().getSemester());
     if (resolution.isNotSelected()) {
@@ -163,7 +150,6 @@ public class GradeService {
     }
   }
 
-  /** CREATION is reserved for the first entry: mandatory then, forbidden on every later change. */
   private void checkReasonTypeMatchesEntryState(
       Optional<Grade> existing, GradeChangeReasonType reasonType) {
     if (existing.isEmpty() && reasonType != GradeChangeReasonType.CREATION) {
@@ -174,21 +160,12 @@ public class GradeService {
     }
   }
 
-  /**
-   * The database forbids a history row where nothing changed (CHECK old_value IS DISTINCT FROM
-   * new_value): rejected here first so it surfaces as a clean 400 rather than a raw constraint
-   * violation.
-   */
   private void checkValueActuallyChanges(BigDecimal oldValue, BigDecimal newValue) {
     if (oldValue != null && oldValue.compareTo(newValue) == 0) {
       throw new BadRequestException("The new value equals the current value");
     }
   }
 
-  /**
-   * Which group the student belonged to on the exam date, compared to the groups a teaching
-   * assignment names this teacher for on that course.
-   */
   private boolean inACoveredGroupAt(Grade grade, Exam exam) {
     var coveredGroupIds =
         teachingAssignmentRepository

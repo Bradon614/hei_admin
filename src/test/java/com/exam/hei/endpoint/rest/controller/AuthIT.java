@@ -25,22 +25,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 class AuthIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired ObjectMapper objectMapper;
 
   private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
 
-  /**
-   * {@code TestRestTemplate} runs on the JDK's own {@code HttpURLConnection} here (Spring Boot's
-   * client auto-detection only picks up Apache/OkHttp, neither is on this classpath), and that
-   * client cannot process a 401 response to a POST at all: {@code HttpRetryException: cannot retry
-   * due to server authentication, in streaming mode}, thrown by its internal auth-retry logic no
-   * matter how the request is configured. The modern {@code java.net.http.HttpClient}, built into
-   * the JDK since 11, does not carry that limitation, so login — the one endpoint that can answer a
-   * POST with 401 — is driven through it instead.
-   */
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   private AppUser account(String email, String rawPassword, Role role) {
@@ -106,7 +96,6 @@ class AuthIT extends FacadeIT {
     var email = UUID.randomUUID() + "@hei.test";
     account(email, "s3cret!!", Role.STUDENT);
 
-    // No Authorization header set at all, unlike every other endpoint.
     assertEquals(200, login(email, "s3cret!!").statusCode());
   }
 }

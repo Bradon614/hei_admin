@@ -4,11 +4,9 @@ import com.exam.hei.endpoint.rest.model.StudentTrackChoice;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** One way only: a choice is recorded through its own request, never written wholesale. */
 @Component
 @AllArgsConstructor
 public class StudentTrackChoiceMapper {
-
   private final TrackMapper trackMapper;
   private final SemesterMapper semesterMapper;
 

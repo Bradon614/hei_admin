@@ -42,7 +42,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 class StudentIT extends FacadeIT {
-
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired PromotionRepository promotionRepository;
@@ -69,7 +68,6 @@ class StudentIT extends FacadeIT {
     return jwtService.issue(user).token();
   }
 
-  /** Writes are administered, so the tests already call them as an admin. */
   private String adminKey() {
     return keyOf(Role.ADMIN);
   }
@@ -125,8 +123,6 @@ class StudentIT extends FacadeIT {
   private Student created(String adminKey, UUID promotionId) {
     return put(List.of(aStudent(promotionId)), adminKey).getBody().get(0);
   }
-
-  // --- crupdate then read ---------------------------------------------------
 
   @Test
   void a_student_is_created_then_readable_by_its_id() {
@@ -187,8 +183,6 @@ class StudentIT extends FacadeIT {
     assertEquals(NOT_FOUND, putRaw(List.of(orphan), adminKey()).getStatusCode());
   }
 
-  // --- listing --------------------------------------------------------------
-
   @Test
   void students_can_be_filtered_by_promotion() {
     var admin = adminKey();
@@ -234,8 +228,6 @@ class StudentIT extends FacadeIT {
     assertEquals(400, response.getStatusCode().value());
   }
 
-  // --- payload contract -----------------------------------------------------
-
   @Test
   void students_are_serialized_in_snake_case() {
     var admin = adminKey();
@@ -254,7 +246,6 @@ class StudentIT extends FacadeIT {
 
   @Test
   void a_student_payload_never_carries_the_credentials_of_its_account() {
-    // Creating a student creates its account: the generated key must not leak into the response.
     var admin = adminKey();
     var student = created(admin, persistedPromotionId());
 
@@ -270,13 +261,9 @@ class StudentIT extends FacadeIT {
 
   @Test
   void the_current_track_of_a_student_is_not_resolved_yet() {
-    // Part of the contract, but it comes from a track choice, introduced by its own feature.
     assertNull(created(adminKey(), persistedPromotionId()).getCurrentTrack());
   }
 
-  // --- authorization --------------------------------------------------------
-
-  /** Mints a fresh token for a student's own account, never returned by the API itself. */
   private String apiKeyOf(Student student) {
     var user = studentRepository.findById(student.getId()).orElseThrow().getUser();
     return jwtService.issue(user).token();
@@ -327,7 +314,6 @@ class StudentIT extends FacadeIT {
 
   @Test
   void a_student_cannot_read_another_student() {
-    // The rule the subject states explicitly: a student never sees another student's data.
     var admin = adminKey();
     var jean = created(admin, persistedPromotionId());
     var alice = created(admin, persistedPromotionId());
@@ -356,8 +342,6 @@ class StudentIT extends FacadeIT {
 
     assertEquals(OK, response.getStatusCode());
   }
-
-  // --- computed fields ------------------------------------------------------
 
   private com.exam.hei.repository.model.Group persistedGroup(
       UUID promotionId, com.exam.hei.repository.model.Track track) {
@@ -433,8 +417,6 @@ class StudentIT extends FacadeIT {
 
     assertEquals("EL", found.getCurrentTrack().getCode());
   }
-
-  // --- filters --------------------------------------------------------------
 
   @Test
   void students_can_be_filtered_by_the_group_they_were_in_on_a_date() {
