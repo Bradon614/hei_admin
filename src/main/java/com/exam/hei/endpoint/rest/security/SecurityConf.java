@@ -129,6 +129,11 @@ public class SecurityConf {
                     // therefore cannot be expressed here.
                     .requestMatchers(HttpMethod.GET, "/students")
                     .hasAnyRole("ADMIN", "TEACHER")
+                    // Same reasoning one directory over: the listing hands out every teacher's
+                    // email address, which is nobody's business to harvest. Reading a single
+                    // teacher stays open, so a student can still see who teaches them.
+                    .requestMatchers(HttpMethod.GET, "/teachers")
+                    .hasAnyRole("ADMIN", "TEACHER")
                     // A promotion-wide result or graduate listing is an administrative view; a
                     // single student's own result is handled by StudentAuthorizer instead. Not
                     // optional here: GraduateService reuses ResultService#resultsOfPromotion, which
