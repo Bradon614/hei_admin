@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My account — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>My account</h1>
+
+  <table class="identity">
+    <tr>
+      <td class="label">Signed in as</td>
+      <td th:text="${currentEmail}">someone@hei.school</td>
+    </tr>
+    <tr>
+      <td class="label">Role</td>
+      <td th:text="${currentRole}">STUDENT</td>
+    </tr>
+  </table>
+
+  <p class="empty">
+    Your courses, grades and transcripts will appear here.
+  </p>
+</main>
+</body>
+</html>

@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class GraduatePageController {
   private final GraduateService graduateService;
   private final PromotionService promotionService;
+  private final CurrentUserModel currentUserModel;
 
   @GetMapping("/ui/graduates")
   public String graduates(
       @RequestParam(name = "promotion_id", required = false) UUID promotionId, Model model) {
+    currentUserModel.addTo(model);
     model.addAttribute("promotions", promotionService.findAll(1, Pagination.MAX_PAGE_SIZE));
 
     if (promotionId == null) {

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="nav" class="nav">
+  <a class="brand" th:href="${currentRole == 'ADMIN'} ? @{/ui/admin} : @{/ui/me}">HEI admin</a>
+
+  <span class="nav-links" th:if="${currentRole == 'ADMIN'}">
+    <a th:href="@{/ui/graduates}">Graduates</a>
+  </span>
+
+  <span class="spacer"></span>
+
+  <span class="who">
+    <span th:text="${currentEmail}">someone@hei.school</span>
+    <span class="role" th:text="${currentRole}">ADMIN</span>
+  </span>
+
+  <form method="post" th:action="@{/ui/logout}" class="logout-form">
+    <button type="submit" class="logout">Sign out</button>
+  </form>
+</nav>
+
+</body>
+</html>

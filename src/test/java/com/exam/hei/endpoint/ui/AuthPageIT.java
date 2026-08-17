@@ -74,7 +74,7 @@ class AuthPageIT extends FacadeIT {
   }
 
   @Test
-  void valid_credentials_set_the_cookie_and_redirect_to_the_graduates_page() throws Exception {
+  void an_administrator_lands_on_the_administration_page() throws Exception {
     var email = rand(12) + "@hei.test";
     account(email, "correct-horse", Role.ADMIN);
 
@@ -82,7 +82,34 @@ class AuthPageIT extends FacadeIT {
 
     assertEquals(302, response.statusCode());
     assertTrue(
-        response.headers().firstValue("Location").orElseThrow().endsWith("/ui/graduates"),
+        response.headers().firstValue("Location").orElseThrow().endsWith("/ui/admin"),
+        "Location was " + response.headers().firstValue("Location"));
+  }
+
+  @Test
+  void a_student_lands_on_their_own_page() throws Exception {
+    // Sending them to /ui/admin would earn a 403 straight after signing in successfully.
+    var email = rand(12) + "@hei.test";
+    account(email, "correct-horse", Role.STUDENT);
+
+    var response = postLogin(email, "correct-horse");
+
+    assertEquals(302, response.statusCode());
+    assertTrue(
+        response.headers().firstValue("Location").orElseThrow().endsWith("/ui/me"),
+        "Location was " + response.headers().firstValue("Location"));
+  }
+
+  @Test
+  void a_teacher_lands_on_their_own_page() throws Exception {
+    var email = rand(12) + "@hei.test";
+    account(email, "correct-horse", Role.TEACHER);
+
+    var response = postLogin(email, "correct-horse");
+
+    assertEquals(302, response.statusCode());
+    assertTrue(
+        response.headers().firstValue("Location").orElseThrow().endsWith("/ui/me"),
         "Location was " + response.headers().firstValue("Location"));
   }
 
