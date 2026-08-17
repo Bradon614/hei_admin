@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>Administration</h1>
+  <p class="subtitle">
+    Signed in as <span th:text="${currentEmail}">admin@hei.school</span>.
+  </p>
+
+  <div class="cards">
+    <a class="card-link" th:href="@{/ui/graduates}">
+      <span class="card-title">Graduates</span>
+      <span class="card-note">Ranked list of a promotion, and the Excel export.</span>
+    </a>
+    <span class="card-link disabled">
+      <span class="card-title">People</span>
+      <span class="card-note">Students and teachers, with their accounts.</span>
+    </span>
+    <span class="card-link disabled">
+      <span class="card-title">Academics</span>
+      <span class="card-note">Courses, exams and grades.</span>
+    </span>
+  </div>
+</main>
+</body>
+</html>

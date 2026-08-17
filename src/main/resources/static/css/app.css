@@ -156,3 +156,96 @@ th {
 tbody tr:last-child td {
   border-bottom: 0;
 }
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 60rem;
+  margin: 0 auto 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.nav .brand {
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-links a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.nav .spacer {
+  flex: 1;
+}
+
+.nav .who {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.nav .role {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: #eaf1f6;
+  border-radius: 4px;
+}
+
+.logout-form {
+  margin: 0;
+}
+
+.nav .logout {
+  margin-top: 0;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.card-link {
+  display: block;
+  flex: 1 1 14rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.card-link.disabled {
+  opacity: 0.55;
+}
+
+.card-title {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.card-note {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

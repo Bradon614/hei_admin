@@ -62,6 +62,13 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers("/css/**")
                     .permitAll()
+                    // Order carries the meaning here: the first matching rule wins, so anything a
+                    // non administrator may reach under /ui has to be listed before the catch-all
+                    // below. Moving either line past it silently locks students and teachers out
+                    // of their own pages; moving the catch-all up opens the admin ones to them.
+                    // AuthorizationMatrixIT pins both directions.
+                    .requestMatchers("/ui/logout", "/ui/me", "/ui/me/**")
+                    .authenticated()
                     .requestMatchers("/ui/**")
                     .hasRole("ADMIN")
                     .requestMatchers(
