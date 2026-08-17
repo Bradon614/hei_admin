@@ -314,6 +314,24 @@ h2 {
   border-radius: 4px;
 }
 
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.check input {
+  width: auto;
+}
+
 .crumb {
   margin: 0 0 0.75rem;
   font-size: 0.85rem;
