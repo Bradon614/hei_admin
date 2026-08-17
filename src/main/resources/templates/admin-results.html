@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Results — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <p class="crumb"><a th:href="@{/ui/admin/promotions}">← Back to the promotions</a></p>
+
+  <h1 th:if="${promotion != null}" th:text="${'Results — ' + promotion.ref}">Results — K22</h1>
+  <h1 th:if="${promotion == null}">Results</h1>
+  <p class="subtitle" th:if="${promotion != null}" th:text="${promotion.name}">Promotion 2022</p>
+
+  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+
+  <div th:if="${promotion != null}">
+    <form method="get" th:action="@{'/ui/admin/promotions/' + ${promotion.id} + '/results'}"
+          class="picker">
+      <label for="track_code">Track</label>
+      <select id="track_code" name="track_code">
+        <option value="">Every student</option>
+        <option th:each="t : ${tracks}" th:value="${t.code}" th:text="${t.code + ' — ' + t.name}"
+                th:selected="${t.code == selectedTrack}">EL</option>
+      </select>
+      <button type="submit">Show</button>
+    </form>
+
+    <p class="empty" th:if="${#lists.isEmpty(results)}">No student matches this promotion yet.</p>
+
+    <table th:unless="${#lists.isEmpty(results)}">
+      <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Student</th>
+        <th class="num">Credits</th>
+        <th class="num">Average</th>
+        <th>Diploma</th>
+        <th>What blocks it</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="r : ${results}">
+        <td th:text="${r.student().getRef()}">STD21001</td>
+        <td th:text="${r.student().getFirstName() + ' ' + r.student().getLastName()}">Jean Rakoto</td>
+        <td class="num" th:text="${r.totalObtainedCredits()} + ' / 180'">180 / 180</td>
+        <td class="num" th:text="${r.generalAverage()}">14.20</td>
+        <td class="verdict" th:text="${r.graduated()} ? 'GRANTED' : 'NOT GRANTED'">GRANTED</td>
+        <td>
+          <span class="empty" th:if="${#lists.isEmpty(r.blockers())}">nothing</span>
+          <div th:each="b : ${r.blockers()}">
+            <span class="chip" th:text="${b.semesterRef()}">S4</span>
+            <span th:text="${b.message()}">no track selected</span>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
