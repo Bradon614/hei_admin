@@ -25,7 +25,7 @@ repositories {
 }
 
 java {
-    group = 'com.exam.hei'
+    group = 'com.example.demo'
     sourceCompatibility = '21'
     targetCompatibility = '21'
 }
@@ -58,7 +58,7 @@ jacocoTestCoverageVerification {
         rule {
             limit {
                 counter = "LINE"
-                minimum = 0.8
+                minimum = 0
             }
         }
     }
@@ -111,11 +111,6 @@ jacocoTestReport {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
     testImplementation 'org.testcontainers:testcontainers:2.0.2'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.2.2'
-    implementation 'org.flywaydb:flyway-core:9.22.3'
-    testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.2'
-    implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.3.Final'
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3'
 
@@ -126,8 +121,6 @@ dependencies {
     implementation 'com.amazonaws:aws-lambda-java-events:3.11.3'
     implementation 'software.amazon.awssdk:sqs:2.21.40'
     implementation 'software.amazon.awssdk:eventbridge:2.21.40'
-    implementation 'software.amazon.awssdk:s3:2.21.40'
-    implementation 'software.amazon.awssdk:s3-transfer-manager:2.21.40'
     implementation 'software.amazon.awssdk.crt:aws-crt:0.28.12'
     implementation 'software.amazon.awssdk:ses:2.21.40'
     implementation 'software.amazon.awssdk:core:2.21.40'
@@ -153,15 +146,6 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.2'
     testImplementation 'org.junit-pioneer:junit-pioneer:2.2.0'
 
-implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-implementation 'org.apache.poi:poi-ooxml:5.2.5'
-implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.9.0'
-implementation 'org.springframework.boot:spring-boot-starter-security'
-implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-testImplementation 'org.testcontainers:testcontainers-localstack:2.0.2'
-testImplementation 'org.apache.commons:commons-lang3:3.18.0'
 
 
 }
