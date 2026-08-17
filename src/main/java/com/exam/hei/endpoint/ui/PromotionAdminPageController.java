@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Promotions, and the tracks each of them opens.
@@ -37,8 +38,10 @@ public class PromotionAdminPageController {
   private final CurrentUserModel currentUserModel;
 
   @GetMapping("/ui/admin/promotions")
-  public String promotions(Model model) {
+  public String promotions(
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done, Model model) {
     render(model);
+    UiFeedback.addTo(model, done);
     return "admin-promotions";
   }
 
@@ -49,7 +52,8 @@ public class PromotionAdminPageController {
       @RequestParam(name = "start_year") int startYear,
       @RequestParam(name = "end_year") int endYear,
       @RequestParam(name = "track_ids", required = false) List<UUID> trackIds,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       promotionService.saveAll(
           List.of(
@@ -60,6 +64,7 @@ public class PromotionAdminPageController {
                   .endYear(endYear)
                   .tracks(openedTracks(trackIds))
                   .build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.PROMOTION_CREATED);
       return "redirect:/ui/admin/promotions";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage());

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Teachers, their accounts, and what each of them teaches.
@@ -48,8 +49,10 @@ public class TeacherAdminPageController {
   private final CurrentUserModel currentUserModel;
 
   @GetMapping("/ui/admin/teachers")
-  public String teachers(Model model) {
+  public String teachers(
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done, Model model) {
     render(model);
+    UiFeedback.addTo(model, done);
     return "admin-teachers";
   }
 
@@ -60,7 +63,8 @@ public class TeacherAdminPageController {
       @RequestParam(name = "last_name") String lastName,
       @RequestParam String email,
       @RequestParam String password,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       teacherService.saveAll(
           List.of(
@@ -71,6 +75,7 @@ public class TeacherAdminPageController {
                   .email(email)
                   .password(password)
                   .build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.TEACHER_CREATED);
       return "redirect:/ui/admin/teachers";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage());
@@ -84,7 +89,8 @@ public class TeacherAdminPageController {
       @PathVariable UUID id,
       @RequestParam(name = "course_id") UUID courseId,
       @RequestParam(name = "group_id") UUID groupId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       teachingAssignmentService.saveAll(
           List.of(
@@ -93,6 +99,7 @@ public class TeacherAdminPageController {
                   .course(Course.builder().id(courseId).build())
                   .group(Group.builder().id(groupId).build())
                   .build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.ASSIGNMENT_CREATED);
       return "redirect:/ui/admin/teachers";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage());

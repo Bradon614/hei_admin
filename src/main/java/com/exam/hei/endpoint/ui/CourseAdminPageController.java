@@ -19,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * The catalogue: every course, and the form that adds one.
@@ -37,8 +38,11 @@ public class CourseAdminPageController {
 
   @GetMapping("/ui/admin/courses")
   public String courses(
-      @RequestParam(name = "semester_ref", required = false) String semesterRef, Model model) {
+      @RequestParam(name = "semester_ref", required = false) String semesterRef,
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done,
+      Model model) {
     render(model, semesterRef);
+    UiFeedback.addTo(model, done);
     return "admin-courses";
   }
 
@@ -49,7 +53,8 @@ public class CourseAdminPageController {
       @RequestParam int credits,
       @RequestParam(name = "semester_ref") SemesterRef semesterRef,
       @RequestParam(name = "track_id", required = false) String trackId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       var course =
           Course.builder()
@@ -61,6 +66,7 @@ public class CourseAdminPageController {
         course.track(Track.builder().id(UUID.fromString(trackId)).build());
       }
       courseService.saveAll(List.of(course.build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.COURSE_CREATED);
       return "redirect:/ui/admin/courses?semester_ref=" + semesterRef;
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage(), semesterRef.name());

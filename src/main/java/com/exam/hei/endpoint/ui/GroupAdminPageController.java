@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Teaching groups, listed and created one promotion at a time.
@@ -35,8 +36,11 @@ public class GroupAdminPageController {
 
   @GetMapping("/ui/admin/groups")
   public String groups(
-      @RequestParam(name = "promotion_id", required = false) UUID promotionId, Model model) {
+      @RequestParam(name = "promotion_id", required = false) UUID promotionId,
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done,
+      Model model) {
     render(model, promotionId);
+    UiFeedback.addTo(model, done);
     return "admin-groups";
   }
 
@@ -45,13 +49,15 @@ public class GroupAdminPageController {
       @RequestParam String ref,
       @RequestParam(name = "track_id", required = false) String trackId,
       @RequestParam(name = "promotion_id") UUID promotionId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       var group = Group.builder().ref(ref);
       if (trackId != null && !trackId.isBlank()) {
         group.track(Track.builder().id(UUID.fromString(trackId)).build());
       }
       groupService.saveAll(promotionId, List.of(group.build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.GROUP_CREATED);
       return "redirect:/ui/admin/groups?promotion_id=" + promotionId;
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage(), promotionId);

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * The exams of one course, which is the only place an exam exists.
@@ -36,8 +37,12 @@ public class ExamAdminPageController {
   private final CurrentUserModel currentUserModel;
 
   @GetMapping("/ui/admin/courses/{courseId}/exams")
-  public String exams(@PathVariable UUID courseId, Model model) {
+  public String exams(
+      @PathVariable UUID courseId,
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done,
+      Model model) {
     render(model, courseId);
+    UiFeedback.addTo(model, done);
     return "admin-exams";
   }
 
@@ -48,7 +53,8 @@ public class ExamAdminPageController {
       @RequestParam(name = "date_exam") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate dateExam,
       @RequestParam BigDecimal coefficient,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       examService.saveAll(
           courseId,
@@ -58,6 +64,7 @@ public class ExamAdminPageController {
                   .dateExam(dateExam.atStartOfDay(ZoneOffset.UTC).toInstant())
                   .coefficient(coefficient)
                   .build()));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.EXAM_CREATED);
       return "redirect:/ui/admin/courses/" + courseId + "/exams";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       model.addAttribute("error", e.getMessage());

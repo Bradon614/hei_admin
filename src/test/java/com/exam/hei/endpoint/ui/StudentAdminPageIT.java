@@ -177,6 +177,38 @@ class StudentAdminPageIT extends FacadeIT {
     assertTrue(page.body().contains(email), "listing did not show the student");
   }
 
+  // --- the success banner survives the redirect ------------------------------------------
+
+  @Test
+  void a_successful_creation_is_confirmed_on_the_page_it_redirects_to() throws Exception {
+    // The banner rides on the redirect URL rather than in a flash attribute: the security chain is
+    // STATELESS and the next request may land on another Lambda container.
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+
+    var created =
+        post("/ui/admin/students", newStudent(promotion.getId(), rand(12) + "@hei.demo"), admin);
+
+    assertEquals(302, created.statusCode(), "body was " + created.body());
+    var location = created.headers().firstValue("Location").orElseThrow();
+    assertTrue(location.contains("done=student-created"), "location was " + location);
+    assertTrue(
+        get(location.substring(location.indexOf("/ui/")), admin).body().contains("Student created"),
+        "the confirmation should be rendered on the landing page");
+  }
+
+  @Test
+  void an_unknown_confirmation_key_renders_no_banner() throws Exception {
+    // The key is looked up server-side, so nobody types their own message into the page.
+    var admin = tokenFor(Role.ADMIN);
+
+    var page = get("/ui/admin/students?done=whatever-i-want", admin);
+
+    assertEquals(200, page.statusCode());
+    assertTrue(!page.body().contains("alert-success"), "no banner should be rendered");
+    assertTrue(!page.body().contains("whatever-i-want"), "the key must not be echoed");
+  }
+
   // --- failures are shown on the form, not as JSON -------------------------------------
 
   @Test
