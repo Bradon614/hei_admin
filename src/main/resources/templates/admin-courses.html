@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Courses — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>Courses</h1>
+
+  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+
+  <form method="get" th:action="@{/ui/admin/courses}" class="picker">
+    <label for="filter_semester">Semester</label>
+    <select id="filter_semester" name="semester_ref">
+      <option value="">Every semester</option>
+      <option th:each="s : ${semesters}" th:value="${s}" th:text="${s}"
+              th:selected="${s.name() == selectedSemester}">S1</option>
+    </select>
+    <button type="submit">Show</button>
+  </form>
+
+  <h2>Add a course</h2>
+  <form method="post" th:action="@{/ui/admin/courses}" class="card-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="ref">Reference</label>
+        <input id="ref" name="ref" required placeholder="PROG1">
+      </div>
+      <div class="field">
+        <label for="title">Title</label>
+        <input id="title" name="title" required placeholder="Programming 1">
+      </div>
+      <div class="field">
+        <label for="credits">Credits</label>
+        <input id="credits" name="credits" type="number" min="1" required value="6">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="semester_ref">Semester</label>
+        <select id="semester_ref" name="semester_ref" required>
+          <option th:each="s : ${semesters}" th:value="${s}" th:text="${s}">S1</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="track_id">Track</label>
+        <select id="track_id" name="track_id">
+          <option value="">None — followed by everyone</option>
+          <option th:each="t : ${tracks}" th:value="${t.id}"
+                  th:text="${t.code + ' — ' + t.name}">EL</option>
+        </select>
+        <span class="hint">S1 to S3 are common core: a course there carries no track.</span>
+      </div>
+    </div>
+    <button type="submit">Create the course</button>
+  </form>
+
+  <h2>Catalogue</h2>
+  <p class="empty" th:if="${#lists.isEmpty(courses)}">No course matches this filter yet.</p>
+
+  <table th:unless="${#lists.isEmpty(courses)}">
+    <thead>
+    <tr>
+      <th>Reference</th>
+      <th>Title</th>
+      <th>Semester</th>
+      <th>Track</th>
+      <th class="num">Credits</th>
+      <th>Exams</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="c : ${courses}">
+      <td th:text="${c.ref}">PROG1</td>
+      <td th:text="${c.title}">Programming 1</td>
+      <td th:text="${c.semester.ref}">S1</td>
+      <td th:text="${c.track != null ? c.track.code : 'common core'}">common core</td>
+      <td class="num" th:text="${c.credits}">6</td>
+      <td>
+        <a th:href="@{'/ui/admin/courses/' + ${c.id} + '/exams'}">Exams</a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>
