@@ -313,3 +313,20 @@ h2 {
   background: #eaf1f6;
   border-radius: 4px;
 }
+
+.summary-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+
+.summary-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-table tr:last-child td {
+  border-bottom: 0;
+}
