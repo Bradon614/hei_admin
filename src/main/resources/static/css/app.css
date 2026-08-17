@@ -314,6 +314,16 @@ h2 {
   border-radius: 4px;
 }
 
+.crumb {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.crumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
 .summary-table {
   background: var(--surface);
   border: 1px solid var(--border);
