@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Students — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>Students</h1>
+
+  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+
+  <form method="get" th:action="@{/ui/admin/students}" class="picker">
+    <label for="promotion_id">Promotion</label>
+    <select id="promotion_id" name="promotion_id">
+      <option value="">Choose a promotion…</option>
+      <option th:each="p : ${promotions}"
+              th:value="${p.id}"
+              th:text="${p.ref + ' — ' + p.name}"
+              th:selected="${promotion != null and p.id == promotion.id}">K22</option>
+    </select>
+    <button type="submit">Show</button>
+  </form>
+
+  <p class="empty" th:if="${promotion == null}">Pick a promotion to list its students.</p>
+
+  <div th:if="${promotion != null}">
+
+    <h2>Add a student</h2>
+    <form method="post" th:action="@{/ui/admin/students}" class="card-form">
+      <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+      <div class="field-row">
+        <div class="field">
+          <label for="ref">Reference</label>
+          <input id="ref" name="ref" required maxlength="20" placeholder="STD22045">
+        </div>
+        <div class="field">
+          <label for="first_name">First name</label>
+          <input id="first_name" name="first_name" required>
+        </div>
+        <div class="field">
+          <label for="last_name">Last name</label>
+          <input id="last_name" name="last_name" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required>
+        </div>
+        <div class="field">
+          <label for="entrance_date">Entrance date</label>
+          <input id="entrance_date" name="entrance_date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" required minlength="8">
+          <span class="hint">Only its hash is stored. Note it now, it cannot be read back.</span>
+        </div>
+      </div>
+      <button type="submit">Create the student and their account</button>
+    </form>
+
+    <h2>Enrolled</h2>
+    <p class="empty" th:if="${#lists.isEmpty(students)}">No student in this promotion yet.</p>
+
+    <table th:unless="${#lists.isEmpty(students)}">
+      <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Group</th>
+        <th>Track</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="s : ${students}">
+        <td th:text="${s.ref}">STD22045</td>
+        <td th:text="${s.firstName + ' ' + s.lastName}">Jean Rakoto</td>
+        <td th:text="${s.email}">jean@hei.school</td>
+        <td>
+          <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/group'}" class="inline-form">
+            <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+            <select name="group_id" required>
+              <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
+            </select>
+            <input type="date" name="start_date" required>
+            <input type="hidden" name="reason" value="Assigned from the admin interface">
+            <button type="submit">Move</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/track'}" class="inline-form">
+            <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+            <select name="track_id" required>
+              <option th:each="t : ${tracks}" th:value="${t.id}" th:text="${t.code}">EL</option>
+            </select>
+            <select name="from_semester_ref" required>
+              <option th:each="sem : ${semesters}" th:value="${sem}" th:text="${sem}"
+                      th:selected="${sem.name() == 'S4'}">S4</option>
+            </select>
+            <input type="hidden" name="reason" value="Chosen from the admin interface">
+            <button type="submit">Set</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
