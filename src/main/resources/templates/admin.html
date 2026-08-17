@@ -20,10 +20,18 @@
       <span class="card-title">Graduates</span>
       <span class="card-note">Ranked list of a promotion, and the Excel export.</span>
     </a>
-    <span class="card-link disabled">
-      <span class="card-title">People</span>
-      <span class="card-note">Students and teachers, with their accounts.</span>
-    </span>
+    <a class="card-link" th:href="@{/ui/admin/students}">
+      <span class="card-title">Students</span>
+      <span class="card-note">Enrolment, accounts, groups and track choices.</span>
+    </a>
+    <a class="card-link" th:href="@{/ui/admin/teachers}">
+      <span class="card-title">Teachers</span>
+      <span class="card-note">Accounts, and who teaches what to which group.</span>
+    </a>
+    <a class="card-link" th:href="@{/ui/admin/groups}">
+      <span class="card-title">Groups</span>
+      <span class="card-note">Teaching groups of a promotion.</span>
+    </a>
     <span class="card-link disabled">
       <span class="card-title">Academics</span>
       <span class="card-note">Courses, exams and grades.</span>

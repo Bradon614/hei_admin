@@ -6,6 +6,9 @@
   <a class="brand" th:href="${currentRole == 'ADMIN'} ? @{/ui/admin} : @{/ui/me}">HEI admin</a>
 
   <span class="nav-links" th:if="${currentRole == 'ADMIN'}">
+    <a th:href="@{/ui/admin/students}">Students</a>
+    <a th:href="@{/ui/admin/teachers}">Teachers</a>
+    <a th:href="@{/ui/admin/groups}">Groups</a>
     <a th:href="@{/ui/graduates}">Graduates</a>
   </span>
 
