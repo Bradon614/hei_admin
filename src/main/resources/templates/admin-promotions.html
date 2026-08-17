@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Promotions — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>Promotions</h1>
+  <p class="subtitle">Everything else on this interface starts by picking one of these.</p>
+
+  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+
+  <h2>Add a promotion</h2>
+  <form method="post" th:action="@{/ui/admin/promotions}" class="card-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="ref">Reference</label>
+        <input id="ref" name="ref" required maxlength="5" placeholder="K22">
+        <span class="hint">Five characters at most.</span>
+      </div>
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" required placeholder="Promotion 2022">
+      </div>
+      <div class="field">
+        <label for="start_year">Start year</label>
+        <input id="start_year" name="start_year" type="number" required value="2025">
+      </div>
+      <div class="field">
+        <label for="end_year">End year</label>
+        <input id="end_year" name="end_year" type="number" required value="2028">
+      </div>
+    </div>
+
+    <label>Tracks this promotion opens</label>
+    <div class="checks">
+      <label class="check" th:each="t : ${tracks}">
+        <input type="checkbox" name="track_ids" th:value="${t.id}">
+        <span th:text="${t.code + ' — ' + t.name}">EL</span>
+      </label>
+    </div>
+    <span class="hint">
+      Leave them all unticked for a common-core-only promotion. A track left closed here cannot
+      be chosen by a student, nor carried by a group.
+    </span>
+
+    <button type="submit">Create the promotion</button>
+  </form>
+
+  <h2>Existing promotions</h2>
+  <p class="empty" th:if="${#lists.isEmpty(promotions)}">No promotion yet.</p>
+
+  <table th:unless="${#lists.isEmpty(promotions)}">
+    <thead>
+    <tr>
+      <th>Reference</th>
+      <th>Name</th>
+      <th>Years</th>
+      <th>Tracks opened</th>
+      <th>Results</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="p : ${promotions}">
+      <td th:text="${p.ref}">K22</td>
+      <td th:text="${p.name}">Promotion 2022</td>
+      <td th:text="${p.startYear + ' — ' + p.endYear}">2025 — 2028</td>
+      <td>
+        <span class="empty" th:if="${#lists.isEmpty(p.tracks)}">common core only</span>
+        <span class="chip" th:each="t : ${p.tracks}" th:text="${t.code}">EL</span>
+      </td>
+      <td>
+        <a th:href="@{'/ui/admin/promotions/' + ${p.id} + '/results'}">Results</a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>
