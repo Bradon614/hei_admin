@@ -1,74 +1,112 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Groups — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Groups')}"></head>
+<body th:replace="~{layout :: shell('Groups', 'groups', ~{::content})}">
 
-<main class="page">
-  <h1>Groups</h1>
+<div th:fragment="content">
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head">
+    <div>
+      <h2>Groups</h2>
+      <p class="subtitle">Teaching groups, listed and created one promotion at a time.</p>
+    </div>
+  </div>
 
-  <form method="get" th:action="@{/ui/admin/groups}" class="picker">
-    <label for="promotion_id">Promotion</label>
-    <select id="promotion_id" name="promotion_id">
-      <option value="">Choose a promotion…</option>
-      <option th:each="p : ${promotions}"
-              th:value="${p.id}"
-              th:text="${p.ref + ' — ' + p.name}"
-              th:selected="${promotion != null and p.id == promotion.id}">K22</option>
-    </select>
-    <button type="submit">Show</button>
-  </form>
+  <div th:replace="~{layout :: alerts}"></div>
 
-  <p class="empty" th:if="${promotion == null}">Pick a promotion to list its groups.</p>
+  <section class="card">
+    <form method="get" th:action="@{/ui/admin/groups}" class="filter-bar">
+      <div class="field">
+        <label for="promotion_id">Promotion</label>
+        <select id="promotion_id" name="promotion_id">
+          <option value="">Choose a promotion…</option>
+          <option th:each="p : ${promotions}"
+                  th:value="${p.id}"
+                  th:text="${p.ref + ' — ' + p.name}"
+                  th:selected="${promotion != null and p.id == promotion.id}">K22</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-accent">Show</button>
+    </form>
+  </section>
+
+  <section class="card" th:if="${promotion == null}">
+    <div class="empty-state">
+      <svg class="icon"><use href="#i-folder"></use></svg>
+      <strong>No promotion chosen</strong>
+      <span>Pick a promotion to list its groups.</span>
+    </div>
+  </section>
 
   <div th:if="${promotion != null}">
 
-    <h2>Add a group</h2>
-    <form method="post" th:action="@{/ui/admin/groups}" class="card-form">
-      <input type="hidden" name="promotion_id" th:value="${promotion.id}">
-      <div class="field-row">
-        <div class="field">
-          <label for="ref">Reference</label>
-          <input id="ref" name="ref" required maxlength="10" placeholder="K22-A">
-        </div>
-        <div class="field">
-          <label for="track_id">Track</label>
-          <select id="track_id" name="track_id">
-            <option value="">None — mixed group</option>
-            <option th:each="t : ${tracks}" th:value="${t.id}"
-                    th:text="${t.code + ' — ' + t.name}">EL</option>
-          </select>
-          <span class="hint">Leave empty for the common core. Only the tracks this promotion opens are listed.</span>
-        </div>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-plus"></use></svg> Add a group</h2>
       </div>
-      <button type="submit">Create the group</button>
-    </form>
+      <div class="card-body">
+        <form method="post" th:action="@{/ui/admin/groups}">
+          <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="ref">Reference <span class="required">*</span></label>
+              <input id="ref" name="ref" required maxlength="10" placeholder="K22-A">
+            </div>
+            <div class="field">
+              <label for="track_id">Track</label>
+              <select id="track_id" name="track_id">
+                <option value="">None — mixed group</option>
+                <option th:each="t : ${tracks}" th:value="${t.id}"
+                        th:text="${t.code + ' — ' + t.name}">EL</option>
+              </select>
+              <span class="hint">
+                Leave empty for the common core. Only the tracks this promotion opens are listed.
+              </span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <svg class="icon icon-sm"><use href="#i-plus"></use></svg> Create the group
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
 
-    <h2>Existing groups</h2>
-    <p class="empty" th:if="${#lists.isEmpty(groups)}">No group in this promotion yet.</p>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-folder"></use></svg> Existing groups</h2>
+      </div>
 
-    <table th:unless="${#lists.isEmpty(groups)}">
-      <thead>
-      <tr>
-        <th>Reference</th>
-        <th>Track</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="g : ${groups}">
-        <td th:text="${g.ref}">K22-A</td>
-        <td th:text="${g.track != null ? g.track.code : 'mixed'}">mixed</td>
-      </tr>
-      </tbody>
-    </table>
+      <div class="empty-state" th:if="${#lists.isEmpty(groups)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No group in this promotion yet</strong>
+        <span>Create the first one with the form above.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(groups)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Track</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="g : ${groups}">
+            <td class="cell-strong" th:text="${g.ref}">K22-A</td>
+            <td>
+              <span class="badge badge-gold" th:if="${g.track != null}"
+                    th:text="${g.track.code}">EL</span>
+              <span class="badge badge-muted" th:if="${g.track == null}">mixed</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

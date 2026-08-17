@@ -1,114 +1,155 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grades — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Grades')}"></head>
+<body th:replace="~{layout :: shell('Grades', 'courses', ~{::content})}">
 
-<main class="page">
-  <p class="crumb" th:if="${exam != null}">
-    <a th:href="@{'/ui/admin/courses/' + ${exam.course.id} + '/exams'}">← Back to the exams</a>
-  </p>
+<div th:fragment="content">
 
-  <h1 th:if="${exam != null}" th:text="${exam.title}">Final exam</h1>
-  <h1 th:if="${exam == null}">Grades</h1>
-  <p class="subtitle" th:if="${exam != null}"
-     th:text="${exam.course.ref + ' — ' + exam.course.title + ' · coefficient ' + exam.coefficient}">
-    PROG1 — Programming 1 · coefficient 1
-  </p>
+  <a class="crumb" th:if="${exam != null}"
+     th:href="@{'/ui/admin/courses/' + ${exam.course.id} + '/exams'}">
+    <svg class="icon icon-sm"><use href="#i-back"></use></svg> Back to the exams
+  </a>
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head" th:if="${exam != null}">
+    <div>
+      <h2 th:text="${exam.title}">Final exam</h2>
+      <p class="subtitle"
+         th:text="${exam.course.ref + ' — ' + exam.course.title + ' · coefficient ' + exam.coefficient}">
+        PROG1 — Programming 1 · coefficient 1
+      </p>
+    </div>
+  </div>
+
+  <div th:replace="~{layout :: alerts}"></div>
 
   <div th:if="${exam != null}">
-    <form method="get" th:action="@{'/ui/admin/exams/' + ${exam.id} + '/grades'}" class="picker">
-      <label for="promotion_id">Promotion</label>
-      <select id="promotion_id" name="promotion_id">
-        <option value="">Choose a promotion…</option>
-        <option th:each="p : ${promotions}"
-                th:value="${p.id}"
-                th:text="${p.ref + ' — ' + p.name}"
-                th:selected="${promotion != null and p.id == promotion.id}">K22</option>
-      </select>
-      <button type="submit">Show its students</button>
-    </form>
 
-    <p class="empty" th:if="${promotion == null}">Pick a promotion to grade its students.</p>
+    <p class="callout">
+      <svg class="icon"><use href="#i-info"></use></svg>
+      <span>
+        A student with no grade yet is a first entry and is recorded as a CREATION. Correcting an
+        existing grade asks you why, and both values stay in the history below.
+      </span>
+    </p>
 
-    <div th:if="${promotion != null}">
-      <h2>Grade entry</h2>
-      <p class="empty" th:if="${#lists.isEmpty(students)}">No student in this promotion yet.</p>
+    <section class="card">
+      <form method="get" th:action="@{'/ui/admin/exams/' + ${exam.id} + '/grades'}"
+            class="filter-bar">
+        <div class="field">
+          <label for="promotion_id">Promotion</label>
+          <select id="promotion_id" name="promotion_id">
+            <option value="">Choose a promotion…</option>
+            <option th:each="p : ${promotions}"
+                    th:value="${p.id}"
+                    th:text="${p.ref + ' — ' + p.name}"
+                    th:selected="${promotion != null and p.id == promotion.id}">K22</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-accent">Show its students</button>
+      </form>
+    </section>
 
-      <table th:unless="${#lists.isEmpty(students)}">
-        <thead>
-        <tr>
-          <th>Reference</th>
-          <th>Student</th>
-          <th class="num">Current</th>
-          <th>New grade</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="s : ${students}" th:with="g=${gradesByStudent.get(s.id)}">
-          <td th:text="${s.ref}">STD21001</td>
-          <td th:text="${s.firstName + ' ' + s.lastName}">Jean Rakoto</td>
-          <td class="num" th:text="${g != null ? g.value : '—'}">—</td>
-          <td>
-            <form method="post" th:action="@{'/ui/admin/exams/' + ${exam.id} + '/grades'}"
-                  class="inline-form">
-              <input type="hidden" name="student_id" th:value="${s.id}">
-              <input type="hidden" name="promotion_id" th:value="${promotion.id}">
-              <input name="value" type="number" step="0.01" min="0" max="20" required
-                     placeholder="14.00">
+    <section class="card" th:if="${promotion == null}">
+      <div class="empty-state">
+        <svg class="icon"><use href="#i-users"></use></svg>
+        <strong>No promotion chosen</strong>
+        <span>Pick a promotion to grade its students.</span>
+      </div>
+    </section>
 
-              <input type="hidden" name="reason_type" value="CREATION" th:if="${g == null}">
-              <span class="chip" th:if="${g == null}">first entry</span>
+    <section class="card" th:if="${promotion != null}">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-file"></use></svg> Grade entry</h2>
+      </div>
 
-              <select name="reason_type" th:if="${g != null}">
-                <option th:each="r : ${correctionReasons}" th:value="${r}" th:text="${r}">CORRECTION</option>
-              </select>
+      <div class="empty-state" th:if="${#lists.isEmpty(students)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No student in this promotion yet</strong>
+        <span>Enrol students before grading them.</span>
+      </div>
 
-              <input name="reason" required placeholder="Why this grade">
-              <button type="submit">Save</button>
-            </form>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="table-wrap" th:unless="${#lists.isEmpty(students)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Student</th>
+            <th class="num">Current</th>
+            <th>New grade</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="s : ${students}" th:with="g=${gradesByStudent.get(s.id)}">
+            <td class="cell-strong" th:text="${s.ref}">STD21001</td>
+            <td th:text="${s.firstName + ' ' + s.lastName}">Jean Rakoto</td>
+            <td class="num" th:text="${g != null ? g.value : '—'}">—</td>
+            <td>
+              <form method="post" th:action="@{'/ui/admin/exams/' + ${exam.id} + '/grades'}"
+                    class="inline-form">
+                <input type="hidden" name="student_id" th:value="${s.id}">
+                <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+                <input name="value" type="number" step="0.01" min="0" max="20" required
+                       placeholder="14.00">
 
-    <h2>Change history</h2>
-    <p class="empty" th:if="${#lists.isEmpty(history)}">Nothing has been graded on this exam yet.</p>
+                <input type="hidden" name="reason_type" value="CREATION" th:if="${g == null}">
+                <span class="badge badge-gold" th:if="${g == null}">first entry</span>
 
-    <table th:unless="${#lists.isEmpty(history)}">
-      <thead>
-      <tr>
-        <th>When</th>
-        <th>Student</th>
-        <th class="num">From</th>
-        <th class="num">To</th>
-        <th>Reason</th>
-        <th>By</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="h : ${history}">
-        <td th:text="${#strings.substring(h.changedAt, 0, 10)}">2026-01-15</td>
-        <td th:text="${h.grade.student.firstName + ' ' + h.grade.student.lastName}">Jean Rakoto</td>
-        <td class="num" th:text="${h.oldValue != null ? h.oldValue : '—'}">—</td>
-        <td class="num" th:text="${h.newValue}">14.00</td>
-        <td>
-          <span class="chip" th:text="${h.reasonType}">CREATION</span>
-          <span th:text="${h.reason}">First entry</span>
-        </td>
-        <td th:text="${h.changedBy.email}">admin@hei.school</td>
-      </tr>
-      </tbody>
-    </table>
+                <select name="reason_type" th:if="${g != null}">
+                  <option th:each="r : ${correctionReasons}" th:value="${r}"
+                          th:text="${r}">CORRECTION</option>
+                </select>
+
+                <input name="reason" required placeholder="Why this grade">
+                <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-clock"></use></svg> Change history</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(history)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>Nothing has been graded on this exam yet</strong>
+        <span>Every entry and every correction will be listed here.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(history)}">
+        <table>
+          <thead>
+          <tr>
+            <th>When</th>
+            <th>Student</th>
+            <th class="num">From</th>
+            <th class="num">To</th>
+            <th>Reason</th>
+            <th>By</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="h : ${history}">
+            <td th:text="${#strings.substring(h.changedAt, 0, 10)}">2026-01-15</td>
+            <td th:text="${h.grade.student.firstName + ' ' + h.grade.student.lastName}">Jean Rakoto</td>
+            <td class="num" th:text="${h.oldValue != null ? h.oldValue : '—'}">—</td>
+            <td class="num cell-strong" th:text="${h.newValue}">14.00</td>
+            <td>
+              <span class="badge" th:text="${h.reasonType}">CREATION</span>
+              <span class="cell-sub" th:text="${h.reason}">First entry</span>
+            </td>
+            <td th:text="${h.changedBy.email}">admin@hei.school</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

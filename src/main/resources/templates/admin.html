@@ -1,46 +1,72 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Administration — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Dashboard')}"></head>
+<body th:replace="~{layout :: shell('Dashboard', 'home', ~{::content})}">
 
-<main class="page">
-  <h1>Administration</h1>
-  <p class="subtitle">
-    Signed in as <span th:text="${currentEmail}">admin@hei.school</span>.
+<div th:fragment="content">
+
+  <div class="page-head">
+    <div>
+      <h2>Administration</h2>
+      <p class="subtitle">
+        Signed in as <span th:text="${currentEmail}">admin@hei.school</span>.
+      </p>
+    </div>
+  </div>
+
+  <p class="callout">
+    <svg class="icon"><use href="#i-info"></use></svg>
+    <span>
+      Everything starts with a promotion: it decides which tracks are open, and every other screen
+      asks you to pick one.
+    </span>
   </p>
 
-  <div class="cards">
-    <a class="card-link" th:href="@{/ui/admin/promotions}">
-      <span class="card-title">Promotions</span>
-      <span class="card-note">Intakes, the tracks they open, and where each one stands.</span>
+  <div class="tiles">
+    <a class="tile" th:href="@{/ui/admin/promotions}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-layers"></use></svg></span>
+      <span>
+        <span class="tile-title">Promotions</span>
+        <span class="tile-note">Intakes, the tracks they open, and where each one stands.</span>
+      </span>
     </a>
-    <a class="card-link" th:href="@{/ui/graduates}">
-      <span class="card-title">Graduates</span>
-      <span class="card-note">Ranked list of a promotion, and the Excel export.</span>
+    <a class="tile" th:href="@{/ui/admin/groups}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>
+      <span>
+        <span class="tile-title">Groups</span>
+        <span class="tile-note">Teaching groups of a promotion.</span>
+      </span>
     </a>
-    <a class="card-link" th:href="@{/ui/admin/students}">
-      <span class="card-title">Students</span>
-      <span class="card-note">Enrolment, accounts, groups and track choices.</span>
+    <a class="tile" th:href="@{/ui/admin/courses}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-book"></use></svg></span>
+      <span>
+        <span class="tile-title">Academics</span>
+        <span class="tile-note">Courses, exams and grade entry.</span>
+      </span>
     </a>
-    <a class="card-link" th:href="@{/ui/admin/teachers}">
-      <span class="card-title">Teachers</span>
-      <span class="card-note">Accounts, and who teaches what to which group.</span>
+    <a class="tile" th:href="@{/ui/admin/students}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-users"></use></svg></span>
+      <span>
+        <span class="tile-title">Students</span>
+        <span class="tile-note">Enrolment, accounts, groups and track choices.</span>
+      </span>
     </a>
-    <a class="card-link" th:href="@{/ui/admin/groups}">
-      <span class="card-title">Groups</span>
-      <span class="card-note">Teaching groups of a promotion.</span>
+    <a class="tile" th:href="@{/ui/admin/teachers}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-user-check"></use></svg></span>
+      <span>
+        <span class="tile-title">Teachers</span>
+        <span class="tile-note">Accounts, and who teaches what to which group.</span>
+      </span>
     </a>
-    <a class="card-link" th:href="@{/ui/admin/courses}">
-      <span class="card-title">Academics</span>
-      <span class="card-note">Courses, exams and grade entry.</span>
+    <a class="tile" th:href="@{/ui/graduates}">
+      <span class="tile-icon"><svg class="icon"><use href="#i-award"></use></svg></span>
+      <span>
+        <span class="tile-title">Graduates</span>
+        <span class="tile-note">Ranked list of a promotion, and the Excel export.</span>
+      </span>
     </a>
   </div>
-</main>
+
+</div>
 </body>
 </html>

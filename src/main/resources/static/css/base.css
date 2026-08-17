@@ -1,0 +1,148 @@
+/*
+ * Design tokens, reset and typography.
+ *
+ * Every colour used anywhere in the interface is declared here and nowhere else: a component file
+ * that hard-codes a hex value is a component that cannot be re-themed.
+ */
+
+:root {
+  /* Identity. Navy and blue carry the structure, gold marks what deserves attention. */
+  --navy-900: #0d1b2f;
+  --navy-800: #142743;
+  --navy-700: #1d3557;
+  --blue-600: #1f5f8b;
+  --blue-700: #17496b;
+  --blue-050: #eaf1f6;
+  --gold-500: #e6a817;
+  --gold-050: #fdf4e0;
+
+  /* Neutrals. */
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-alt: #fafbfc;
+  --border: #e3e8ef;
+  --border-strong: #cfd7e3;
+  --text: #1c2430;
+  --text-soft: #4a5568;
+  --muted: #6b7684;
+
+  /* Feedback. */
+  --danger: #b3261e;
+  --danger-bg: #fdecea;
+  --success: #0f7b4f;
+  --success-bg: #e8f5ee;
+
+  /* Rhythm. */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-pill: 999px;
+  --gap: 1rem;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 4px 16px rgba(16, 24, 40, 0.08);
+
+  --sidebar-width: 15.5rem;
+  --topbar-height: 4.25rem;
+  --content-max: 78rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--blue-600);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* One visible focus ring for the whole application. Keyboard users are not an afterthought. */
+:focus-visible {
+  outline: 2px solid var(--blue-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+svg {
+  flex: none;
+}
+
+.icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Screen-reader-only: used by the sidebar toggle, which is a real checkbox. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

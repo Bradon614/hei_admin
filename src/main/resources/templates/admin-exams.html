@@ -1,69 +1,96 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Exams — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Exams')}"></head>
+<body th:replace="~{layout :: shell('Exams', 'courses', ~{::content})}">
 
-<main class="page">
-  <p class="crumb"><a th:href="@{/ui/admin/courses}">← Back to the courses</a></p>
+<div th:fragment="content">
 
-  <h1 th:if="${course != null}" th:text="${course.ref + ' — ' + course.title}">PROG1 — Programming 1</h1>
-  <h1 th:if="${course == null}">Exams</h1>
-  <p class="subtitle" th:if="${course != null}"
-     th:text="${course.semester.ref + ' · ' + course.credits + ' credits'}">S1 · 6 credits</p>
+  <a class="crumb" th:href="@{/ui/admin/courses}">
+    <svg class="icon icon-sm"><use href="#i-back"></use></svg> Back to the courses
+  </a>
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head" th:if="${course != null}">
+    <div>
+      <h2 th:text="${course.ref + ' — ' + course.title}">PROG1 — Programming 1</h2>
+      <p class="subtitle"
+         th:text="${course.semester.ref + ' · ' + course.credits + ' credits'}">S1 · 6 credits</p>
+    </div>
+  </div>
+
+  <div th:replace="~{layout :: alerts}"></div>
 
   <div th:if="${course != null}">
-    <h2>Add an exam</h2>
-    <form method="post" th:action="@{'/ui/admin/courses/' + ${course.id} + '/exams'}" class="card-form">
-      <div class="field-row">
-        <div class="field">
-          <label for="title">Title</label>
-          <input id="title" name="title" required placeholder="Final exam">
-        </div>
-        <div class="field">
-          <label for="date_exam">Date</label>
-          <input id="date_exam" name="date_exam" type="date" required>
-        </div>
-        <div class="field">
-          <label for="coefficient">Coefficient</label>
-          <input id="coefficient" name="coefficient" type="number" step="0.1" min="0.1" required value="1">
-          <span class="hint">Strictly above zero: an exam that weighs nothing is not an exam.</span>
-        </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-plus"></use></svg> Add an exam</h2>
       </div>
-      <button type="submit">Create the exam</button>
-    </form>
+      <div class="card-body">
+        <form method="post" th:action="@{'/ui/admin/courses/' + ${course.id} + '/exams'}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="title">Title <span class="required">*</span></label>
+              <input id="title" name="title" required placeholder="Final exam">
+            </div>
+            <div class="field">
+              <label for="date_exam">Date <span class="required">*</span></label>
+              <input id="date_exam" name="date_exam" type="date" required>
+            </div>
+            <div class="field">
+              <label for="coefficient">Coefficient <span class="required">*</span></label>
+              <input id="coefficient" name="coefficient" type="number" step="0.1" min="0.1"
+                     required value="1">
+              <span class="hint">
+                Strictly above zero: an exam that weighs nothing is not an exam.
+              </span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <svg class="icon icon-sm"><use href="#i-plus"></use></svg> Create the exam
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
 
-    <h2>Exams of this course</h2>
-    <p class="empty" th:if="${#lists.isEmpty(exams)}">No exam scheduled for this course yet.</p>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-file"></use></svg> Exams of this course</h2>
+      </div>
 
-    <table th:unless="${#lists.isEmpty(exams)}">
-      <thead>
-      <tr>
-        <th>Title</th>
-        <th>Date</th>
-        <th class="num">Coefficient</th>
-        <th>Grades</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="e : ${exams}">
-        <td th:text="${e.title}">Final exam</td>
-        <td th:text="${#strings.substring(e.dateExam, 0, 10)}">2026-01-15</td>
-        <td class="num" th:text="${e.coefficient}">1</td>
-        <td>
-          <a th:href="@{'/ui/admin/exams/' + ${e.id} + '/grades'}">Enter grades</a>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+      <div class="empty-state" th:if="${#lists.isEmpty(exams)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No exam scheduled for this course yet</strong>
+        <span>Add one above, then grades can be entered against it.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(exams)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th class="num">Coefficient</th>
+            <th>Grades</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="e : ${exams}">
+            <td class="cell-strong" th:text="${e.title}">Final exam</td>
+            <td th:text="${#strings.substring(e.dateExam, 0, 10)}">2026-01-15</td>
+            <td class="num" th:text="${e.coefficient}">1</td>
+            <td>
+              <a class="btn btn-ghost btn-sm"
+                 th:href="@{'/ui/admin/exams/' + ${e.id} + '/grades'}">Enter grades</a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

@@ -1,85 +1,109 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Promotions — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Promotions')}"></head>
+<body th:replace="~{layout :: shell('Promotions', 'promotions', ~{::content})}">
 
-<main class="page">
-  <h1>Promotions</h1>
-  <p class="subtitle">Everything else on this interface starts by picking one of these.</p>
+<div th:fragment="content">
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head">
+    <div>
+      <h2>Promotions</h2>
+      <p class="subtitle">Everything else on this interface starts by picking one of these.</p>
+    </div>
+  </div>
 
-  <h2>Add a promotion</h2>
-  <form method="post" th:action="@{/ui/admin/promotions}" class="card-form">
-    <div class="field-row">
-      <div class="field">
-        <label for="ref">Reference</label>
-        <input id="ref" name="ref" required maxlength="5" placeholder="K22">
-        <span class="hint">Five characters at most.</span>
-      </div>
-      <div class="field">
-        <label for="name">Name</label>
-        <input id="name" name="name" required placeholder="Promotion 2022">
-      </div>
-      <div class="field">
-        <label for="start_year">Start year</label>
-        <input id="start_year" name="start_year" type="number" required value="2025">
-      </div>
-      <div class="field">
-        <label for="end_year">End year</label>
-        <input id="end_year" name="end_year" type="number" required value="2028">
-      </div>
+  <div th:replace="~{layout :: alerts}"></div>
+
+  <section class="card">
+    <div class="card-head">
+      <h2><svg class="icon"><use href="#i-plus"></use></svg> Add a promotion</h2>
+    </div>
+    <div class="card-body">
+      <form method="post" th:action="@{/ui/admin/promotions}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="ref">Reference <span class="required">*</span></label>
+            <input id="ref" name="ref" required maxlength="5" placeholder="K22">
+            <span class="hint">Five characters at most.</span>
+          </div>
+          <div class="field">
+            <label for="name">Name <span class="required">*</span></label>
+            <input id="name" name="name" required placeholder="Promotion 2022">
+          </div>
+          <div class="field">
+            <label for="start_year">Start year <span class="required">*</span></label>
+            <input id="start_year" name="start_year" type="number" required value="2025">
+          </div>
+          <div class="field">
+            <label for="end_year">End year <span class="required">*</span></label>
+            <input id="end_year" name="end_year" type="number" required value="2028">
+          </div>
+        </div>
+
+        <div class="field field-wide">
+          <label>Tracks this promotion opens</label>
+          <div class="checks">
+            <label class="check" th:each="t : ${tracks}">
+              <input type="checkbox" name="track_ids" th:value="${t.id}">
+              <span th:text="${t.code + ' — ' + t.name}">EL</span>
+            </label>
+          </div>
+          <span class="hint">
+            Leave them all unticked for a common-core-only promotion. A track left closed here can
+            be carried by no group and chosen by no student.
+          </span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg class="icon icon-sm"><use href="#i-plus"></use></svg> Create the promotion
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2><svg class="icon"><use href="#i-layers"></use></svg> Existing promotions</h2>
     </div>
 
-    <label>Tracks this promotion opens</label>
-    <div class="checks">
-      <label class="check" th:each="t : ${tracks}">
-        <input type="checkbox" name="track_ids" th:value="${t.id}">
-        <span th:text="${t.code + ' — ' + t.name}">EL</span>
-      </label>
+    <div class="empty-state" th:if="${#lists.isEmpty(promotions)}">
+      <svg class="icon"><use href="#i-inbox"></use></svg>
+      <strong>No promotion yet</strong>
+      <span>Create the first one with the form above.</span>
     </div>
-    <span class="hint">
-      Leave them all unticked for a common-core-only promotion. A track left closed here cannot
-      be chosen by a student, nor carried by a group.
-    </span>
 
-    <button type="submit">Create the promotion</button>
-  </form>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(promotions)}">
+      <table>
+        <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Name</th>
+          <th>Years</th>
+          <th>Tracks opened</th>
+          <th>Results</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${promotions}">
+          <td class="cell-strong" th:text="${p.ref}">K22</td>
+          <td th:text="${p.name}">Promotion 2022</td>
+          <td th:text="${p.startYear + ' — ' + p.endYear}">2025 — 2028</td>
+          <td>
+            <span class="badge badge-muted" th:if="${#lists.isEmpty(p.tracks)}">common core only</span>
+            <span class="badge badge-gold" th:each="t : ${p.tracks}" th:text="${t.code}">EL</span>
+          </td>
+          <td>
+            <a class="btn btn-ghost btn-sm"
+               th:href="@{'/ui/admin/promotions/' + ${p.id} + '/results'}">Results</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-  <h2>Existing promotions</h2>
-  <p class="empty" th:if="${#lists.isEmpty(promotions)}">No promotion yet.</p>
-
-  <table th:unless="${#lists.isEmpty(promotions)}">
-    <thead>
-    <tr>
-      <th>Reference</th>
-      <th>Name</th>
-      <th>Years</th>
-      <th>Tracks opened</th>
-      <th>Results</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="p : ${promotions}">
-      <td th:text="${p.ref}">K22</td>
-      <td th:text="${p.name}">Promotion 2022</td>
-      <td th:text="${p.startYear + ' — ' + p.endYear}">2025 — 2028</td>
-      <td>
-        <span class="empty" th:if="${#lists.isEmpty(p.tracks)}">common core only</span>
-        <span class="chip" th:each="t : ${p.tracks}" th:text="${t.code}">EL</span>
-      </td>
-      <td>
-        <a th:href="@{'/ui/admin/promotions/' + ${p.id} + '/results'}">Results</a>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</main>
+</div>
 </body>
 </html>

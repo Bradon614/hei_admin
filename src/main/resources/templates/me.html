@@ -1,150 +1,206 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My account — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('My account')}"></head>
+<body th:replace="~{layout :: shell('My account', 'me', ~{::content})}">
 
-<main class="page">
-  <h1>My account</h1>
+<div th:fragment="content">
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head">
+    <div>
+      <h2>My account</h2>
+      <p class="subtitle">
+        Signed in as <span th:text="${currentEmail}">someone@hei.school</span>
+        · <span th:text="${currentRole}">STUDENT</span>
+      </p>
+    </div>
+  </div>
 
-  <table class="identity">
-    <tr>
-      <td class="label">Signed in as</td>
-      <td th:text="${currentEmail}">someone@hei.school</td>
-    </tr>
-    <tr>
-      <td class="label">Role</td>
-      <td th:text="${currentRole}">STUDENT</td>
-    </tr>
-  </table>
+  <div th:replace="~{layout :: alerts}"></div>
 
-  <p class="empty" th:if="${result == null and assignments == null}">
-    This account has no student or teacher profile attached, so there is nothing personal to show.
-  </p>
+  <section class="card" th:if="${result == null and assignments == null}">
+    <div class="empty-state">
+      <svg class="icon"><use href="#i-user"></use></svg>
+      <strong>Nothing personal to show</strong>
+      <span>This account has no student or teacher profile attached.</span>
+    </div>
+  </section>
 
   <!-- ============================ STUDENT ============================ -->
   <div th:if="${result != null}">
 
-    <h2>My result</h2>
-    <table class="summary-table">
-      <tr>
-        <td class="label">Total credits</td>
-        <td th:text="${result.totalObtainedCredits()} + ' / 180'">180 / 180</td>
-      </tr>
-      <tr>
-        <td class="label">General average</td>
-        <td th:text="${result.generalAverage()}">14.20</td>
-      </tr>
-      <tr>
-        <td class="label">Diploma</td>
-        <td class="verdict" th:text="${result.graduated()} ? 'GRANTED' : 'NOT GRANTED'">GRANTED</td>
-      </tr>
-    </table>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-award"></use></svg> My result</h2>
+      </div>
+      <div class="card-body">
+        <div class="summary">
+          <div class="summary-item">
+            <span class="summary-label">Total credits</span>
+            <span class="summary-value" th:text="${result.totalObtainedCredits()} + ' / 180'">
+              180 / 180
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">General average</span>
+            <span class="summary-value" th:text="${result.generalAverage()}">14.20</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Diploma</span>
+            <span class="summary-value">
+              <span class="badge badge-success" th:if="${result.graduated()}">GRANTED</span>
+              <span class="badge badge-danger" th:unless="${result.graduated()}">NOT GRANTED</span>
+            </span>
+          </div>
+        </div>
 
-    <div th:unless="${#lists.isEmpty(result.blockers())}">
-      <p class="empty">What stands between you and the diploma:</p>
-      <ul>
-        <li th:each="b : ${result.blockers()}"
-            th:text="${b.semesterRef()} + ' — ' + ${b.message()}">S4 — no track selected</li>
-      </ul>
-    </div>
-
-    <h2>My courses</h2>
-    <p class="empty" th:if="${#lists.isEmpty(courses)}">
-      No course applies yet. Choosing a track from S4 is what opens the later semesters.
-    </p>
-    <table th:unless="${#lists.isEmpty(courses)}">
-      <thead>
-      <tr><th>Ref</th><th>Course</th><th>Semester</th><th class="num">Credits</th></tr>
-      </thead>
-      <tbody>
-      <tr th:each="c : ${courses}">
-        <td th:text="${c.ref}">PROG1</td>
-        <td th:text="${c.title}">Programming</td>
-        <td th:text="${c.semester.ref}">S1</td>
-        <td class="num" th:text="${c.credits}">12</td>
-      </tr>
-      </tbody>
-    </table>
-
-    <h2>My grades</h2>
-    <p class="empty" th:if="${#lists.isEmpty(grades)}">No grade recorded yet.</p>
-    <table th:unless="${#lists.isEmpty(grades)}">
-      <thead>
-      <tr><th>Course</th><th>Exam</th><th class="num">Grade</th></tr>
-      </thead>
-      <tbody>
-      <tr th:each="g : ${grades}">
-        <td th:text="${g.exam.course.ref}">PROG1</td>
-        <td th:text="${g.exam.title}">Final</td>
-        <td class="num" th:text="${g.value}">14.00</td>
-      </tr>
-      </tbody>
-    </table>
-
-    <h2>My transcripts</h2>
-    <form method="post" th:action="@{/ui/me/transcripts}" class="card-form">
-      <div class="field-row">
-        <div class="field">
-          <label for="semester_ref">Scope</label>
-          <select id="semester_ref" name="semester_ref">
-            <option value="">Whole curriculum, S1 to S6</option>
-            <option th:each="s : ${semesters}" th:value="${s}" th:text="${s}">S5</option>
-          </select>
-          <span class="hint">The PDF is generated and stored, then emailed to you.</span>
+        <div th:unless="${#lists.isEmpty(result.blockers())}">
+          <p class="hint">What stands between you and the diploma:</p>
+          <ul class="blockers">
+            <li th:each="b : ${result.blockers()}"
+                th:text="${b.semesterRef()} + ' — ' + ${b.message()}">S4 — no track selected</li>
+          </ul>
         </div>
       </div>
-      <button type="submit">Request my transcript</button>
-    </form>
+    </section>
 
-    <p class="empty" th:if="${#lists.isEmpty(transcripts)}">No transcript requested yet.</p>
-    <table th:unless="${#lists.isEmpty(transcripts)}">
-      <thead>
-      <tr><th>Requested</th><th>Scope</th><th>Status</th><th>Link</th></tr>
-      </thead>
-      <tbody>
-      <tr th:each="t : ${transcripts}">
-        <td th:text="${t.requestedAt}">2026-01-15</td>
-        <td th:text="${t.semester != null ? t.semester.ref : 'S1 to S6'}">S1 to S6</td>
-        <td>
-          <span class="chip" th:text="${t.status}">GENERATED</span>
-          <span class="hint" th:if="${t.errorMessage != null}" th:text="${t.errorMessage}"></span>
-        </td>
-        <td>
-          <a th:if="${t.fileUrl != null}" th:href="${t.fileUrl}">Download</a>
-          <span class="empty" th:if="${t.fileUrl == null}">emailed when ready</span>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-book"></use></svg> My courses</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(courses)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No course applies yet</strong>
+        <span>Choosing a track from S4 is what opens the later semesters.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(courses)}">
+        <table>
+          <thead>
+          <tr><th>Ref</th><th>Course</th><th>Semester</th><th class="num">Credits</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="c : ${courses}">
+            <td class="cell-strong" th:text="${c.ref}">PROG1</td>
+            <td th:text="${c.title}">Programming</td>
+            <td><span class="badge" th:text="${c.semester.ref}">S1</span></td>
+            <td class="num" th:text="${c.credits}">12</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-file"></use></svg> My grades</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(grades)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No grade recorded yet</strong>
+        <span>Grades appear here as soon as an exam is marked.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(grades)}">
+        <table>
+          <thead>
+          <tr><th>Course</th><th>Exam</th><th class="num">Grade</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="g : ${grades}">
+            <td class="cell-strong" th:text="${g.exam.course.ref}">PROG1</td>
+            <td th:text="${g.exam.title}">Final</td>
+            <td class="num" th:text="${g.value}">14.00</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-download"></use></svg> My transcripts</h2>
+      </div>
+      <div class="card-body">
+        <form method="post" th:action="@{/ui/me/transcripts}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="semester_ref">Scope</label>
+              <select id="semester_ref" name="semester_ref">
+                <option value="">Whole curriculum, S1 to S6</option>
+                <option th:each="s : ${semesters}" th:value="${s}" th:text="${s}">S5</option>
+              </select>
+              <span class="hint">The PDF is generated and stored, then emailed to you.</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Request my transcript</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(transcripts)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No transcript requested yet</strong>
+        <span>Ask for one above and it will be listed here.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(transcripts)}">
+        <table>
+          <thead>
+          <tr><th>Requested</th><th>Scope</th><th>Status</th><th>Link</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="t : ${transcripts}">
+            <td th:text="${t.requestedAt}">2026-01-15</td>
+            <td th:text="${t.semester != null ? t.semester.ref : 'S1 to S6'}">S1 to S6</td>
+            <td>
+              <span class="badge" th:text="${t.status}">GENERATED</span>
+              <span class="cell-sub" th:if="${t.errorMessage != null}"
+                    th:text="${t.errorMessage}"></span>
+            </td>
+            <td>
+              <a th:if="${t.fileUrl != null}" th:href="${t.fileUrl}">Download</a>
+              <span class="muted" th:if="${t.fileUrl == null}">emailed when ready</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 
   <!-- ============================ TEACHER ============================ -->
   <div th:if="${assignments != null}">
-    <h2>What I teach</h2>
-    <p class="empty" th:if="${#lists.isEmpty(assignments)}">
-      No course assigned to you yet. An administrator decides this.
-    </p>
-    <table th:unless="${#lists.isEmpty(assignments)}">
-      <thead>
-      <tr><th>Course</th><th>Title</th><th>Group</th></tr>
-      </thead>
-      <tbody>
-      <tr th:each="a : ${assignments}">
-        <td th:text="${a.course.ref}">PROG1</td>
-        <td th:text="${a.course.title}">Programming</td>
-        <td th:text="${a.group.ref}">K22-A</td>
-      </tr>
-      </tbody>
-    </table>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-user-check"></use></svg> What I teach</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(assignments)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No course assigned to you yet</strong>
+        <span>An administrator decides this.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(assignments)}">
+        <table>
+          <thead>
+          <tr><th>Course</th><th>Title</th><th>Group</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="a : ${assignments}">
+            <td class="cell-strong" th:text="${a.course.ref}">PROG1</td>
+            <td th:text="${a.course.title}">Programming</td>
+            <td><span class="badge" th:text="${a.group.ref}">K22-A</span></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

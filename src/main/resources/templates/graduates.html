@@ -1,71 +1,90 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Graduates — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Graduates')}"></head>
+<body th:replace="~{layout :: shell('Graduates', 'graduates', ~{::content})}">
 
-<main class="page">
-  <h1>Graduates</h1>
+<div th:fragment="content">
 
-  <form method="get" th:action="@{/ui/graduates}" class="picker">
-    <label for="promotion_id">Promotion</label>
-    <select id="promotion_id" name="promotion_id">
-      <option value="">Choose a promotion…</option>
-      <option th:each="p : ${promotions}"
-              th:value="${p.id}"
-              th:text="${p.ref + ' — ' + p.name}"
-              th:selected="${promotion != null and p.id == promotion.id}">K22 — Promotion</option>
-    </select>
-    <button type="submit">Show</button>
-  </form>
+  <div class="page-head">
+    <div>
+      <h2>Graduates</h2>
+      <p class="subtitle">Ranked by general average. Equal averages share a rank.</p>
+    </div>
+  </div>
 
-  <p class="empty" th:if="${promotion == null}">
-    Pick a promotion to see who graduated.
-  </p>
+  <div th:replace="~{layout :: alerts}"></div>
 
-  <div th:if="${promotion != null}">
-    <div class="toolbar">
+  <section class="card">
+    <form method="get" th:action="@{/ui/graduates}" class="filter-bar">
+      <div class="field">
+        <label for="promotion_id">Promotion</label>
+        <select id="promotion_id" name="promotion_id">
+          <option value="">Choose a promotion…</option>
+          <option th:each="p : ${promotions}"
+                  th:value="${p.id}"
+                  th:text="${p.ref + ' — ' + p.name}"
+                  th:selected="${promotion != null and p.id == promotion.id}">K22 — Promotion</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-accent">Show</button>
+    </form>
+  </section>
+
+  <section class="card" th:if="${promotion == null}">
+    <div class="empty-state">
+      <svg class="icon"><use href="#i-award"></use></svg>
+      <strong>No promotion chosen</strong>
+      <span>Pick a promotion to see who graduated.</span>
+    </div>
+  </section>
+
+  <section class="card" th:if="${promotion != null}">
+    <div class="card-head">
       <h2 th:text="${promotion.ref + ' — ' + promotion.name}">K22 — Promotion</h2>
+      <span class="card-head-spacer"></span>
       <!-- Plain link, not fetch(): the SameSite=Strict cookie rides along on a same-site
            navigation, so the browser downloads the file with no script involved. -->
-      <a class="download"
+      <a class="btn btn-primary btn-sm"
          th:href="@{'/promotions/' + ${promotion.id} + '/graduates/excel'}">
-        Download graduates
+        <svg class="icon icon-sm"><use href="#i-download"></use></svg> Download graduates
       </a>
     </div>
 
-    <p class="empty" th:if="${#lists.isEmpty(graduates)}">
-      No student of this promotion has graduated yet.
-    </p>
+    <div class="empty-state" th:if="${#lists.isEmpty(graduates)}">
+      <svg class="icon"><use href="#i-inbox"></use></svg>
+      <strong>No student of this promotion has graduated yet</strong>
+      <span>A diploma needs all six semesters validated.</span>
+    </div>
 
-    <table th:unless="${#lists.isEmpty(graduates)}">
-      <thead>
-      <tr>
-        <th>Rank</th>
-        <th>STD</th>
-        <th>Last name</th>
-        <th>First name</th>
-        <th>General average</th>
-        <th>Track</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="graduate : ${graduates}">
-        <td th:text="${graduate.rank}">1</td>
-        <td th:text="${graduate.std}">STD22045</td>
-        <td th:text="${graduate.lastName}">Rakoto</td>
-        <td th:text="${graduate.firstName}">Jean</td>
-        <td th:text="${graduate.generalAverage}">15.42</td>
-        <td th:text="${graduate.track != null ? graduate.track.code : ''}">EL</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-</main>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(graduates)}">
+      <table>
+        <thead>
+        <tr>
+          <th class="num">Rank</th>
+          <th>STD</th>
+          <th>Last name</th>
+          <th>First name</th>
+          <th class="num">General average</th>
+          <th>Track</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="graduate : ${graduates}">
+          <td class="num cell-strong" th:text="${graduate.rank}">1</td>
+          <td th:text="${graduate.std}">STD22045</td>
+          <td th:text="${graduate.lastName}">Rakoto</td>
+          <td th:text="${graduate.firstName}">Jean</td>
+          <td class="num" th:text="${graduate.generalAverage}">15.42</td>
+          <td>
+            <span class="badge badge-gold" th:if="${graduate.track != null}"
+                  th:text="${graduate.track.code}">EL</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
 </body>
 </html>

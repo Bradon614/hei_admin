@@ -1,0 +1,296 @@
+/*
+ * The application shell: sidebar, topbar, content column, and the sign-in page.
+ *
+ * The sidebar collapses below 900px and is opened by a hidden checkbox, so navigation works with
+ * JavaScript disabled and the page ships no script at all.
+ */
+
+.app {
+  min-height: 100vh;
+}
+
+/* --- sidebar ------------------------------------------------------------------------------ */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  padding: 1.25rem 0.9rem;
+  color: #dbe4f0;
+  background: linear-gradient(180deg, var(--navy-900), var(--navy-800));
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.6rem 1.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand-mark {
+  color: var(--gold-500);
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.side-heading {
+  padding: 1.1rem 0.7rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f93ae;
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #c7d4e5;
+  border-left: 3px solid transparent;
+}
+
+.side-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  text-decoration: none;
+}
+
+.side-link.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: var(--gold-500);
+}
+
+.side-link.is-active .icon {
+  color: var(--gold-500);
+}
+
+.side-foot {
+  margin-top: auto;
+  padding: 1rem 0.7rem 0;
+  font-size: 0.8rem;
+  color: #7f93ae;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+/* --- topbar -------------------------------------------------------------------------------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: var(--topbar-height);
+  padding: 0 1.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  font-size: 1.15rem;
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+}
+
+.who-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.who-role {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--blue-600);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  color: var(--blue-600);
+  background: var(--blue-050);
+}
+
+/* --- content ------------------------------------------------------------------------------- */
+
+.main {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  width: 100%;
+  max-width: var(--content-max);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-head .subtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.crumb:hover {
+  color: var(--blue-600);
+}
+
+.footer {
+  margin-top: auto;
+  padding: 1.25rem 1.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+/* --- the sign-in page has no shell ---------------------------------------------------------- */
+
+.auth {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: linear-gradient(160deg, var(--navy-900), var(--navy-700));
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 23rem;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy-900);
+}
+
+.auth-card .subtitle {
+  margin: 0.35rem 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* --- responsive ----------------------------------------------------------------------------- */
+
+.nav-toggle,
+.nav-scrim {
+  display: none;
+}
+
+.burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .nav-toggle:checked ~ .sidebar {
+    transform: translateX(0);
+  }
+
+  .nav-toggle:checked ~ .nav-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    background: rgba(13, 27, 47, 0.45);
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .burger {
+    display: inline-flex;
+  }
+
+  .content {
+    padding: 1.25rem 1rem;
+  }
+
+  .topbar {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .who {
+    display: none;
+  }
+
+  .topbar h1 {
+    font-size: 1rem;
+  }
+}
