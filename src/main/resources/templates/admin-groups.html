@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Groups — HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<main class="page">
+  <h1>Groups</h1>
+
+  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+
+  <form method="get" th:action="@{/ui/admin/groups}" class="picker">
+    <label for="promotion_id">Promotion</label>
+    <select id="promotion_id" name="promotion_id">
+      <option value="">Choose a promotion…</option>
+      <option th:each="p : ${promotions}"
+              th:value="${p.id}"
+              th:text="${p.ref + ' — ' + p.name}"
+              th:selected="${promotion != null and p.id == promotion.id}">K22</option>
+    </select>
+    <button type="submit">Show</button>
+  </form>
+
+  <p class="empty" th:if="${promotion == null}">Pick a promotion to list its groups.</p>
+
+  <div th:if="${promotion != null}">
+
+    <h2>Add a group</h2>
+    <form method="post" th:action="@{/ui/admin/groups}" class="card-form">
+      <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+      <div class="field-row">
+        <div class="field">
+          <label for="ref">Reference</label>
+          <input id="ref" name="ref" required maxlength="10" placeholder="K22-A">
+        </div>
+        <div class="field">
+          <label for="track_id">Track</label>
+          <select id="track_id" name="track_id">
+            <option value="">None — mixed group</option>
+            <option th:each="t : ${tracks}" th:value="${t.id}"
+                    th:text="${t.code + ' — ' + t.name}">EL</option>
+          </select>
+          <span class="hint">Leave empty for the common core. Only the tracks this promotion opens are listed.</span>
+        </div>
+      </div>
+      <button type="submit">Create the group</button>
+    </form>
+
+    <h2>Existing groups</h2>
+    <p class="empty" th:if="${#lists.isEmpty(groups)}">No group in this promotion yet.</p>
+
+    <table th:unless="${#lists.isEmpty(groups)}">
+      <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Track</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="g : ${groups}">
+        <td th:text="${g.ref}">K22-A</td>
+        <td th:text="${g.track != null ? g.track.code : 'mixed'}">mixed</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
