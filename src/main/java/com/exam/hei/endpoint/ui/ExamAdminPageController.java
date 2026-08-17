@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * The exams of one course, which is the only place an exam exists.
  *
- * <p>The form asks for a day; the column stores an instant. Midnight UTC is what the choice resolves
- * to, and it is the same instant {@code GradeService} compares against when it decides which group a
- * student belonged to on exam day.
+ * <p>The form asks for a day; the column stores an instant. Midnight UTC is what the choice
+ * resolves to, and it is the same instant {@code GradeService} compares against when it decides
+ * which group a student belonged to on exam day.
  */
 @Controller
 @AllArgsConstructor
