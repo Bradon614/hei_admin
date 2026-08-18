@@ -1,117 +1,150 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Students — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Students')}"></head>
+<body th:replace="~{layout :: shell('Students', 'students', ~{::content})}">
 
-<main class="page">
-  <h1>Students</h1>
+<div th:fragment="content">
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head">
+    <div>
+      <h2>Students</h2>
+      <p class="subtitle">Enrolment, accounts, group assignments and track choices.</p>
+    </div>
+  </div>
 
-  <form method="get" th:action="@{/ui/admin/students}" class="picker">
-    <label for="promotion_id">Promotion</label>
-    <select id="promotion_id" name="promotion_id">
-      <option value="">Choose a promotion…</option>
-      <option th:each="p : ${promotions}"
-              th:value="${p.id}"
-              th:text="${p.ref + ' — ' + p.name}"
-              th:selected="${promotion != null and p.id == promotion.id}">K22</option>
-    </select>
-    <button type="submit">Show</button>
-  </form>
+  <div th:replace="~{layout :: alerts}"></div>
 
-  <p class="empty" th:if="${promotion == null}">Pick a promotion to list its students.</p>
+  <section class="card">
+    <form method="get" th:action="@{/ui/admin/students}" class="filter-bar">
+      <div class="field">
+        <label for="promotion_id">Promotion</label>
+        <select id="promotion_id" name="promotion_id">
+          <option value="">Choose a promotion…</option>
+          <option th:each="p : ${promotions}"
+                  th:value="${p.id}"
+                  th:text="${p.ref + ' — ' + p.name}"
+                  th:selected="${promotion != null and p.id == promotion.id}">K22</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-accent">Show</button>
+    </form>
+  </section>
+
+  <section class="card" th:if="${promotion == null}">
+    <div class="empty-state">
+      <svg class="icon"><use href="#i-users"></use></svg>
+      <strong>No promotion chosen</strong>
+      <span>Pick a promotion to list its students.</span>
+    </div>
+  </section>
 
   <div th:if="${promotion != null}">
 
-    <h2>Add a student</h2>
-    <form method="post" th:action="@{/ui/admin/students}" class="card-form">
-      <input type="hidden" name="promotion_id" th:value="${promotion.id}">
-      <div class="field-row">
-        <div class="field">
-          <label for="ref">Reference</label>
-          <input id="ref" name="ref" required maxlength="20" placeholder="STD22045">
-        </div>
-        <div class="field">
-          <label for="first_name">First name</label>
-          <input id="first_name" name="first_name" required>
-        </div>
-        <div class="field">
-          <label for="last_name">Last name</label>
-          <input id="last_name" name="last_name" required>
-        </div>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-plus"></use></svg> Add a student</h2>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" required>
-        </div>
-        <div class="field">
-          <label for="entrance_date">Entrance date</label>
-          <input id="entrance_date" name="entrance_date" type="date" required>
-        </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" required minlength="8">
-          <span class="hint">Only its hash is stored. Note it now, it cannot be read back.</span>
-        </div>
+      <div class="card-body">
+        <form method="post" th:action="@{/ui/admin/students}">
+          <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="ref">Reference <span class="required">*</span></label>
+              <input id="ref" name="ref" required maxlength="20" placeholder="STD22045">
+            </div>
+            <div class="field">
+              <label for="first_name">First name <span class="required">*</span></label>
+              <input id="first_name" name="first_name" required>
+            </div>
+            <div class="field">
+              <label for="last_name">Last name <span class="required">*</span></label>
+              <input id="last_name" name="last_name" required>
+            </div>
+            <div class="field">
+              <label for="email">Email <span class="required">*</span></label>
+              <input id="email" name="email" type="email" required>
+            </div>
+            <div class="field">
+              <label for="entrance_date">Entrance date <span class="required">*</span></label>
+              <input id="entrance_date" name="entrance_date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="password">Password <span class="required">*</span></label>
+              <input id="password" name="password" required minlength="8">
+              <span class="hint">Only its hash is stored. Note it now, it cannot be read back.</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <svg class="icon icon-sm"><use href="#i-plus"></use></svg>
+              Create the student and their account
+            </button>
+          </div>
+        </form>
       </div>
-      <button type="submit">Create the student and their account</button>
-    </form>
+    </section>
 
-    <h2>Enrolled</h2>
-    <p class="empty" th:if="${#lists.isEmpty(students)}">No student in this promotion yet.</p>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-users"></use></svg> Enrolled</h2>
+      </div>
 
-    <table th:unless="${#lists.isEmpty(students)}">
-      <thead>
-      <tr>
-        <th>Ref</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Group</th>
-        <th>Track</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="s : ${students}">
-        <td th:text="${s.ref}">STD22045</td>
-        <td th:text="${s.firstName + ' ' + s.lastName}">Jean Rakoto</td>
-        <td th:text="${s.email}">jean@hei.school</td>
-        <td>
-          <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/group'}" class="inline-form">
-            <input type="hidden" name="promotion_id" th:value="${promotion.id}">
-            <select name="group_id" required>
-              <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
-            </select>
-            <input type="date" name="start_date" required>
-            <input type="hidden" name="reason" value="Assigned from the admin interface">
-            <button type="submit">Move</button>
-          </form>
-        </td>
-        <td>
-          <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/track'}" class="inline-form">
-            <input type="hidden" name="promotion_id" th:value="${promotion.id}">
-            <select name="track_id" required>
-              <option th:each="t : ${tracks}" th:value="${t.id}" th:text="${t.code}">EL</option>
-            </select>
-            <select name="from_semester_ref" required>
-              <option th:each="sem : ${semesters}" th:value="${sem}" th:text="${sem}"
-                      th:selected="${sem.name() == 'S4'}">S4</option>
-            </select>
-            <input type="hidden" name="reason" value="Chosen from the admin interface">
-            <button type="submit">Set</button>
-          </form>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+      <div class="empty-state" th:if="${#lists.isEmpty(students)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No student in this promotion yet</strong>
+        <span>Create the first one with the form above.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(students)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Group</th>
+            <th>Track</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="s : ${students}">
+            <td class="cell-strong" th:text="${s.ref}">STD22045</td>
+            <td th:text="${s.firstName + ' ' + s.lastName}">Jean Rakoto</td>
+            <td th:text="${s.email}">jean@hei.school</td>
+            <td>
+              <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/group'}"
+                    class="inline-form">
+                <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+                <select name="group_id" required>
+                  <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
+                </select>
+                <input type="date" name="start_date" required>
+                <input type="hidden" name="reason" value="Assigned from the admin interface">
+                <button type="submit" class="btn btn-ghost btn-sm">Move</button>
+              </form>
+            </td>
+            <td>
+              <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/track'}"
+                    class="inline-form">
+                <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+                <select name="track_id" required>
+                  <option th:each="t : ${tracks}" th:value="${t.id}" th:text="${t.code}">EL</option>
+                </select>
+                <select name="from_semester_ref" required>
+                  <option th:each="sem : ${semesters}" th:value="${sem}" th:text="${sem}"
+                          th:selected="${sem.name() == 'S4'}">S4</option>
+                </select>
+                <input type="hidden" name="reason" value="Chosen from the admin interface">
+                <button type="submit" class="btn btn-ghost btn-sm">Set</button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

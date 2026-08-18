@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Grade entry for one exam, one student at a time, and the trail every entry leaves behind.
@@ -49,8 +50,10 @@ public class GradeAdminPageController {
   public String grades(
       @PathVariable UUID examId,
       @RequestParam(name = "promotion_id", required = false) UUID promotionId,
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done,
       Model model) {
     render(model, examId, promotionId);
+    UiFeedback.addTo(model, done);
     return "admin-grades";
   }
 
@@ -62,9 +65,11 @@ public class GradeAdminPageController {
       @RequestParam(name = "reason_type") GradeChangeReasonType reasonType,
       @RequestParam String reason,
       @RequestParam(name = "promotion_id", required = false) UUID promotionId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       gradeService.crupdate(examId, List.of(new GradeChange(studentId, value, reasonType, reason)));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.GRADE_SAVED);
       return "redirect:/ui/admin/exams/"
           + examId
           + "/grades"

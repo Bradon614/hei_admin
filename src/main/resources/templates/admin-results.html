@@ -1,66 +1,91 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Results — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Results')}"></head>
+<body th:replace="~{layout :: shell('Results', 'promotions', ~{::content})}">
 
-<main class="page">
-  <p class="crumb"><a th:href="@{/ui/admin/promotions}">← Back to the promotions</a></p>
+<div th:fragment="content">
 
-  <h1 th:if="${promotion != null}" th:text="${'Results — ' + promotion.ref}">Results — K22</h1>
-  <h1 th:if="${promotion == null}">Results</h1>
-  <p class="subtitle" th:if="${promotion != null}" th:text="${promotion.name}">Promotion 2022</p>
+  <a class="crumb" th:href="@{/ui/admin/promotions}">
+    <svg class="icon icon-sm"><use href="#i-back"></use></svg> Back to the promotions
+  </a>
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
+  <div class="page-head" th:if="${promotion != null}">
+    <div>
+      <h2 th:text="${'Results — ' + promotion.ref}">Results — K22</h2>
+      <p class="subtitle" th:text="${promotion.name}">Promotion 2022</p>
+    </div>
+  </div>
+
+  <div th:replace="~{layout :: alerts}"></div>
 
   <div th:if="${promotion != null}">
-    <form method="get" th:action="@{'/ui/admin/promotions/' + ${promotion.id} + '/results'}"
-          class="picker">
-      <label for="track_code">Track</label>
-      <select id="track_code" name="track_code">
-        <option value="">Every student</option>
-        <option th:each="t : ${tracks}" th:value="${t.code}" th:text="${t.code + ' — ' + t.name}"
-                th:selected="${t.code == selectedTrack}">EL</option>
-      </select>
-      <button type="submit">Show</button>
-    </form>
 
-    <p class="empty" th:if="${#lists.isEmpty(results)}">No student matches this promotion yet.</p>
+    <section class="card">
+      <form method="get" th:action="@{'/ui/admin/promotions/' + ${promotion.id} + '/results'}"
+            class="filter-bar">
+        <div class="field">
+          <label for="track_code">Track</label>
+          <select id="track_code" name="track_code">
+            <option value="">Every student</option>
+            <option th:each="t : ${tracks}" th:value="${t.code}"
+                    th:text="${t.code + ' — ' + t.name}"
+                    th:selected="${t.code == selectedTrack}">EL</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-accent">Show</button>
+      </form>
+    </section>
 
-    <table th:unless="${#lists.isEmpty(results)}">
-      <thead>
-      <tr>
-        <th>Reference</th>
-        <th>Student</th>
-        <th class="num">Credits</th>
-        <th class="num">Average</th>
-        <th>Diploma</th>
-        <th>What blocks it</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="r : ${results}">
-        <td th:text="${r.student().getRef()}">STD21001</td>
-        <td th:text="${r.student().getFirstName() + ' ' + r.student().getLastName()}">Jean Rakoto</td>
-        <td class="num" th:text="${r.totalObtainedCredits()} + ' / 180'">180 / 180</td>
-        <td class="num" th:text="${r.generalAverage()}">14.20</td>
-        <td class="verdict" th:text="${r.graduated()} ? 'GRANTED' : 'NOT GRANTED'">GRANTED</td>
-        <td>
-          <span class="empty" th:if="${#lists.isEmpty(r.blockers())}">nothing</span>
-          <div th:each="b : ${r.blockers()}">
-            <span class="chip" th:text="${b.semesterRef()}">S4</span>
-            <span th:text="${b.message()}">no track selected</span>
-          </div>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-award"></use></svg> Where each student stands</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(results)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No student matches this promotion yet</strong>
+        <span>Enrol students, or widen the track filter.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(results)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Student</th>
+            <th class="num">Credits</th>
+            <th class="num">Average</th>
+            <th>Diploma</th>
+            <th>What blocks it</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="r : ${results}">
+            <td class="cell-strong" th:text="${r.student().getRef()}">STD21001</td>
+            <td th:text="${r.student().getFirstName() + ' ' + r.student().getLastName()}">
+              Jean Rakoto
+            </td>
+            <td class="num" th:text="${r.totalObtainedCredits()} + ' / 180'">180 / 180</td>
+            <td class="num" th:text="${r.generalAverage()}">14.20</td>
+            <td>
+              <span class="badge badge-success" th:if="${r.graduated()}">GRANTED</span>
+              <span class="badge badge-danger" th:unless="${r.graduated()}">NOT GRANTED</span>
+            </td>
+            <td>
+              <span class="muted" th:if="${#lists.isEmpty(r.blockers())}">nothing</span>
+              <ul class="blockers" th:unless="${#lists.isEmpty(r.blockers())}">
+                <li th:each="b : ${r.blockers()}" th:text="${b.message()}">
+                  No track selected for S4
+                </li>
+              </ul>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-</main>
+
+</div>
 </body>
 </html>

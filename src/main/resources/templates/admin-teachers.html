@@ -1,87 +1,116 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Teachers — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<div th:replace="~{layout :: nav}"></div>
+<head th:replace="~{layout :: head('Teachers')}"></head>
+<body th:replace="~{layout :: shell('Teachers', 'teachers', ~{::content})}">
 
-<main class="page">
-  <h1>Teachers</h1>
+<div th:fragment="content">
 
-  <p class="error" th:if="${error}" th:text="${error}">Something went wrong</p>
-
-  <h2>Add a teacher</h2>
-  <form method="post" th:action="@{/ui/admin/teachers}" class="card-form">
-    <div class="field-row">
-      <div class="field">
-        <label for="ref">Reference</label>
-        <input id="ref" name="ref" required maxlength="20" placeholder="TCH0012">
-      </div>
-      <div class="field">
-        <label for="first_name">First name</label>
-        <input id="first_name" name="first_name" required>
-      </div>
-      <div class="field">
-        <label for="last_name">Last name</label>
-        <input id="last_name" name="last_name" required>
-      </div>
+  <div class="page-head">
+    <div>
+      <h2>Teachers</h2>
+      <p class="subtitle">Accounts, and who teaches what to which group.</p>
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" required>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" name="password" required minlength="8">
-        <span class="hint">Only its hash is stored. Note it now, it cannot be read back.</span>
-      </div>
+  </div>
+
+  <div th:replace="~{layout :: alerts}"></div>
+
+  <p class="callout">
+    <svg class="icon"><use href="#i-info"></use></svg>
+    <span>
+      An assignment binds a teacher, a course and a group at once. The same course given to two
+      groups by two different people is why all three are asked for.
+    </span>
+  </p>
+
+  <section class="card">
+    <div class="card-head">
+      <h2><svg class="icon"><use href="#i-plus"></use></svg> Add a teacher</h2>
     </div>
-    <button type="submit">Create the teacher and their account</button>
-  </form>
+    <div class="card-body">
+      <form method="post" th:action="@{/ui/admin/teachers}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="ref">Reference <span class="required">*</span></label>
+            <input id="ref" name="ref" required maxlength="20" placeholder="TCH0012">
+          </div>
+          <div class="field">
+            <label for="first_name">First name <span class="required">*</span></label>
+            <input id="first_name" name="first_name" required>
+          </div>
+          <div class="field">
+            <label for="last_name">Last name <span class="required">*</span></label>
+            <input id="last_name" name="last_name" required>
+          </div>
+          <div class="field">
+            <label for="email">Email <span class="required">*</span></label>
+            <input id="email" name="email" type="email" required>
+          </div>
+          <div class="field">
+            <label for="password">Password <span class="required">*</span></label>
+            <input id="password" name="password" required minlength="8">
+            <span class="hint">Only its hash is stored. Note it now, it cannot be read back.</span>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg class="icon icon-sm"><use href="#i-plus"></use></svg>
+            Create the teacher and their account
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
 
-  <h2>Faculty</h2>
-  <p class="empty" th:if="${#lists.isEmpty(teachers)}">No teacher yet.</p>
+  <section class="card">
+    <div class="card-head">
+      <h2><svg class="icon"><use href="#i-user-check"></use></svg> Faculty</h2>
+    </div>
 
-  <table th:unless="${#lists.isEmpty(teachers)}">
-    <thead>
-    <tr>
-      <th>Ref</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Teaches</th>
-      <th>Assign a course</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="t : ${teachers}">
-      <td th:text="${t.ref}">TCH0012</td>
-      <td th:text="${t.firstName + ' ' + t.lastName}">Aina Randria</td>
-      <td th:text="${t.email}">aina@hei.school</td>
-      <td>
-        <span class="empty" th:if="${#lists.isEmpty(assignments.get(t.id))}">nothing yet</span>
-        <span th:each="a : ${assignments.get(t.id)}" class="chip"
-              th:text="${a.course.ref + ' · ' + a.group.ref}">PROG1 · K22-A</span>
-      </td>
-      <td>
-        <form method="post" th:action="@{'/ui/admin/teachers/' + ${t.id} + '/assignments'}"
-              class="inline-form">
-          <select name="course_id" required>
-            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.ref}">PROG1</option>
-          </select>
-          <select name="group_id" required>
-            <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
-          </select>
-          <button type="submit">Assign</button>
-        </form>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</main>
+    <div class="empty-state" th:if="${#lists.isEmpty(teachers)}">
+      <svg class="icon"><use href="#i-inbox"></use></svg>
+      <strong>No teacher yet</strong>
+      <span>Create the first one with the form above.</span>
+    </div>
+
+    <div class="table-wrap" th:unless="${#lists.isEmpty(teachers)}">
+      <table>
+        <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Teaches</th>
+          <th>Assign a course</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="t : ${teachers}">
+          <td class="cell-strong" th:text="${t.ref}">TCH0012</td>
+          <td th:text="${t.firstName + ' ' + t.lastName}">Aina Randria</td>
+          <td th:text="${t.email}">aina@hei.school</td>
+          <td>
+            <span class="muted" th:if="${#lists.isEmpty(assignments.get(t.id))}">nothing yet</span>
+            <span th:each="a : ${assignments.get(t.id)}" class="badge"
+                  th:text="${a.course.ref + ' · ' + a.group.ref}">PROG1 · K22-A</span>
+          </td>
+          <td>
+            <form method="post" th:action="@{'/ui/admin/teachers/' + ${t.id} + '/assignments'}"
+                  class="inline-form">
+              <select name="course_id" required>
+                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.ref}">PROG1</option>
+              </select>
+              <select name="group_id" required>
+                <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
+              </select>
+              <button type="submit" class="btn btn-ghost btn-sm">Assign</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
 </body>
 </html>

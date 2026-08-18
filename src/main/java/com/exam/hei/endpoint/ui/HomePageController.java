@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * The page every signed-in visitor lands on, filled according to who they are.
@@ -44,14 +45,18 @@ public class HomePageController {
   }
 
   @GetMapping("/ui/me")
-  public String me(Model model) {
+  public String me(
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done, Model model) {
     render(model);
+    UiFeedback.addTo(model, done);
     return "me";
   }
 
   @PostMapping("/ui/me/transcripts")
   public String requestTranscript(
-      @RequestParam(name = "semester_ref", required = false) String semesterRef, Model model) {
+      @RequestParam(name = "semester_ref", required = false) String semesterRef,
+      Model model,
+      RedirectAttributes redirectAttributes) {
     var studentId = authenticatedResourceProvider.getAuthenticatedStudentId();
     if (studentId.isEmpty()) {
       model.addAttribute("error", "Only a student can ask for their own transcript");
@@ -62,6 +67,7 @@ public class HomePageController {
       transcriptService.request(
           studentId.get(),
           semesterRef == null || semesterRef.isBlank() ? null : SemesterRef.valueOf(semesterRef));
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.TRANSCRIPT_REQUESTED);
       return "redirect:/ui/me";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       model.addAttribute("error", e.getMessage());

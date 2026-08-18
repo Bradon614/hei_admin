@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Students, their accounts, and the two decisions that follow: which group they sit in and which
@@ -59,8 +60,11 @@ public class StudentAdminPageController {
 
   @GetMapping("/ui/admin/students")
   public String students(
-      @RequestParam(name = "promotion_id", required = false) UUID promotionId, Model model) {
+      @RequestParam(name = "promotion_id", required = false) UUID promotionId,
+      @RequestParam(name = UiFeedback.PARAM, required = false) String done,
+      Model model) {
     render(model, promotionId);
+    UiFeedback.addTo(model, done);
     return "admin-students";
   }
 
@@ -73,7 +77,8 @@ public class StudentAdminPageController {
       @RequestParam String password,
       @RequestParam(name = "entrance_date") String entranceDate,
       @RequestParam(name = "promotion_id") UUID promotionId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       studentService.saveAll(
           List.of(
@@ -86,7 +91,7 @@ public class StudentAdminPageController {
                   .entranceDate(LocalDate.parse(entranceDate))
                   .promotion(Promotion.builder().id(promotionId).build())
                   .build()));
-      return "redirect:/ui/admin/students?promotion_id=" + promotionId;
+      return saved(redirectAttributes, UiFeedback.STUDENT_CREATED, promotionId);
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage(), promotionId);
     } catch (DataIntegrityViolationException e) {
@@ -101,10 +106,11 @@ public class StudentAdminPageController {
       @RequestParam(name = "start_date") String startDate,
       @RequestParam(required = false) String reason,
       @RequestParam(name = "promotion_id") UUID promotionId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       assignmentService.changeGroup(id, groupId, LocalDate.parse(startDate), reason);
-      return "redirect:/ui/admin/students?promotion_id=" + promotionId;
+      return saved(redirectAttributes, UiFeedback.GROUP_ASSIGNED, promotionId);
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage(), promotionId);
     } catch (DataIntegrityViolationException e) {
@@ -119,15 +125,22 @@ public class StudentAdminPageController {
       @RequestParam(name = "from_semester_ref") SemesterRef fromSemesterRef,
       @RequestParam(required = false) String reason,
       @RequestParam(name = "promotion_id") UUID promotionId,
-      Model model) {
+      Model model,
+      RedirectAttributes redirectAttributes) {
     try {
       trackChoiceService.choose(id, trackId, fromSemesterRef, reason);
-      return "redirect:/ui/admin/students?promotion_id=" + promotionId;
+      return saved(redirectAttributes, UiFeedback.TRACK_CHOSEN, promotionId);
     } catch (BadRequestException | ConflictException | NotFoundException e) {
       return failed(model, e.getMessage(), promotionId);
     } catch (DataIntegrityViolationException e) {
       return failed(model, TAKEN, promotionId);
     }
+  }
+
+  /** A flash attribute rather than a query parameter: the message survives one redirect only. */
+  private String saved(RedirectAttributes redirectAttributes, String key, UUID promotionId) {
+    redirectAttributes.addAttribute(UiFeedback.PARAM, key);
+    return "redirect:/ui/admin/students?promotion_id=" + promotionId;
   }
 
   private String failed(Model model, String message, UUID promotionId) {

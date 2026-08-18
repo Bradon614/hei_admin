@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in — HEI admin</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<main class="card">
-  <h1>HEI admin</h1>
+<head th:replace="~{layout :: head('Sign in')}"></head>
+<body class="auth">
+
+<svg th:replace="~{layout :: icons}"></svg>
+
+<main class="auth-card">
+  <span class="auth-brand">
+    <svg class="icon brand-mark"><use href="#i-award"></use></svg>
+    HEI admin
+  </span>
   <p class="subtitle">Sign in to reach the graduate lists.</p>
 
-  <p class="error" th:if="${error}" th:text="${error}">Invalid email or password</p>
+  <p class="alert alert-error" th:if="${error}">
+    <svg class="icon"><use href="#i-alert"></use></svg>
+    <span th:text="${error}">Invalid email or password</span>
+  </p>
 
-  <form method="post" th:action="@{/ui/login}">
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" required autofocus>
-
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" required>
-
-    <button type="submit">Sign in</button>
+  <form method="post" th:action="@{/ui/login}" class="form-grid">
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autofocus autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required
+             autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Sign in</button>
   </form>
 </main>
+
 </body>
 </html>

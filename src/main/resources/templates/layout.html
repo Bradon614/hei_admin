@@ -1,30 +1,207 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
 
-<nav th:fragment="nav" class="nav">
-  <a class="brand" th:href="${currentRole == 'ADMIN'} ? @{/ui/admin} : @{/ui/me}">HEI admin</a>
+<!--
+  The application shell.
 
-  <span class="nav-links" th:if="${currentRole == 'ADMIN'}">
-    <a th:href="@{/ui/admin/promotions}">Promotions</a>
-    <a th:href="@{/ui/admin/students}">Students</a>
-    <a th:href="@{/ui/admin/teachers}">Teachers</a>
-    <a th:href="@{/ui/admin/groups}">Groups</a>
-    <a th:href="@{/ui/admin/courses}">Courses</a>
-    <a th:href="@{/ui/graduates}">Graduates</a>
-  </span>
+  A page supplies a heading, the sidebar entry to highlight, and its own content:
 
-  <span class="spacer"></span>
+      <head th:replace="~{layout :: head('Students')}"></head>
+      <body th:replace="~{layout :: shell('Students', 'students', ~{::content})}">
+      <div th:fragment="content"> ... </div>
 
-  <span class="who">
-    <span th:text="${currentEmail}">someone@hei.school</span>
-    <span class="role" th:text="${currentRole}">ADMIN</span>
-  </span>
+  Navigation entries are rendered per role rather than hidden with CSS. A student's page must not
+  carry an administration URL at all — masking it would still ship it.
+-->
 
-  <form method="post" th:action="@{/ui/logout}" class="logout-form">
-    <button type="submit" class="logout">Sign out</button>
-  </form>
-</nav>
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' — HEI admin'">HEI admin</title>
+  <link rel="stylesheet" th:href="@{/css/base.css}">
+  <link rel="stylesheet" th:href="@{/css/layout.css}">
+  <link rel="stylesheet" th:href="@{/css/components.css}">
+</head>
+
+<body th:fragment="shell(heading, active, content)" class="app">
+
+<svg th:replace="~{layout :: icons}"></svg>
+
+<!-- The sidebar opens through a checkbox, so navigation survives without JavaScript. -->
+<input type="checkbox" id="nav-toggle" class="nav-toggle visually-hidden">
+
+<aside class="sidebar">
+  <a class="brand" th:href="${currentRole == 'ADMIN'} ? @{/ui/admin} : @{/ui/me}">
+    <svg class="icon brand-mark"><use href="#i-award"></use></svg>
+    HEI<span class="brand-mark">admin</span>
+  </a>
+
+  <nav class="side-nav" th:if="${currentRole == 'ADMIN'}">
+    <span class="side-heading">Overview</span>
+    <a class="side-link" th:href="@{/ui/admin}" th:classappend="${active == 'home'} ? 'is-active'">
+      <svg class="icon"><use href="#i-grid"></use></svg> Dashboard
+    </a>
+
+    <span class="side-heading">Academics</span>
+    <a class="side-link" th:href="@{/ui/admin/promotions}"
+       th:classappend="${active == 'promotions'} ? 'is-active'">
+      <svg class="icon"><use href="#i-layers"></use></svg> Promotions
+    </a>
+    <a class="side-link" th:href="@{/ui/admin/groups}"
+       th:classappend="${active == 'groups'} ? 'is-active'">
+      <svg class="icon"><use href="#i-folder"></use></svg> Groups
+    </a>
+    <a class="side-link" th:href="@{/ui/admin/courses}"
+       th:classappend="${active == 'courses'} ? 'is-active'">
+      <svg class="icon"><use href="#i-book"></use></svg> Courses
+    </a>
+
+    <span class="side-heading">People</span>
+    <a class="side-link" th:href="@{/ui/admin/students}"
+       th:classappend="${active == 'students'} ? 'is-active'">
+      <svg class="icon"><use href="#i-users"></use></svg> Students
+    </a>
+    <a class="side-link" th:href="@{/ui/admin/teachers}"
+       th:classappend="${active == 'teachers'} ? 'is-active'">
+      <svg class="icon"><use href="#i-user-check"></use></svg> Teachers
+    </a>
+
+    <span class="side-heading">Outcome</span>
+    <a class="side-link" th:href="@{/ui/graduates}"
+       th:classappend="${active == 'graduates'} ? 'is-active'">
+      <svg class="icon"><use href="#i-award"></use></svg> Graduates
+    </a>
+  </nav>
+
+  <nav class="side-nav" th:unless="${currentRole == 'ADMIN'}">
+    <span class="side-heading">Overview</span>
+    <a class="side-link" th:href="@{/ui/me}" th:classappend="${active == 'me'} ? 'is-active'">
+      <svg class="icon"><use href="#i-user"></use></svg> My account
+    </a>
+  </nav>
+
+  <div class="side-foot">HEI admin · v1.0</div>
+</aside>
+
+<label for="nav-toggle" class="nav-scrim" aria-hidden="true"></label>
+
+<div class="main">
+  <header class="topbar">
+    <label for="nav-toggle" class="burger" title="Open the navigation">
+      <svg class="icon"><use href="#i-menu"></use></svg>
+    </label>
+
+    <h1 th:text="${heading}">Students</h1>
+    <span class="topbar-spacer"></span>
+
+    <span class="who">
+      <span class="who-name" th:text="${currentEmail}">someone@hei.school</span>
+      <span class="who-role" th:text="${currentRole}">ADMIN</span>
+    </span>
+    <span class="avatar">
+      <svg class="icon"><use href="#i-user"></use></svg>
+    </span>
+
+    <form method="post" th:action="@{/ui/logout}">
+      <button type="submit" class="btn btn-ghost btn-sm" title="Sign out">
+        <svg class="icon icon-sm"><use href="#i-log-out"></use></svg> Sign out
+      </button>
+    </form>
+  </header>
+
+  <main class="content">
+    <div th:replace="${content}"></div>
+  </main>
+
+  <footer class="footer">HEI admin — academic administration</footer>
+</div>
 
 </body>
+
+<!-- One sprite for the whole application: no icon font, no external request. -->
+<svg th:fragment="icons" class="visually-hidden" aria-hidden="true">
+  <symbol id="i-grid" viewBox="0 0 24 24">
+    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+  </symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24">
+    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+    <polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+  </symbol>
+  <symbol id="i-users" viewBox="0 0 24 24">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+  </symbol>
+  <symbol id="i-user-check" viewBox="0 0 24 24">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+    <polyline points="17 11 19 13 23 9"/>
+  </symbol>
+  <symbol id="i-user" viewBox="0 0 24 24">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="i-book" viewBox="0 0 24 24">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+  </symbol>
+  <symbol id="i-award" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="6"/><polyline points="8.2 13.9 7 22 12 19 17 22 15.8 13.9"/>
+  </symbol>
+  <symbol id="i-file" viewBox="0 0 24 24">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+  </symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
+    <line x1="12" y1="8" x2="12.01" y2="8"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24">
+    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+    <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+  </symbol>
+  <symbol id="i-back" viewBox="0 0 24 24">
+    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+  </symbol>
+  <symbol id="i-download" viewBox="0 0 24 24">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </symbol>
+</svg>
+
+<!-- Error and success banners, identical on every screen. -->
+<div th:fragment="alerts">
+  <p class="alert alert-error" th:if="${error}">
+    <svg class="icon"><use href="#i-alert"></use></svg>
+    <span th:text="${error}">Something went wrong</span>
+  </p>
+  <p class="alert alert-success" th:if="${success}">
+    <svg class="icon"><use href="#i-check"></use></svg>
+    <span th:text="${success}">Saved</span>
+  </p>
+</div>
+
 </html>
