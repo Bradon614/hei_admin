@@ -22,6 +22,9 @@ public class AuthService {
     if (password == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
       throw invalidCredentials();
     }
+    if (!user.isEnabled()) {
+      throw invalidCredentials();
+    }
     return jwtService.issue(user);
   }
 
