@@ -12,6 +12,11 @@
   </span>
   <p class="subtitle">Sign in to reach the graduate lists.</p>
 
+  <p class="alert alert-success" th:if="${success}">
+    <svg class="icon"><use href="#i-check"></use></svg>
+    <span th:text="${success}">Password changed</span>
+  </p>
+
   <p class="alert alert-error" th:if="${error}">
     <svg class="icon"><use href="#i-alert"></use></svg>
     <span th:text="${error}">Invalid email or password</span>

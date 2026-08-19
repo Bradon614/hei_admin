@@ -5,12 +5,16 @@ import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.ConflictException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.model.SemesterRef;
+import com.exam.hei.service.AccountService;
 import com.exam.hei.service.GradeService;
 import com.exam.hei.service.ResultService;
 import com.exam.hei.service.StudentCourseService;
 import com.exam.hei.service.TeachingAssignmentService;
 import com.exam.hei.service.TranscriptService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,18 +22,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * The page every signed-in visitor lands on, filled according to who they are.
- *
- * <p>The caller's own identifier comes from the token, never from the URL, so there is no id to
- * tamper with. Beyond that the screen enforces nothing: the services it calls run {@code
- * StudentAuthorizer} and {@code GradeAuthorizer} themselves, which is what makes the separation
- * real rather than a matter of which fragment gets rendered.
- */
 @Controller
 @AllArgsConstructor
 public class HomePageController {
 
+  private final AccountService accountService;
   private final CurrentUserModel currentUserModel;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
   private final StudentCourseService studentCourseService;
@@ -70,6 +67,28 @@ public class HomePageController {
       redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.TRANSCRIPT_REQUESTED);
       return "redirect:/ui/me";
     } catch (BadRequestException | ConflictException | NotFoundException e) {
+      model.addAttribute("error", e.getMessage());
+      render(model);
+      return "me";
+    }
+  }
+
+  @PostMapping("/ui/me/password")
+  public String changeOwnPassword(
+      @RequestParam(name = "current_password") String currentPassword,
+      @RequestParam(name = "new_password") String newPassword,
+      Model model,
+      HttpServletResponse response,
+      RedirectAttributes redirectAttributes) {
+    try {
+      accountService.changeOwnPassword(currentPassword, newPassword);
+      response.addHeader(HttpHeaders.SET_COOKIE, SessionCookies.cleared().toString());
+      redirectAttributes.addAttribute(UiFeedback.PARAM, UiFeedback.PASSWORD_CHANGED);
+      return "redirect:/ui/login";
+    } catch (AuthenticationException
+        | BadRequestException
+        | ConflictException
+        | NotFoundException e) {
       model.addAttribute("error", e.getMessage());
       render(model);
       return "me";
