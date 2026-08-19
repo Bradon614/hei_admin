@@ -330,7 +330,7 @@ class StudentIT extends FacadeIT {
   }
 
   @Test
-  void a_teacher_reads_any_student() {
+  void a_teacher_cannot_read_a_student_they_do_not_teach() {
     var student = created(adminKey(), persistedPromotionId());
 
     var response =
@@ -340,7 +340,7 @@ class StudentIT extends FacadeIT {
             new HttpEntity<>(bearer(teacherKey())),
             Student.class);
 
-    assertEquals(OK, response.getStatusCode());
+    assertEquals(FORBIDDEN, response.getStatusCode());
   }
 
   private com.exam.hei.repository.model.Group persistedGroup(

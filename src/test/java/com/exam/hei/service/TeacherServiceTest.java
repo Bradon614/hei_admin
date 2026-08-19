@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.exam.hei.endpoint.rest.security.TeacherAuthorizer;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.AppUserRepository;
@@ -26,8 +27,9 @@ class TeacherServiceTest {
   private final TeacherRepository teacherRepository = mock(TeacherRepository.class);
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+  private final TeacherAuthorizer teacherAuthorizer = mock(TeacherAuthorizer.class);
   private final TeacherService subject =
-      new TeacherService(teacherRepository, appUserRepository, passwordEncoder);
+      new TeacherService(teacherRepository, appUserRepository, passwordEncoder, teacherAuthorizer);
 
   private static Teacher teacher(UUID id) {
     return Teacher.builder()

@@ -201,7 +201,7 @@ class TeacherIT extends FacadeIT {
   }
 
   @Test
-  void a_student_can_still_read_a_single_teacher() {
+  void a_student_cannot_read_a_single_teacher() {
     var teacher = created(adminKey());
 
     var response =
@@ -211,7 +211,7 @@ class TeacherIT extends FacadeIT {
             new HttpEntity<>(bearer(tokenFor(Role.STUDENT))),
             String.class);
 
-    assertEquals(OK, response.getStatusCode());
+    assertEquals(FORBIDDEN, response.getStatusCode());
   }
 
   @Test

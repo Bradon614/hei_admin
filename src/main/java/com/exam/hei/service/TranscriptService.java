@@ -43,7 +43,7 @@ public class TranscriptService {
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
 
   public TranscriptRequest request(UUID studentId, SemesterRef semesterRef) {
-    studentAuthorizer.checkCanRead(studentId);
+    studentAuthorizer.checkIsSelf(studentId);
     var student = requireStudent(studentId);
     var semester = semesterRef == null ? null : requireSemester(semesterRef);
 
@@ -115,7 +115,7 @@ public class TranscriptService {
   }
 
   public List<TranscriptRequest> findAllByStudentId(UUID studentId) {
-    studentAuthorizer.checkCanRead(studentId);
+    studentAuthorizer.checkIsSelf(studentId);
     requireStudent(studentId);
     return transcriptRequestRepository.findAllByStudentIdOrderByRequestedAtDesc(studentId);
   }
@@ -125,7 +125,7 @@ public class TranscriptService {
         transcriptRequestRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Transcript request " + id + " not found"));
-    studentAuthorizer.checkCanRead(transcriptRequest.getStudent().getId());
+    studentAuthorizer.checkIsSelf(transcriptRequest.getStudent().getId());
     return transcriptRequest;
   }
 

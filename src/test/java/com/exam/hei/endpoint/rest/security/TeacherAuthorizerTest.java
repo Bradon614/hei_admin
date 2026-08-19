@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.exam.hei.model.exception.ForbiddenException;
+import com.exam.hei.repository.StudentGroupAssignmentRepository;
 import com.exam.hei.repository.TeachingAssignmentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
@@ -18,8 +19,13 @@ class TeacherAuthorizerTest {
       mock(AuthenticatedResourceProvider.class);
   private final TeachingAssignmentRepository teachingAssignmentRepository =
       mock(TeachingAssignmentRepository.class);
+  private final StudentGroupAssignmentRepository studentGroupAssignmentRepository =
+      mock(StudentGroupAssignmentRepository.class);
   private final TeacherAuthorizer subject =
-      new TeacherAuthorizer(authenticatedResourceProvider, teachingAssignmentRepository);
+      new TeacherAuthorizer(
+          authenticatedResourceProvider,
+          teachingAssignmentRepository,
+          studentGroupAssignmentRepository);
 
   private void callerIs(Role role) {
     when(authenticatedResourceProvider.getAuthenticatedUser())

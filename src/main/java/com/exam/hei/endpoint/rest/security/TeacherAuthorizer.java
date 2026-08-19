@@ -1,8 +1,10 @@
 package com.exam.hei.endpoint.rest.security;
 
 import com.exam.hei.model.exception.ForbiddenException;
+import com.exam.hei.repository.StudentGroupAssignmentRepository;
 import com.exam.hei.repository.TeachingAssignmentRepository;
 import com.exam.hei.repository.model.Role;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class TeacherAuthorizer {
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
   private final TeachingAssignmentRepository teachingAssignmentRepository;
+  private final StudentGroupAssignmentRepository studentGroupAssignmentRepository;
 
   public void checkCanRead(UUID teacherId) {
     if (authenticatedResourceProvider.getAuthenticatedUser().getRole() == Role.ADMIN) {
@@ -34,7 +37,23 @@ public class TeacherAuthorizer {
     }
   }
 
-  private UUID ownTeacherId() {
+  public void checkTeaches(UUID studentId) {
+    if (!teaches(studentId)) {
+      throw new ForbiddenException("This teacher does not teach this student");
+    }
+  }
+
+  public boolean teaches(UUID studentId) {
+    var groupId =
+        studentGroupAssignmentRepository
+            .findActiveAt(studentId, LocalDate.now())
+            .map(assignment -> assignment.getGroup().getId());
+    return groupId
+        .map(id -> teachingAssignmentRepository.existsByTeacherIdAndGroupId(ownTeacherId(), id))
+        .orElse(false);
+  }
+
+  public UUID ownTeacherId() {
     return authenticatedResourceProvider
         .getAuthenticatedTeacherId()
         .orElseThrow(
