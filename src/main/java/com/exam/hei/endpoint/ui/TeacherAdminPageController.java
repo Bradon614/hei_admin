@@ -3,11 +3,13 @@ package com.exam.hei.endpoint.ui;
 import com.exam.hei.model.Pagination;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.ConflictException;
+import com.exam.hei.model.exception.ForbiddenException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.model.Course;
 import com.exam.hei.repository.model.Group;
 import com.exam.hei.repository.model.Teacher;
 import com.exam.hei.repository.model.TeachingAssignment;
+import com.exam.hei.service.AccountService;
 import com.exam.hei.service.CourseService;
 import com.exam.hei.service.GroupService;
 import com.exam.hei.service.PromotionService;
@@ -28,13 +30,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Teachers, their accounts, and what each of them teaches.
- *
- * <p>A teaching assignment binds a course, a teacher and a group at once: the same course given to
- * two groups by two different people is the case three separate lists could not express, so the
- * form asks for all three.
- */
 @Controller
 @AllArgsConstructor
 public class TeacherAdminPageController {
@@ -46,6 +41,7 @@ public class TeacherAdminPageController {
   private final CourseService courseService;
   private final GroupService groupService;
   private final PromotionService promotionService;
+  private final AccountService accountService;
   private final CurrentUserModel currentUserModel;
 
   @GetMapping("/ui/admin/teachers")
@@ -108,6 +104,22 @@ public class TeacherAdminPageController {
     }
   }
 
+  @PostMapping("/ui/admin/teachers/{id}/account")
+  public String changeAccountState(
+      @PathVariable UUID id,
+      @RequestParam boolean enabled,
+      Model model,
+      RedirectAttributes redirectAttributes) {
+    try {
+      accountService.setTeacherAccountEnabled(id, enabled);
+      redirectAttributes.addAttribute(
+          UiFeedback.PARAM, enabled ? UiFeedback.ACCOUNT_ENABLED : UiFeedback.ACCOUNT_DISABLED);
+      return "redirect:/ui/admin/teachers";
+    } catch (BadRequestException | ConflictException | NotFoundException | ForbiddenException e) {
+      return failed(model, e.getMessage());
+    }
+  }
+
   private String failed(Model model, String message) {
     model.addAttribute("error", message);
     render(model);
@@ -121,8 +133,6 @@ public class TeacherAdminPageController {
     model.addAttribute("courses", courseService.findAll(1, Pagination.MAX_PAGE_SIZE, null, null));
     model.addAttribute("groups", allGroups());
 
-    // Resolved per teacher rather than joined in: a school has few enough of them for that to cost
-    // nothing, and the alternative would mean a query this screen is the only caller of.
     Map<UUID, List<TeachingAssignment>> assignments = new LinkedHashMap<>();
     for (var teacher : teachers) {
       assignments.put(

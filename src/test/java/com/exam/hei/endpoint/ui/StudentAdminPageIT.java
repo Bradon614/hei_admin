@@ -120,11 +120,8 @@ class StudentAdminPageIT extends FacadeIT {
         "promotion_id", promotionId.toString());
   }
 
-  // --- the demo scenario, end to end -------------------------------------------------
-
   @Test
   void a_student_created_from_the_form_can_actually_sign_in() throws Exception {
-    // The whole point of this screen: the account it creates is a real one, not a profile row.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     var email = rand(12) + "@hei.demo";
@@ -177,12 +174,8 @@ class StudentAdminPageIT extends FacadeIT {
     assertTrue(page.body().contains(email), "listing did not show the student");
   }
 
-  // --- the success banner survives the redirect ------------------------------------------
-
   @Test
   void a_successful_creation_is_confirmed_on_the_page_it_redirects_to() throws Exception {
-    // The banner rides on the redirect URL rather than in a flash attribute: the security chain is
-    // STATELESS and the next request may land on another Lambda container.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
 
@@ -199,7 +192,6 @@ class StudentAdminPageIT extends FacadeIT {
 
   @Test
   void an_unknown_confirmation_key_renders_no_banner() throws Exception {
-    // The key is looked up server-side, so nobody types their own message into the page.
     var admin = tokenFor(Role.ADMIN);
 
     var page = get("/ui/admin/students?done=whatever-i-want", admin);
@@ -209,12 +201,64 @@ class StudentAdminPageIT extends FacadeIT {
     assertTrue(!page.body().contains("whatever-i-want"), "the key must not be echoed");
   }
 
-  // --- failures are shown on the form, not as JSON -------------------------------------
+  @Test
+  void an_admin_disables_an_account_from_the_listing() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    var email = rand(12) + "@hei.demo";
+    post("/ui/admin/students", newStudent(promotion.getId(), email), admin);
+    var student = studentRepository.findByEmail(email).orElseThrow();
+
+    var response =
+        post(
+            "/ui/admin/students/" + student.getId() + "/account",
+            Map.of("enabled", "false", "promotion_id", promotion.getId().toString()),
+            admin);
+
+    assertEquals(302, response.statusCode(), "body was " + response.body());
+    assertTrue(!appUserRepository.findByEmail(email).orElseThrow().isEnabled());
+  }
+
+  @Test
+  void the_listing_shows_which_accounts_are_disabled() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    var email = rand(12) + "@hei.demo";
+    post("/ui/admin/students", newStudent(promotion.getId(), email), admin);
+    var student = studentRepository.findByEmail(email).orElseThrow();
+    post(
+        "/ui/admin/students/" + student.getId() + "/account",
+        Map.of("enabled", "false", "promotion_id", promotion.getId().toString()),
+        admin);
+
+    var page = get("/ui/admin/students?promotion_id=" + promotion.getId(), admin);
+
+    assertTrue(page.body().contains("disabled"), "the account state should be visible");
+    assertTrue(page.body().contains("Enable"), "the action should offer to enable it again");
+  }
+
+  @Test
+  void the_account_action_is_closed_to_the_other_roles() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    var email = rand(12) + "@hei.demo";
+    post("/ui/admin/students", newStudent(promotion.getId(), email), admin);
+    var student = studentRepository.findByEmail(email).orElseThrow();
+
+    for (var role : List.of(Role.STUDENT, Role.TEACHER)) {
+      var response =
+          post(
+              "/ui/admin/students/" + student.getId() + "/account",
+              Map.of("enabled", "false", "promotion_id", promotion.getId().toString()),
+              tokenFor(role));
+
+      assertEquals(403, response.statusCode(), "role " + role);
+    }
+    assertTrue(appUserRepository.findByEmail(email).orElseThrow().isEnabled());
+  }
 
   @Test
   void a_duplicate_email_re_renders_the_form_instead_of_answering_json() throws Exception {
-    // Left to bubble up this would reach RestExceptionHandler and return a JSON payload, which is
-    // right for an API client and useless to someone filling a form.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     var email = rand(12) + "@hei.demo";
@@ -237,8 +281,6 @@ class StudentAdminPageIT extends FacadeIT {
     assertEquals(200, response.statusCode());
     assertTrue(response.body().contains("<form"));
   }
-
-  // --- group and track, from the same screen ---------------------------------------------
 
   @Test
   void a_student_can_be_moved_to_a_group_from_the_listing() throws Exception {
@@ -281,8 +323,6 @@ class StudentAdminPageIT extends FacadeIT {
     headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
     return headers;
   }
-
-  // --- access ------------------------------------------------------------------------------
 
   @Test
   void the_screen_is_closed_to_the_other_roles() throws Exception {

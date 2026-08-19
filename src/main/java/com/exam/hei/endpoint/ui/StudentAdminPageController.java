@@ -3,10 +3,12 @@ package com.exam.hei.endpoint.ui;
 import com.exam.hei.model.Pagination;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.ConflictException;
+import com.exam.hei.model.exception.ForbiddenException;
 import com.exam.hei.model.exception.NotFoundException;
 import com.exam.hei.repository.model.Promotion;
 import com.exam.hei.repository.model.SemesterRef;
 import com.exam.hei.repository.model.Student;
+import com.exam.hei.service.AccountService;
 import com.exam.hei.service.GroupService;
 import com.exam.hei.service.PromotionService;
 import com.exam.hei.service.StudentGroupAssignmentService;
@@ -26,19 +28,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Students, their accounts, and the two decisions that follow: which group they sit in and which
- * track they follow.
- *
- * <p>Calls the services directly rather than its own REST endpoints, as the graduates page already
- * does: the data is one method call away and going back out over HTTP would only add a round trip
- * and a second authentication to cross.
- *
- * <p>Business failures are caught and re-rendered instead of bubbling up. Left alone they would
- * reach {@code RestExceptionHandler} and answer JSON, which is right for an API client and useless
- * to someone looking at a form. Same reasoning as the sign-in page, which already does this for a
- * wrong password.
- */
 @Controller
 @AllArgsConstructor
 public class StudentAdminPageController {
@@ -49,13 +38,9 @@ public class StudentAdminPageController {
   private final TrackService trackService;
   private final StudentGroupAssignmentService assignmentService;
   private final StudentTrackChoiceService trackChoiceService;
+  private final AccountService accountService;
   private final CurrentUserModel currentUserModel;
 
-  /**
-   * A duplicate reference or email reaches the database rather than a business check, so it comes
-   * back as a constraint violation whose message names columns and constraints. Replaced here: an
-   * administrator needs to know what to change, not how the schema is built.
-   */
   private static final String TAKEN = "This reference or email is already taken";
 
   @GetMapping("/ui/admin/students")
@@ -137,7 +122,24 @@ public class StudentAdminPageController {
     }
   }
 
-  /** A flash attribute rather than a query parameter: the message survives one redirect only. */
+  @PostMapping("/ui/admin/students/{id}/account")
+  public String changeAccountState(
+      @PathVariable UUID id,
+      @RequestParam boolean enabled,
+      @RequestParam(name = "promotion_id") UUID promotionId,
+      Model model,
+      RedirectAttributes redirectAttributes) {
+    try {
+      accountService.setStudentAccountEnabled(id, enabled);
+      return saved(
+          redirectAttributes,
+          enabled ? UiFeedback.ACCOUNT_ENABLED : UiFeedback.ACCOUNT_DISABLED,
+          promotionId);
+    } catch (BadRequestException | ConflictException | NotFoundException | ForbiddenException e) {
+      return failed(model, e.getMessage(), promotionId);
+    }
+  }
+
   private String saved(RedirectAttributes redirectAttributes, String key, UUID promotionId) {
     redirectAttributes.addAttribute(UiFeedback.PARAM, key);
     return "redirect:/ui/admin/students?promotion_id=" + promotionId;
@@ -149,11 +151,6 @@ public class StudentAdminPageController {
     return "admin-students";
   }
 
-  /**
-   * Also runs from the failure path, where the promotion that just failed may be the very thing
-   * that is unknown. Rebuilding the page must not raise the same error again, or the form the
-   * visitor is meant to correct never reaches them.
-   */
   private void render(Model model, UUID promotionId) {
     currentUserModel.addTo(model);
     model.addAttribute("promotions", promotionService.findAll(1, Pagination.MAX_PAGE_SIZE));

@@ -81,6 +81,7 @@
           <th>Email</th>
           <th>Teaches</th>
           <th>Assign a course</th>
+          <th>Account</th>
         </tr>
         </thead>
         <tbody>
@@ -103,6 +104,19 @@
                 <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.ref}">K22-A</option>
               </select>
               <button type="submit" class="btn btn-ghost btn-sm">Assign</button>
+            </form>
+          </td>
+          <td>
+            <span class="badge badge-success" th:if="${t.user.enabled}">active</span>
+            <span class="badge badge-danger" th:unless="${t.user.enabled}">disabled</span>
+            <form method="post" th:action="@{'/ui/admin/teachers/' + ${t.id} + '/account'}"
+                  class="inline-form">
+              <input type="hidden" name="enabled" th:value="${!t.user.enabled}">
+              <button type="submit" class="btn btn-ghost btn-sm"
+                      th:text="${t.user.enabled} ? 'Disable' : 'Enable'"
+                      th:attr="onclick=${t.user.enabled}
+                        ? 'return confirm(\'Disable this account? The holder is signed out at once.\')'
+                        : null">Disable</button>
             </form>
           </td>
         </tr>
