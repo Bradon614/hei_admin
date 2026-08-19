@@ -1,5 +1,6 @@
 package com.exam.hei.service;
 
+import com.exam.hei.endpoint.rest.security.TeacherAuthorizer;
 import com.exam.hei.model.Pagination;
 import com.exam.hei.model.exception.BadRequestException;
 import com.exam.hei.model.exception.NotFoundException;
@@ -22,6 +23,7 @@ public class TeacherService {
   private final TeacherRepository teacherRepository;
   private final AppUserRepository appUserRepository;
   private final PasswordEncoder passwordEncoder;
+  private final TeacherAuthorizer teacherAuthorizer;
 
   public List<Teacher> findAll(int page, int pageSize) {
     return teacherRepository
@@ -30,6 +32,7 @@ public class TeacherService {
   }
 
   public Teacher findById(UUID id) {
+    teacherAuthorizer.checkCanRead(id);
     return teacherRepository
         .findById(id)
         .orElseThrow(() -> new NotFoundException("Teacher " + id + " not found"));

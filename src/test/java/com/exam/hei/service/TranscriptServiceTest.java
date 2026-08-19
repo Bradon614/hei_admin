@@ -236,9 +236,9 @@ class TranscriptServiceTest {
 
   @Test
   void authorization_is_checked_before_anything_is_written() {
-    doThrow(new ForbiddenException("A student may only read their own record"))
+    doThrow(new ForbiddenException("Only an admin, or the student themselves, may reach this"))
         .when(studentAuthorizer)
-        .checkCanRead(STUDENT_ID);
+        .checkIsSelf(STUDENT_ID);
 
     assertThrows(ForbiddenException.class, () -> subject.request(STUDENT_ID, null));
 
@@ -279,7 +279,7 @@ class TranscriptServiceTest {
 
     subject.findById(id);
 
-    verify(studentAuthorizer).checkCanRead(STUDENT_ID);
+    verify(studentAuthorizer).checkIsSelf(STUDENT_ID);
   }
 
   @Test
@@ -290,6 +290,6 @@ class TranscriptServiceTest {
 
     subject.findAllByStudentId(STUDENT_ID);
 
-    verify(studentAuthorizer).checkCanRead(STUDENT_ID);
+    verify(studentAuthorizer).checkIsSelf(STUDENT_ID);
   }
 }

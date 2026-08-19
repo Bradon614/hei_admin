@@ -385,6 +385,7 @@ class GradeServiceTest {
 
   @Test
   void reading_a_student_s_grades_is_authorized_first() {
+    when(authenticatedResourceProvider.getAuthenticatedUser()).thenReturn(CALLER);
     when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(STUDENT));
     when(gradeRepository.findAllByStudentId(STUDENT_ID)).thenReturn(List.of());
 
@@ -395,6 +396,7 @@ class GradeServiceTest {
 
   @Test
   void a_semester_filter_narrows_a_student_s_grades() {
+    when(authenticatedResourceProvider.getAuthenticatedUser()).thenReturn(CALLER);
     when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(STUDENT));
     when(gradeRepository.findAllByStudentIdAndSemesterRef(STUDENT_ID, SemesterRef.S5))
         .thenReturn(List.of());

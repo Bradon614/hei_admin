@@ -14,5 +14,7 @@ public interface TeachingAssignmentRepository extends JpaRepository<TeachingAssi
 
   boolean existsByCourseIdAndTeacherId(UUID courseId, UUID teacherId);
 
+  boolean existsByTeacherIdAndGroupId(UUID teacherId, UUID groupId);
+
   List<TeachingAssignment> findAllByCourseIdAndTeacherId(UUID courseId, UUID teacherId);
 }

@@ -10,12 +10,32 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class StudentAuthorizer {
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
+  private final TeacherAuthorizer teacherAuthorizer;
 
   public void checkCanRead(UUID studentId) {
-    if (authenticatedResourceProvider.getAuthenticatedUser().getRole() != Role.STUDENT) {
+    var role = authenticatedResourceProvider.getAuthenticatedUser().getRole();
+    if (role == Role.ADMIN) {
       return;
     }
+    if (role == Role.TEACHER) {
+      teacherAuthorizer.checkTeaches(studentId);
+      return;
+    }
+    checkIsOwnRecord(studentId);
+  }
 
+  public void checkIsSelf(UUID studentId) {
+    var role = authenticatedResourceProvider.getAuthenticatedUser().getRole();
+    if (role == Role.ADMIN) {
+      return;
+    }
+    if (role != Role.STUDENT) {
+      throw new ForbiddenException("Only an admin, or the student themselves, may reach this");
+    }
+    checkIsOwnRecord(studentId);
+  }
+
+  private void checkIsOwnRecord(UUID studentId) {
     var own =
         authenticatedResourceProvider
             .getAuthenticatedStudentId()

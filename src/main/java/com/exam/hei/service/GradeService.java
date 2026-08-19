@@ -96,8 +96,19 @@ public class GradeService {
   }
 
   public List<Grade> findAllByStudentId(UUID studentId, SemesterRef semesterRef) {
+    if (authenticatedResourceProvider.getAuthenticatedUser().getRole() == Role.TEACHER) {
+      teacherAuthorizer.ownTeacherId();
+      requireStudent(studentId);
+      return gradesOf(studentId, semesterRef).stream()
+          .filter(grade -> inACoveredGroupAt(grade, grade.getExam()))
+          .toList();
+    }
     studentAuthorizer.checkCanRead(studentId);
     requireStudent(studentId);
+    return gradesOf(studentId, semesterRef);
+  }
+
+  private List<Grade> gradesOf(UUID studentId, SemesterRef semesterRef) {
     return semesterRef == null
         ? gradeRepository.findAllByStudentId(studentId)
         : gradeRepository.findAllByStudentIdAndSemesterRef(studentId, semesterRef);
