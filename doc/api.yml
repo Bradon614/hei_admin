@@ -790,6 +790,86 @@ paths:
         "404":
           $ref: "#/components/responses/404"
 
+  /students/{id}/deactivation:
+    post:
+      tags: [ Account ]
+      summary: Disable the account of a student
+      description: |
+        Reversible, and immediate: the holder is refused on their next call even
+        though the token they already hold has not expired. The profile, its
+        grades and its history are all kept.
+      operationId: deactivateStudentAccount
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /students/{id}/activation:
+    post:
+      tags: [ Account ]
+      summary: Enable the account of a student again
+      operationId: activateStudentAccount
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /teachers/{id}/deactivation:
+    post:
+      tags: [ Account ]
+      summary: Disable the account of a teacher
+      operationId: deactivateTeacherAccount
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
+  /teachers/{id}/activation:
+    post:
+      tags: [ Account ]
+      summary: Enable the account of a teacher again
+      operationId: activateTeacherAccount
+      parameters:
+        - $ref: "#/components/parameters/PathId"
+      responses:
+        "200":
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+
   /teachers/{id}/teaching-assignments:
     get:
       tags: [ Teacher ]
@@ -1383,6 +1463,23 @@ components:
     # ==========================================================================
     # PEOPLE
     # ==========================================================================
+    Account:
+      description: |
+        The sign-in side of a person. An account is disabled, never deleted:
+        grade_history references it as the author of every change.
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          $ref: "#/components/schemas/Role"
+        enabled:
+          type: boolean
+
     Whoami:
       type: object
       properties:

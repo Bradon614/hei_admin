@@ -104,6 +104,7 @@
             <th>Email</th>
             <th>Group</th>
             <th>Track</th>
+            <th>Account</th>
           </tr>
           </thead>
           <tbody>
@@ -136,6 +137,20 @@
                 </select>
                 <input type="hidden" name="reason" value="Chosen from the admin interface">
                 <button type="submit" class="btn btn-ghost btn-sm">Set</button>
+              </form>
+            </td>
+            <td>
+              <span class="badge badge-success" th:if="${s.user.enabled}">active</span>
+              <span class="badge badge-danger" th:unless="${s.user.enabled}">disabled</span>
+              <form method="post" th:action="@{'/ui/admin/students/' + ${s.id} + '/account'}"
+                    class="inline-form">
+                <input type="hidden" name="promotion_id" th:value="${promotion.id}">
+                <input type="hidden" name="enabled" th:value="${!s.user.enabled}">
+                <button type="submit" class="btn btn-ghost btn-sm"
+                        th:text="${s.user.enabled} ? 'Disable' : 'Enable'"
+                        th:attr="onclick=${s.user.enabled}
+                          ? 'return confirm(\'Disable this account? The holder is signed out at once.\')'
+                          : null">Disable</button>
               </form>
             </td>
           </tr>

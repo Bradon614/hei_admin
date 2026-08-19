@@ -41,6 +41,10 @@ public class AppUser {
   @Column(name = "role", nullable = false)
   private Role role;
 
+  @Column(name = "enabled", nullable = false)
+  @Builder.Default
+  private boolean enabled = true;
+
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;
 }

@@ -110,8 +110,6 @@ class AuthorizationMatrixIT extends FacadeIT {
   @ParameterizedTest
   @CsvSource({"GET, /ui/me"})
   void the_personal_page_is_reachable_by_every_role(HttpMethod method, String path) {
-    // Listed before the /ui/** catch-all in SecurityConf. Were it listed after, this would 403 for
-    // students and teachers and the whole point of the interface would be lost.
     assertAllowedThrough("STUDENT", method, path);
     assertAllowedThrough("TEACHER", method, path);
     assertAllowedThrough("ADMIN", method, path);
@@ -129,16 +127,27 @@ class AuthorizationMatrixIT extends FacadeIT {
   @CsvSource({"POST, /ui/logout"})
   void a_signed_out_visitor_is_sent_to_the_form_rather_than_answered_in_json(
       HttpMethod method, String path) {
-    // UiAwareAuthenticationEntryPoint deliberately redirects under /ui instead of returning 401:
-    // a browser landing here needs the form that fixes the problem, not an error payload.
-    // Only the POST is asserted here — this client follows GET redirects, so a GET would report
-    // the login page's 200 and prove nothing. LogoutIT checks those with a client that does not.
     assertEquals(302, statusOf("ANONYMOUS", method, path), "anonymous " + method + " " + path);
   }
 
   @ParameterizedTest
   @CsvSource({"PUT, /promotions/{id}/groups"})
   void nested_reference_data_is_written_by_an_admin_alone(HttpMethod method, String path) {
+    var resolved = path.replace("{id}", ANY.toString());
+
+    assertForbidden("STUDENT", method, resolved);
+    assertForbidden("TEACHER", method, resolved);
+    assertAllowedThrough("ADMIN", method, resolved);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "POST, /students/{id}/deactivation",
+    "POST, /students/{id}/activation",
+    "POST, /teachers/{id}/deactivation",
+    "POST, /teachers/{id}/activation",
+  })
+  void changing_the_state_of_an_account_is_an_administrative_act(HttpMethod method, String path) {
     var resolved = path.replace("{id}", ANY.toString());
 
     assertForbidden("STUDENT", method, resolved);

@@ -3,16 +3,6 @@ package com.exam.hei.endpoint.ui;
 import java.util.Map;
 import org.springframework.ui.Model;
 
-/**
- * The success banner shown after a redirect.
- *
- * <p>Flash attributes are the usual answer and are wrong here: they live in an HTTP session, the
- * security chain is {@code STATELESS}, and the application runs on Lambda where the next request
- * may reach another container. The message would appear locally and vanish in production.
- *
- * <p>So the redirect carries a key, and the message is looked up here. A key is not free text: an
- * unknown one renders nothing, which keeps the banner out of reach of whoever writes the URL.
- */
 final class UiFeedback {
 
   static final String PARAM = "done";
@@ -28,6 +18,8 @@ final class UiFeedback {
   static final String GRADE_SAVED = "grade-saved";
   static final String PROMOTION_CREATED = "promotion-created";
   static final String TRANSCRIPT_REQUESTED = "transcript-requested";
+  static final String ACCOUNT_DISABLED = "account-disabled";
+  static final String ACCOUNT_ENABLED = "account-enabled";
 
   private static final Map<String, String> MESSAGES =
       Map.ofEntries(
@@ -41,6 +33,8 @@ final class UiFeedback {
           Map.entry(EXAM_CREATED, "Exam created"),
           Map.entry(GRADE_SAVED, "Grade recorded, and added to the change history"),
           Map.entry(PROMOTION_CREATED, "Promotion created"),
+          Map.entry(ACCOUNT_DISABLED, "Account disabled. Its holder is signed out at once."),
+          Map.entry(ACCOUNT_ENABLED, "Account enabled again"),
           Map.entry(
               TRANSCRIPT_REQUESTED,
               "Transcript requested. It is generated and stored, then emailed to you."));
