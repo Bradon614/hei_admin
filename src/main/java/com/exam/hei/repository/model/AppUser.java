@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,10 @@ public class AppUser {
   @Column(name = "enabled", nullable = false)
   @Builder.Default
   private boolean enabled = true;
+
+  @Column(name = "password_changed_at", nullable = false)
+  @Builder.Default
+  private Instant passwordChangedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private Instant createdAt;

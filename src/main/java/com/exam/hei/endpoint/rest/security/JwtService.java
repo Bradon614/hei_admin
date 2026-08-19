@@ -1,6 +1,7 @@
 package com.exam.hei.endpoint.rest.security;
 
 import com.exam.hei.endpoint.rest.security.model.Principal;
+import com.exam.hei.endpoint.rest.security.model.SignedToken;
 import com.exam.hei.model.IssuedToken;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
@@ -38,6 +39,10 @@ public class JwtService {
   }
 
   public Principal parse(String token) {
+    return new Principal(parseSigned(token).user());
+  }
+
+  public SignedToken parseSigned(String token) {
     try {
       var claims =
           Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload();
@@ -47,7 +52,7 @@ public class JwtService {
               .email(claims.get(EMAIL_CLAIM, String.class))
               .role(Role.valueOf(claims.get(ROLE_CLAIM, String.class)))
               .build();
-      return new Principal(user);
+      return new SignedToken(user, claims.getIssuedAt().toInstant());
     } catch (JwtException | IllegalArgumentException e) {
       throw new BadCredentialsException("Provided token is not valid", e);
     }
