@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -266,5 +267,20 @@ class PromotionIT extends FacadeIT {
 
     assertTrue(raw.contains("\"start_year\""), "body was " + raw);
     assertTrue(raw.contains("\"end_year\""), "body was " + raw);
+  }
+
+  @Test
+  void a_promotion_ending_before_it_starts_is_refused() {
+    var inverted =
+        Promotion.builder()
+            .ref(UUID.randomUUID().toString().substring(0, 5))
+            .name("Promotion under test")
+            .startYear(2028)
+            .endYear(2025)
+            .build();
+
+    var response = putRaw(List.of(inverted), apiKeyOf(Role.ADMIN));
+
+    assertEquals(BAD_REQUEST, response.getStatusCode(), "body was " + response.getBody());
   }
 }

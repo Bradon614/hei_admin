@@ -29,7 +29,10 @@ The curriculum is six semesters, 30 credits each, 180 in total.
   a reason type and a free-text reason. The first entry must be a `CREATION`; every later one must
   not be. Resubmitting the same value is refused.
 - **Ranking allows ties.** Two graduates with the same average share a rank and the next one skips:
-  1, 1, 3.
+  1, 1, 3. Narrowing the list to one track keeps the rank held in the whole promotion: the best EL
+  graduate of a promotion whose top student is TN is second, not first.
+- **A promotion ends after it starts.** Enforced by `promotion_years_ck` in the schema rather than
+  in a service, so an inverted pair is refused wherever it comes from.
 
 The semester table carries the common-core boundary **as data**, not as a constant in the business
 code — see [`V44__seed_academic_reference_data.sql`](src/main/resources/db/migration/V44__seed_academic_reference_data.sql).
@@ -148,7 +151,7 @@ An administrator can run the whole demonstration from the browser, in this order
 | Exams of a course | `/ui/admin/courses/{id}/exams` |
 | Grade entry and its change history | `/ui/admin/exams/{id}/grades` |
 | Where a promotion stands, student by student | `/ui/admin/promotions/{id}/results` |
-| Ranked graduates, and the Excel export | `/ui/graduates` |
+| Ranked graduates, filtered by exit track, and the Excel export | `/ui/graduates` |
 
 A student opens `/ui/me`: their result, their applicable courses, their grades, and a button that
 requests a transcript. A teacher opens the same route and sees what they teach. Both change their
@@ -191,7 +194,7 @@ Dependencies are declared through the POJA console's custom-dependency mechanism
 
 ## Tests
 
-83 test classes — 54 integration, 29 unit. The suite runs 817 tests and holds line coverage at 96%,
+83 test classes — 54 integration, 29 unit. The suite runs 834 tests and holds line coverage at 96%,
 against a floor of **80% enforced by the build**: `jacocoTestCoverageVerification` fails it below
 that.
 
@@ -211,12 +214,14 @@ so a screen that hides a button is never mistaken for an endpoint that refuses o
 
 These are real and deliberately not papered over.
 
-- **Transcript emails end `FAILED` in the deployment.** The SES sender is `@Value("noreply@poja.io")`
-  in the POJA-generated `EmailConf` — a literal, not a property placeholder — so no environment
-  variable can change it, and the account is in the SES sandbox besides. The asynchronous pipeline
-  itself is implemented and tested; only the delivery fails.
-- **`PromotionService` does not check that `start_year` precedes `end_year`.** A promotion running
-  2028 to 2025 is accepted.
+- **A stored transcript is only reachable once its email has gone out.** `file_url` is set in the
+  very step that sends the mail, so a request whose delivery has not yet succeeded leaves the PDF
+  sitting on S3 with nothing pointing at it — in the browser as much as in the API. The document
+  exists; only the way to it is missing.
+- **Nothing exercises SES.** `TranscriptGeneratedConsumerIT` mocks the `Mailer`, so the tests prove
+  the event routing and the rendered body and say nothing about delivery. The frontal function and
+  the worker function share one `Mailer`, one `EmailConf` and one sender, but they are two Lambdas
+  and can carry two execution roles.
 
 ## POJA-generated files
 
