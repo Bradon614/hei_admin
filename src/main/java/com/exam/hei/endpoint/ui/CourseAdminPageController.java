@@ -21,13 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * The catalogue: every course, and the form that adds one.
- *
- * <p>The track field is offered on every semester because the form cannot know which ones are
- * common core without asking; {@code CourseService} refuses the combination and the refusal is what
- * this screen shows.
- */
 @Controller
 @AllArgsConstructor
 public class CourseAdminPageController {

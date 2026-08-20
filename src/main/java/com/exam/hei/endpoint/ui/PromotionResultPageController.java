@@ -13,12 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * Where a whole promotion stands, student by student.
- *
- * <p>The graduates page answers who succeeded; this one answers why the others did not, which is
- * the only place {@code TRACK_NOT_SELECTED} is visible as something other than a failure.
- */
 @Controller
 @AllArgsConstructor
 public class PromotionResultPageController {

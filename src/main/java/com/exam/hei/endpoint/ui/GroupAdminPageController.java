@@ -19,13 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Teaching groups, listed and created one promotion at a time.
- *
- * <p>The track is optional: a group without one stays mixed, which is what the common core needs.
- * Whether a chosen track is one the promotion actually opens is decided by {@code GroupService},
- * not here — this screen only reports what it answers.
- */
 @Controller
 @AllArgsConstructor
 public class GroupAdminPageController {
@@ -82,8 +75,6 @@ public class GroupAdminPageController {
     try {
       var promotion = promotionService.findById(promotionId);
       model.addAttribute("promotion", promotion);
-      // Only the tracks this promotion opens: offering the others would invite a rejection the
-      // form could have avoided asking for.
       model.addAttribute("tracks", promotion.getTracks());
       model.addAttribute("groups", groupService.findAllByPromotionId(promotionId));
     } catch (NotFoundException e) {

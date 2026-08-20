@@ -80,8 +80,6 @@ class LogoutIT extends FacadeIT {
 
   @Test
   void the_expiring_cookie_repeats_the_attributes_the_sign_in_used() throws Exception {
-    // A browser only replaces a cookie when name, path and domain match. Drop Path=/ here and the
-    // session survives the click, which is the worst possible outcome for a sign-out button.
     var setCookie = logout(tokenFor(Role.STUDENT)).headers().firstValue("Set-Cookie").orElseThrow();
 
     assertTrue(setCookie.contains("Path=/"), "cookie was " + setCookie);
@@ -92,7 +90,6 @@ class LogoutIT extends FacadeIT {
 
   @Test
   void signing_out_is_not_reachable_by_a_plain_link() throws Exception {
-    // A GET would be triggerable by an image tag on any other site.
     assertEquals(405, get("/ui/logout", tokenFor(Role.ADMIN)).statusCode());
   }
 
@@ -107,8 +104,6 @@ class LogoutIT extends FacadeIT {
 
   @Test
   void a_cleared_cookie_no_longer_opens_a_page() throws Exception {
-    // What the whole feature is for: after signing out, the old cookie value is gone from the
-    // browser, and an empty one authenticates nobody.
     assertEquals(302, get("/ui/me", "").statusCode());
   }
 }

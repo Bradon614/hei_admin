@@ -42,8 +42,6 @@
     <div class="card-head">
       <h2 th:text="${promotion.ref + ' — ' + promotion.name}">K22 — Promotion</h2>
       <span class="card-head-spacer"></span>
-      <!-- Plain link, not fetch(): the SameSite=Strict cookie rides along on a same-site
-           navigation, so the browser downloads the file with no script involved. -->
       <a class="btn btn-primary btn-sm"
          th:href="@{'/promotions/' + ${promotion.id} + '/graduates/excel'}">
         <svg class="icon icon-sm"><use href="#i-download"></use></svg> Download graduates

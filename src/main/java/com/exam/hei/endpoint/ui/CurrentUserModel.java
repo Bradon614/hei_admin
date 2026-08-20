@@ -5,10 +5,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
-/**
- * Feeds the navigation bar, which every signed-in page shares. Kept in one place so the pages read
- * the caller the same way, and so no controller reaches into the security context on its own.
- */
 @Component
 @AllArgsConstructor
 public class CurrentUserModel {

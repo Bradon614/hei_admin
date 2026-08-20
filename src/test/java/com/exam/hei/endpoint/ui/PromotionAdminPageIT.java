@@ -101,8 +101,6 @@ class PromotionAdminPageIT extends FacadeIT {
     return trackRepository.findByCode(code).orElseThrow().getId().toString();
   }
 
-  // --- creating a promotion -----------------------------------------------------------------
-
   @Test
   void a_promotion_created_from_the_form_is_persisted_with_its_tracks() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -137,12 +135,8 @@ class PromotionAdminPageIT extends FacadeIT {
     assertTrue(promotionRepository.findByRef(ref).orElseThrow().getTracks().isEmpty());
   }
 
-  // --- the chain this screen exists for -------------------------------------------------------
-
   @Test
   void the_tracks_it_opens_are_the_ones_offered_when_creating_a_group() throws Exception {
-    // A track left closed here can be carried by no group and chosen by no student, so a promotion
-    // created without this form could never reach the semesters where tracks begin.
     var admin = tokenFor(Role.ADMIN);
     var ref = TestRefs.promotionRef();
     post("/ui/admin/promotions", newPromotion(ref, trackId("TN")), admin);
@@ -157,8 +151,6 @@ class PromotionAdminPageIT extends FacadeIT {
         !groups.body().contains("EL — Software Ecosystem"),
         "a track this promotion does not open must not be offered");
   }
-
-  // --- failures are shown on the form -----------------------------------------------------
 
   @Test
   void a_duplicate_reference_is_reported_on_the_form() throws Exception {
@@ -175,8 +167,6 @@ class PromotionAdminPageIT extends FacadeIT {
 
   @Test
   void a_reference_over_five_characters_is_reported_on_the_form() throws Exception {
-    // promotion.ref is varchar(5): the database is the only thing enforcing it, and what it throws
-    // would otherwise reach the browser as a 500.
     var admin = tokenFor(Role.ADMIN);
 
     var response = post("/ui/admin/promotions", newPromotion("TOOLONG"), admin);
@@ -184,8 +174,6 @@ class PromotionAdminPageIT extends FacadeIT {
     assertEquals(200, response.statusCode());
     assertTrue(response.body().contains("at most 5 characters"), "body was " + response.body());
   }
-
-  // --- access -------------------------------------------------------------------------------
 
   @Test
   void the_listing_is_served_with_its_form_to_an_administrator() throws Exception {

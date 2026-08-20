@@ -100,8 +100,6 @@ class PromotionResultPageIT extends FacadeIT {
             .build());
   }
 
-  // --- what the page says -------------------------------------------------------------------
-
   @Test
   void a_student_with_no_grade_is_shown_as_not_graduated() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -117,7 +115,6 @@ class PromotionResultPageIT extends FacadeIT {
 
   @Test
   void the_blockers_say_what_stands_in_the_way() throws Exception {
-    // The distinction the model rests on: a semester with no track chosen is not a failed one.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotionOpening();
     studentOf(promotion);
@@ -127,8 +124,6 @@ class PromotionResultPageIT extends FacadeIT {
     assertTrue(body.contains("No track selected for S4"), "the S4 blocker is missing");
     assertTrue(body.contains("S1 not validated"), "a common core semester blocks on credits");
   }
-
-  // --- the track filter -----------------------------------------------------------------------
 
   @Test
   void the_track_filter_keeps_only_the_students_who_chose_it() throws Exception {
@@ -158,8 +153,6 @@ class PromotionResultPageIT extends FacadeIT {
 
     assertTrue(page.body().contains(student.getRef()));
   }
-
-  // --- failures and access ---------------------------------------------------------------------
 
   @Test
   void an_unknown_promotion_is_reported_rather_than_thrown() throws Exception {

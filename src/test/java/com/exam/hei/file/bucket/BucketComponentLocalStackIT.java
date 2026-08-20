@@ -35,18 +35,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
-/**
- * The real {@link BucketComponent}, against a real S3 implementation, all the way from a real PDF.
- *
- * <p>Nothing here can reach the AWS account. The credentials are the throwaway pair the container
- * hands out, injected through a {@link StaticCredentialsProvider} so the default credential chain —
- * profiles, environment, instance roles — is never consulted; the endpoint points at the container;
- * the bucket is created inside it. One small object is uploaded, once.
- *
- * <p>{@code BucketConf} is {@code @PojaGenerated} and offers no endpoint override, so it is
- * subclassed here, in test scope only, to hand {@link BucketComponent} clients aimed at the
- * container. No generated file is modified.
- */
 class BucketComponentLocalStackIT {
 
   private static final String BUCKET = "hei-transcripts-test";
@@ -93,15 +81,6 @@ class BucketComponentLocalStackIT {
         .build();
   }
 
-  /**
-   * The generated configuration builds its clients for the real eu-west-3 endpoint with no way to
-   * point them elsewhere. Its getters are overridable, which is enough: the component under test
-   * still is the real one, it simply receives clients aimed at the container.
-   *
-   * <p>The async client is the plain one rather than the CRT builder the generated class uses: that
-   * is the only concession, and it is a transport detail — the S3 protocol exercised below is the
-   * same.
-   */
   private static BucketConf localStackConf(
       StaticCredentialsProvider credentials, Region region, URI endpoint) {
     var asyncClient =
@@ -143,8 +122,6 @@ class BucketComponentLocalStackIT {
     };
   }
 
-  // --- the fixture: a real PDF, from the real generator ---------------------------
-
   private static byte[] transcriptPdf() {
     var student =
         Student.builder()
@@ -182,8 +159,6 @@ class BucketComponentLocalStackIT {
     return new TranscriptPdfGenerator().generate(result, null);
   }
 
-  // --- the flow -------------------------------------------------------------------
-
   @Test
   void a_transcript_pdf_survives_a_round_trip_through_s3() throws Exception {
     var pdf = transcriptPdf();
@@ -193,11 +168,9 @@ class BucketComponentLocalStackIT {
     var source = Files.createTempFile("transcript", ".pdf");
     Files.write(source, pdf);
 
-    // upload
     var hash = bucketComponent.upload(source.toFile(), key);
     assertTrue(hash != null, "upload must report a hash");
 
-    // the object really is in the bucket
     try (var s3 =
         s3Client(
             StaticCredentialsProvider.create(
@@ -208,14 +181,12 @@ class BucketComponentLocalStackIT {
       assertEquals(pdf.length, head.contentLength().intValue());
     }
 
-    // download returns exactly what went up
     var downloaded = bucketComponent.download(key);
     assertArrayEquals(pdf, Files.readAllBytes(downloaded.toPath()));
     assertEquals(
         "%PDF-",
         new String(Files.readAllBytes(downloaded.toPath()), 0, 5, StandardCharsets.US_ASCII));
 
-    // and a presigned link can be handed out
     var presigned = bucketComponent.presign(key, Duration.ofMinutes(10));
     assertTrue(presigned.toString().contains(key), "presigned url was " + presigned);
     assertTrue(presigned.toString().contains("X-Amz-Signature"), "presigned url was " + presigned);
@@ -226,8 +197,6 @@ class BucketComponentLocalStackIT {
 
   @Test
   void a_key_that_was_never_uploaded_is_absent() {
-    // Proves the previous test's assertions mean something: the bucket is not answering yes to
-    // everything.
     try (var s3 =
         s3Client(
             StaticCredentialsProvider.create(

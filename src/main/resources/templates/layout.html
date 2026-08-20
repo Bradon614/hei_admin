@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<!--
-  The application shell.
-
-  A page supplies a heading, the sidebar entry to highlight, and its own content:
-
-      <head th:replace="~{layout :: head('Students')}"></head>
-      <body th:replace="~{layout :: shell('Students', 'students', ~{::content})}">
-      <div th:fragment="content"> ... </div>
-
-  Navigation entries are rendered per role rather than hidden with CSS. A student's page must not
-  carry an administration URL at all — masking it would still ship it.
--->
-
 <head th:fragment="head(title)">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,7 +14,6 @@
 
 <svg th:replace="~{layout :: icons}"></svg>
 
-<!-- The sidebar opens through a checkbox, so navigation survives without JavaScript. -->
 <input type="checkbox" id="nav-toggle" class="nav-toggle visually-hidden">
 
 <aside class="sidebar">
@@ -118,7 +104,6 @@
 
 </body>
 
-<!-- One sprite for the whole application: no icon font, no external request. -->
 <svg th:fragment="icons" class="visually-hidden" aria-hidden="true">
   <symbol id="i-grid" viewBox="0 0 24 24">
     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -192,7 +177,6 @@
   </symbol>
 </svg>
 
-<!-- Error and success banners, identical on every screen. -->
 <div th:fragment="alerts">
   <p class="alert alert-error" th:if="${error}">
     <svg class="icon"><use href="#i-alert"></use></svg>

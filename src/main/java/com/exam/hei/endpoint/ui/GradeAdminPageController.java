@@ -28,14 +28,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Grade entry for one exam, one student at a time, and the trail every entry leaves behind.
- *
- * <p>{@code GradeService} reserves {@code CREATION} for the first entry and refuses it afterwards,
- * so the form does not offer the choice: a student with no grade yet submits a fixed {@code
- * CREATION}, and only a correction gets to name its reason type. Left to the user this would be a
- * rejection the screen could have spared them.
- */
 @Controller
 @AllArgsConstructor
 public class GradeAdminPageController {

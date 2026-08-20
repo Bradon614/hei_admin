@@ -50,17 +50,6 @@ public class RestExceptionHandler {
     return toError(UNAUTHORIZED, "UnauthorizedException", e.getMessage());
   }
 
-  /**
-   * What the database refuses once the services have had their say.
-   *
-   * <p>Without this the violation reaches the servlet container and comes back as a 500, which is
-   * what a duplicate email used to answer. Not every violation is a conflict, so the SQLState
-   * decides: a reference already taken is a 409, a value the column cannot hold is a 400. The
-   * message stays generic — the constraint name is for the logs, not for the caller.
-   *
-   * <p>The Thymeleaf screens never reach here: they catch the exception in the controller method to
-   * re-render their form instead of answering JSON.
-   */
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<Error> handleDataIntegrityViolation(DataIntegrityViolationException e) {
     var sqlState = sqlStateOf(e);

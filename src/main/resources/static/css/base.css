@@ -1,12 +1,5 @@
-/*
- * Design tokens, reset and typography.
- *
- * Every colour used anywhere in the interface is declared here and nowhere else: a component file
- * that hard-codes a hex value is a component that cannot be re-themed.
- */
 
 :root {
-  /* Identity. Navy and blue carry the structure, gold marks what deserves attention. */
   --navy-900: #0d1b2f;
   --navy-800: #142743;
   --navy-700: #1d3557;
@@ -16,7 +9,6 @@
   --gold-500: #e6a817;
   --gold-050: #fdf4e0;
 
-  /* Neutrals. */
   --bg: #f4f6f9;
   --surface: #ffffff;
   --surface-alt: #fafbfc;
@@ -26,13 +18,11 @@
   --text-soft: #4a5568;
   --muted: #6b7684;
 
-  /* Feedback. */
   --danger: #b3261e;
   --danger-bg: #fdecea;
   --success: #0f7b4f;
   --success-bg: #e8f5ee;
 
-  /* Rhythm. */
   --radius: 10px;
   --radius-sm: 6px;
   --radius-pill: 999px;
@@ -99,7 +89,6 @@ a:hover {
   text-decoration: underline;
 }
 
-/* One visible focus ring for the whole application. Keyboard users are not an afterthought. */
 :focus-visible {
   outline: 2px solid var(--blue-600);
   outline-offset: 2px;
@@ -125,7 +114,6 @@ svg {
   height: 1rem;
 }
 
-/* Screen-reader-only: used by the sidebar toggle, which is a real checkbox. */
 .visually-hidden {
   position: absolute;
   width: 1px;

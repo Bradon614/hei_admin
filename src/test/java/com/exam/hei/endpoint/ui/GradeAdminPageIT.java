@@ -160,8 +160,6 @@ class GradeAdminPageIT extends FacadeIT {
         "reason", reason);
   }
 
-  // --- entering a grade ---------------------------------------------------------------------
-
   @Test
   void a_first_grade_is_recorded_and_shown_next_to_its_student() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -192,7 +190,6 @@ class GradeAdminPageIT extends FacadeIT {
 
   @Test
   void a_correction_leaves_both_states_in_the_history() throws Exception {
-    // The traceability the subject asks for: a corrected grade keeps the value it replaced.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     var student = studentOf(promotion);
@@ -221,8 +218,6 @@ class GradeAdminPageIT extends FacadeIT {
     assertTrue(page.body().contains("CLAIM"));
   }
 
-  // --- what the service refuses, shown on the form ---------------------------------------
-
   @Test
   void resubmitting_the_same_value_is_reported_on_the_form() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -247,7 +242,6 @@ class GradeAdminPageIT extends FacadeIT {
 
   @Test
   void a_first_entry_that_claims_to_be_a_correction_is_refused() throws Exception {
-    // The form never offers this, but the rule lives in the service and the screen reports it.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     var student = studentOf(promotion);
@@ -282,7 +276,6 @@ class GradeAdminPageIT extends FacadeIT {
 
   @Test
   void grading_a_student_who_has_chosen_no_track_is_reported_on_the_form() throws Exception {
-    // From S4 a course only concerns the students of a track. Not evaluable is not a zero.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotion();
     var student = studentOf(promotion);
@@ -300,8 +293,6 @@ class GradeAdminPageIT extends FacadeIT {
         gradeRepository.findByExamIdAndStudentId(exam.getId(), student.getId()).isEmpty(),
         "nothing must have been recorded");
   }
-
-  // --- access -------------------------------------------------------------------------------
 
   @Test
   void the_screen_is_closed_to_the_other_roles() throws Exception {
