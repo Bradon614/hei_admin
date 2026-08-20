@@ -9,7 +9,9 @@ import com.exam.hei.repository.StudentRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
 import com.exam.hei.repository.model.Student;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -102,6 +104,7 @@ public class StudentService {
     }
     if (student.getPassword() != null) {
       existing.setPasswordHash(passwordEncoder.encode(student.getPassword()));
+      existing.setPasswordChangedAt(Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1));
       changed = true;
     }
     if (changed) {

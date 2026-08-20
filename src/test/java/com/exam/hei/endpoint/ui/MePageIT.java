@@ -33,9 +33,11 @@ import com.exam.hei.repository.model.Student;
 import com.exam.hei.repository.model.Teacher;
 import com.exam.hei.repository.model.TeachingAssignment;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 class MePageIT extends FacadeIT {
 
@@ -56,8 +59,8 @@ class MePageIT extends FacadeIT {
   @Autowired SemesterRepository semesterRepository;
   @Autowired TeachingAssignmentRepository teachingAssignmentRepository;
   @Autowired JwtService jwtService;
+  @Autowired PasswordEncoder passwordEncoder;
 
-  /** Never the real one: the context wires it to eu-west-3, and a click must not reach AWS. */
   @MockBean BucketComponent bucketComponent;
 
   @MockBean EventProducer<?> eventProducer;
@@ -69,6 +72,30 @@ class MePageIT extends FacadeIT {
   void uploadsSucceed() {
     when(bucketComponent.upload(any(), anyString()))
         .thenReturn(new FileHash(FileHashAlgorithm.SHA256, "hash"));
+  }
+
+  private static final String KNOWN_PASSWORD = "known-secret-2025";
+
+  private Account passwordedStudent() {
+    var user =
+        appUserRepository.save(
+            AppUser.builder()
+                .email(rand(12) + "@hei.test")
+                .passwordHash(passwordEncoder.encode(KNOWN_PASSWORD))
+                .role(Role.STUDENT)
+                .build());
+    var student =
+        studentRepository.save(
+            Student.builder()
+                .ref(rand(18))
+                .firstName("Jean")
+                .lastName("Rakoto")
+                .email(rand(12) + "@hei.test")
+                .entranceDate(LocalDate.of(2025, 9, 1))
+                .promotion(promotion())
+                .user(user)
+                .build());
+    return new Account(student.getId(), jwtService.issue(user).token());
   }
 
   private static String rand(int length) {
@@ -161,8 +188,6 @@ class MePageIT extends FacadeIT {
     return HTTP_CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 
-  // --- the student space -------------------------------------------------------------
-
   @Test
   void a_student_sees_their_own_identity_and_result() throws Exception {
     var student = studentAccount();
@@ -176,7 +201,6 @@ class MePageIT extends FacadeIT {
 
   @Test
   void a_student_with_no_track_choice_is_told_what_blocks_the_diploma() throws Exception {
-    // The distinction the whole model rests on: not evaluable is not the same as failed.
     var student = studentAccount();
 
     var body = get("/ui/me", student.token()).body();
@@ -196,8 +220,6 @@ class MePageIT extends FacadeIT {
     assertTrue(!body.contains("/ui/admin/students"), "admin links must not be rendered");
     assertTrue(!body.contains("/ui/admin/teachers"), "admin links must not be rendered");
   }
-
-  // --- the teacher space --------------------------------------------------------------
 
   @Test
   void a_teacher_sees_what_they_teach() throws Exception {
@@ -234,18 +256,13 @@ class MePageIT extends FacadeIT {
     assertTrue(!body.contains("My result"), "a teacher has no personal result");
   }
 
-  // --- an account with no profile --------------------------------------------------------
-
   @Test
   void an_administrator_gets_a_neutral_page_rather_than_an_error() throws Exception {
-    // The bootstrapped admin has neither a student nor a teacher profile.
     var response = get("/ui/me", adminToken());
 
     assertEquals(200, response.statusCode());
     assertTrue(response.body().contains("no student or teacher profile"));
   }
-
-  // --- transcripts -------------------------------------------------------------------------
 
   @Test
   void a_student_can_request_a_transcript_from_their_page() throws Exception {
@@ -272,5 +289,65 @@ class MePageIT extends FacadeIT {
 
     assertEquals(200, response.statusCode());
     assertTrue(response.body().contains("Only a student can ask"));
+  }
+
+  private HttpResponse<String> changePassword(String current, String next, String cookieToken)
+      throws Exception {
+    var body =
+        "current_password="
+            + URLEncoder.encode(current, StandardCharsets.UTF_8)
+            + "&new_password="
+            + URLEncoder.encode(next, StandardCharsets.UTF_8);
+    var builder =
+        HttpRequest.newBuilder()
+            .uri(URI.create(restTemplate.getRootUri() + "/ui/me/password"))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .POST(HttpRequest.BodyPublishers.ofString(body));
+    if (cookieToken != null) {
+      builder.header("Cookie", BearerAuthFilter.COOKIE_NAME + "=" + cookieToken);
+    }
+    return HTTP_CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+  }
+
+  @Test
+  void the_page_offers_to_change_the_password() throws Exception {
+    var body = get("/ui/me", studentAccount().token()).body();
+
+    assertTrue(body.contains("My password"));
+    assertTrue(body.contains("current_password"));
+  }
+
+  @Test
+  void a_password_change_sends_the_visitor_back_to_the_form_and_clears_the_cookie()
+      throws Exception {
+    var account = passwordedStudent();
+
+    var response = changePassword(KNOWN_PASSWORD, "brand-new-secret-2026", account.token());
+
+    assertEquals(302, response.statusCode(), "body was " + response.body());
+    var location = response.headers().firstValue("Location").orElseThrow();
+    assertTrue(location.contains("/ui/login"), "location was " + location);
+    assertTrue(location.contains("done=password-changed"), "location was " + location);
+    assertTrue(
+        response.headers().allValues("Set-Cookie").stream()
+            .anyMatch(cookie -> cookie.contains(BearerAuthFilter.COOKIE_NAME + "=;")),
+        "the session cookie should be cleared");
+  }
+
+  @Test
+  void a_wrong_current_password_comes_back_on_the_page() throws Exception {
+    var account = passwordedStudent();
+
+    var response = changePassword("not-the-one", "brand-new-secret-2026", account.token());
+
+    assertEquals(200, response.statusCode());
+    assertTrue(response.body().contains("Invalid password"), "body was " + response.body());
+  }
+
+  @Test
+  void the_login_page_confirms_the_change() throws Exception {
+    var body = get("/ui/login?done=password-changed", null).body();
+
+    assertTrue(body.contains("Password changed"), "body was " + body);
   }
 }

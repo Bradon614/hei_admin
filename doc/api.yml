@@ -790,6 +790,30 @@ paths:
         "404":
           $ref: "#/components/responses/404"
 
+  /me/password:
+    post:
+      tags: [ Account ]
+      summary: Change the password of the signed-in account
+      description: |
+        No identifier is taken: the account is the one the token was issued for,
+        so changing somebody else's password cannot even be expressed. The
+        current password is required, and every token issued before the change
+        is refused from the next call on.
+      operationId: changeOwnPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChange"
+      responses:
+        "200":
+          description: The password was changed
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+
   /students/{id}/deactivation:
     post:
       tags: [ Account ]
@@ -1463,6 +1487,18 @@ components:
     # ==========================================================================
     # PEOPLE
     # ==========================================================================
+    PasswordChange:
+      type: object
+      required: [ current_password, new_password ]
+      properties:
+        current_password:
+          type: string
+          format: password
+        new_password:
+          type: string
+          format: password
+          minLength: 8
+
     Account:
       description: |
         The sign-in side of a person. An account is disabled, never deleted:

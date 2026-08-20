@@ -8,9 +8,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.exam.hei.endpoint.rest.security.model.Principal;
+import com.exam.hei.endpoint.rest.security.model.SignedToken;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Role;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -23,18 +25,21 @@ class AuthProviderTest {
   private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
   private final AuthProvider subject = new AuthProvider(jwtService, appUserRepository);
 
+  private static final Instant ISSUED_AT = Instant.parse("2026-01-15T10:00:00Z");
+
   private static AppUser user(Role role, boolean enabled) {
     return AppUser.builder()
         .id(UUID.randomUUID())
         .email("someone@hei.test")
         .role(role)
         .enabled(enabled)
+        .passwordChangedAt(ISSUED_AT.minusSeconds(60))
         .build();
   }
 
   private AppUser signedIn(String token, Role role, boolean enabled) {
     var user = user(role, enabled);
-    when(jwtService.parse(token)).thenReturn(new Principal(user));
+    when(jwtService.parseSigned(token)).thenReturn(new SignedToken(user, ISSUED_AT));
     when(appUserRepository.findById(user.getId())).thenReturn(Optional.of(user));
     return user;
   }
@@ -75,7 +80,7 @@ class AuthProviderTest {
   @Test
   void a_token_signed_for_an_account_that_no_longer_exists_is_rejected() {
     var user = user(Role.ADMIN, true);
-    when(jwtService.parse("stale-token")).thenReturn(new Principal(user));
+    when(jwtService.parseSigned("stale-token")).thenReturn(new SignedToken(user, ISSUED_AT));
     when(appUserRepository.findById(user.getId())).thenReturn(Optional.empty());
 
     assertThrows(
@@ -88,14 +93,11 @@ class AuthProviderTest {
   @Test
   void the_role_comes_from_the_database_rather_than_the_token() {
     var user = user(Role.STUDENT, true);
-    when(jwtService.parse("stale-role"))
+    when(jwtService.parseSigned("stale-role"))
         .thenReturn(
-            new Principal(
-                AppUser.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .role(Role.ADMIN)
-                    .build()));
+            new SignedToken(
+                AppUser.builder().id(user.getId()).email(user.getEmail()).role(Role.ADMIN).build(),
+                ISSUED_AT));
     when(appUserRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
     var authentication =
@@ -105,8 +107,35 @@ class AuthProviderTest {
   }
 
   @Test
+  void a_token_issued_before_the_current_password_is_rejected() {
+    var user = signedIn("older-than-the-password", Role.STUDENT, true);
+    user.setPasswordChangedAt(ISSUED_AT.plusSeconds(1));
+
+    assertThrows(
+        BadCredentialsException.class,
+        () ->
+            subject.authenticate(
+                new PreAuthenticatedAuthenticationToken(
+                    "older-than-the-password", "older-than-the-password")));
+  }
+
+  @Test
+  void a_token_issued_at_the_very_moment_the_password_became_current_is_accepted() {
+    var user = signedIn("exactly-at-the-boundary", Role.STUDENT, true);
+    user.setPasswordChangedAt(ISSUED_AT);
+
+    var authentication =
+        subject.authenticate(
+            new PreAuthenticatedAuthenticationToken(
+                "exactly-at-the-boundary", "exactly-at-the-boundary"));
+
+    assertTrue(authentication.isAuthenticated());
+  }
+
+  @Test
   void an_invalid_token_is_rejected() {
-    when(jwtService.parse("garbage")).thenThrow(new BadCredentialsException("Provided token"));
+    when(jwtService.parseSigned("garbage"))
+        .thenThrow(new BadCredentialsException("Provided token"));
 
     assertThrows(
         BadCredentialsException.class,

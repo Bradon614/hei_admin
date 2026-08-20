@@ -183,6 +183,14 @@ class AuthorizationMatrixIT extends FacadeIT {
   }
 
   @ParameterizedTest
+  @CsvSource({"POST, /me/password"})
+  void changing_your_own_password_is_open_to_every_signed_in_role(HttpMethod method, String path) {
+    assertAllowedThrough("STUDENT", method, path);
+    assertAllowedThrough("TEACHER", method, path);
+    assertAllowedThrough("ADMIN", method, path);
+  }
+
+  @ParameterizedTest
   @CsvSource({"GET, /students", "GET, /teachers"})
   void a_directory_is_never_handed_to_a_student(HttpMethod method, String path) {
     assertForbidden("STUDENT", method, path);
