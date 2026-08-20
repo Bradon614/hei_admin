@@ -17,7 +17,18 @@ public class GraduateService {
   private final ResultService resultService;
   private final StudentTrackChoiceService trackChoiceService;
 
-  public List<Graduate> graduatesOf(UUID promotionId) {
+  public List<Graduate> graduatesOf(UUID promotionId, String trackCode) {
+    var ranked = rankedGraduatesOf(promotionId);
+    if (trackCode == null || trackCode.isBlank()) {
+      return ranked;
+    }
+    return ranked.stream()
+        .filter(graduate -> graduate.track() != null)
+        .filter(graduate -> graduate.track().getCode().equals(trackCode))
+        .toList();
+  }
+
+  private List<Graduate> rankedGraduatesOf(UUID promotionId) {
     var graduated =
         resultService.resultsOfPromotion(promotionId, null, 1, Pagination.MAX_PAGE_SIZE).stream()
             .filter(StudentResult::graduated)

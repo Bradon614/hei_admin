@@ -138,16 +138,24 @@ class GraduateIT extends FacadeIT {
   }
 
   private void chooseElFromS4(Student student) {
+    chooseFromS4(student, "EL");
+  }
+
+  private void chooseFromS4(Student student, String trackCode) {
     studentTrackChoiceRepository.save(
         StudentTrackChoice.builder()
             .student(student)
-            .track(trackRepository.findByCode("EL").orElseThrow())
+            .track(trackRepository.findByCode(trackCode).orElseThrow())
             .fromSemester(semesterRepository.findByRef(SemesterRef.S4).orElseThrow())
             .build());
   }
 
   private void graduate(Student student, String average, String admin) {
-    chooseElFromS4(student);
+    graduateOn(student, average, "EL", admin);
+  }
+
+  private void graduateOn(Student student, String average, String trackCode, String admin) {
+    chooseFromS4(student, trackCode);
     for (var ref : SemesterRef.values()) {
       grade(soleExamOf(ref), student.getId(), average, admin);
     }
@@ -178,11 +186,35 @@ class GraduateIT extends FacadeIT {
   }
 
   private ResponseEntity<byte[]> excel(Promotion promotion, String token) {
+    return excel(promotion, token, null);
+  }
+
+  private ResponseEntity<byte[]> excel(Promotion promotion, String token, String track) {
     return restTemplate.exchange(
-        "/promotions/" + promotion.getId() + "/graduates/excel",
+        "/promotions/" + promotion.getId() + "/graduates/excel" + query(track),
         GET,
         new HttpEntity<>(bearer(token)),
         byte[].class);
+  }
+
+  private ResponseEntity<List<Graduate>> graduates(
+      Promotion promotion, String token, String track) {
+    return restTemplate.exchange(
+        "/promotions/" + promotion.getId() + "/graduates" + query(track),
+        GET,
+        new HttpEntity<>(bearer(token)),
+        new ParameterizedTypeReference<>() {});
+  }
+
+  private static String query(String track) {
+    return track == null ? "" : "?track=" + track;
+  }
+
+  private Promotion promotionWithOneGraduatePerTrack(String admin) {
+    var promotion = promotion();
+    graduateOn(student(promotion, "Randria", "Aina"), "18.00", "TN", admin);
+    graduateOn(student(promotion, "Rakoto", "Jean"), "16.00", "EL", admin);
+    return promotion;
   }
 
   @Test
@@ -325,6 +357,71 @@ class GraduateIT extends FacadeIT {
           expected
               .getGeneralAverage()
               .compareTo(BigDecimal.valueOf(row.getCell(4).getNumericCellValue())));
+    }
+  }
+
+  @Test
+  void the_listing_can_be_narrowed_to_one_exit_track() {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    var onEl = graduates(promotion, admin, "EL").getBody();
+    var onTn = graduates(promotion, admin, "TN").getBody();
+
+    assertEquals(1, onEl.size());
+    assertEquals("EL", onEl.get(0).getTrackCode());
+    assertEquals(1, onTn.size());
+    assertEquals("TN", onTn.get(0).getTrackCode());
+  }
+
+  @Test
+  void a_narrowed_listing_keeps_the_rank_of_the_whole_promotion() {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    var onEl = graduates(promotion, admin, "EL").getBody();
+
+    assertEquals(2, onEl.get(0).getRank());
+  }
+
+  @Test
+  void no_track_parameter_returns_the_whole_promotion() {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    assertEquals(2, graduates(promotion, admin).getBody().size());
+  }
+
+  @Test
+  void an_unknown_track_returns_an_empty_listing() {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    assertTrue(graduates(promotion, admin, "XX").getBody().isEmpty());
+  }
+
+  @Test
+  void the_excel_file_is_narrowed_by_the_same_parameter() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    try (var whole = new XSSFWorkbook(new ByteArrayInputStream(excel(promotion, admin).getBody()));
+        var narrowed =
+            new XSSFWorkbook(new ByteArrayInputStream(excel(promotion, admin, "EL").getBody()))) {
+      assertEquals(2, whole.getSheetAt(0).getLastRowNum());
+      assertEquals(1, narrowed.getSheetAt(0).getLastRowNum());
+      assertEquals("EL", narrowed.getSheetAt(0).getRow(1).getCell(5).getStringCellValue());
+    }
+  }
+
+  @Test
+  void the_excel_file_names_the_exit_track_of_every_row() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotionWithOneGraduatePerTrack(admin);
+
+    try (var workbook =
+        new XSSFWorkbook(new ByteArrayInputStream(excel(promotion, admin).getBody()))) {
+      assertEquals("Track", workbook.getSheetAt(0).getRow(0).getCell(5).getStringCellValue());
     }
   }
 }

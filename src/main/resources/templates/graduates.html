@@ -26,6 +26,15 @@
                   th:selected="${promotion != null and p.id == promotion.id}">K22 — Promotion</option>
         </select>
       </div>
+      <div class="field">
+        <label for="track">Track</label>
+        <select id="track" name="track">
+          <option value="">All</option>
+          <option th:each="t : ${tracks}" th:value="${t.code}"
+                  th:text="${t.code + ' — ' + t.name}"
+                  th:selected="${t.code == selectedTrack}">EL</option>
+        </select>
+      </div>
       <button type="submit" class="btn btn-accent">Show</button>
     </form>
   </section>
@@ -43,7 +52,7 @@
       <h2 th:text="${promotion.ref + ' — ' + promotion.name}">K22 — Promotion</h2>
       <span class="card-head-spacer"></span>
       <a class="btn btn-primary btn-sm"
-         th:href="@{'/promotions/' + ${promotion.id} + '/graduates/excel'}">
+         th:href="@{'/promotions/' + ${promotion.id} + '/graduates/excel'(track=${selectedTrack})}">
         <svg class="icon icon-sm"><use href="#i-download"></use></svg> Download graduates
       </a>
     </div>
