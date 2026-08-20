@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class GraduateExcelWriter {
   private static final List<String> HEADER =
-      List.of("Rank", "STD", "Last name", "First name", "General average");
+      List.of("Rank", "STD", "Last name", "First name", "General average", "Track");
 
   public byte[] write(List<Graduate> graduates) {
     try (var workbook = new XSSFWorkbook();
@@ -40,5 +40,6 @@ public class GraduateExcelWriter {
     row.createCell(2).setCellValue(graduate.lastName());
     row.createCell(3).setCellValue(graduate.firstName());
     row.createCell(4).setCellValue(graduate.generalAverage().doubleValue());
+    row.createCell(5).setCellValue(graduate.track() == null ? "" : graduate.track().getCode());
   }
 }

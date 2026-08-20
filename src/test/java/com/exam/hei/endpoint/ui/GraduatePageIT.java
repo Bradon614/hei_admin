@@ -123,10 +123,14 @@ class GraduatePageIT extends FacadeIT {
   }
 
   private void graduate(Student student, String average, String adminToken) {
+    graduateOn(student, average, "EL", adminToken);
+  }
+
+  private void graduateOn(Student student, String average, String trackCode, String adminToken) {
     studentTrackChoiceRepository.save(
         StudentTrackChoice.builder()
             .student(student)
-            .track(trackRepository.findByCode("EL").orElseThrow())
+            .track(trackRepository.findByCode(trackCode).orElseThrow())
             .fromSemester(semesterRepository.findByRef(SemesterRef.S4).orElseThrow())
             .build());
     for (var ref : SemesterRef.values()) {
@@ -228,5 +232,53 @@ class GraduatePageIT extends FacadeIT {
   void an_unknown_promotion_is_not_found() throws Exception {
     assertEquals(
         404, page("?promotion_id=" + UUID.randomUUID(), tokenFor(Role.ADMIN)).statusCode());
+  }
+
+  @Test
+  void the_track_filter_offers_every_track_and_defaults_to_all() throws Exception {
+    var body = page("", tokenFor(Role.ADMIN)).body();
+
+    assertTrue(body.contains("name=\"track\""), "the selector is missing");
+    assertTrue(body.contains(">All<"), "All must be the default option");
+    assertTrue(body.contains("EL — Software Ecosystem"), "body was " + body);
+    assertTrue(body.contains("TN — Digital Transformation"), "body was " + body);
+  }
+
+  @Test
+  void the_page_narrows_to_the_chosen_track() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    graduateOn(student(promotion, "Rakoto", "Jean"), "16.00", "EL", admin);
+    graduateOn(student(promotion, "Randria", "Aina"), "18.00", "TN", admin);
+
+    var onEl = page("?promotion_id=" + promotion.getId() + "&track=EL", admin).body();
+
+    assertTrue(onEl.contains("Rakoto"), "body was " + onEl);
+    assertFalse(onEl.contains("Randria"), "the other track must be left out");
+  }
+
+  @Test
+  void the_download_button_carries_the_track_filter_of_the_screen() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    graduateOn(student(promotion, "Rakoto", "Jean"), "16.00", "EL", admin);
+
+    var body = page("?promotion_id=" + promotion.getId() + "&track=EL", admin).body();
+
+    assertTrue(
+        body.contains("/promotions/" + promotion.getId() + "/graduates/excel?track=EL"),
+        "the file would not match what the screen shows, body was " + body);
+  }
+
+  @Test
+  void the_whole_promotion_is_listed_when_no_track_is_chosen() throws Exception {
+    var admin = tokenFor(Role.ADMIN);
+    var promotion = promotion();
+    graduateOn(student(promotion, "Rakoto", "Jean"), "16.00", "EL", admin);
+    graduateOn(student(promotion, "Randria", "Aina"), "18.00", "TN", admin);
+
+    var body = page("?promotion_id=" + promotion.getId(), admin).body();
+
+    assertTrue(body.contains("Rakoto") && body.contains("Randria"), "body was " + body);
   }
 }

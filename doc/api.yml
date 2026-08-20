@@ -257,6 +257,7 @@ paths:
       operationId: getPromotionGraduates
       parameters:
         - $ref: "#/components/parameters/PathId"
+        - $ref: "#/components/parameters/QueryGraduateTrack"
       responses:
         "200":
           description: Graduates ranked by decreasing general average
@@ -274,11 +275,13 @@ paths:
       tags: [ Result ]
       summary: Download the graduate list as an Excel file
       description: |
-        File columns: rank, STD, last name, first name, general average.
-        Target of the "Download graduates" button of the Thymeleaf page.
+        File columns: rank, STD, last name, first name, general average, track.
+        Target of the "Download graduates" button of the Thymeleaf page, which
+        carries the track filter of the screen so the file matches what is shown.
       operationId: getPromotionGraduatesExcel
       parameters:
         - $ref: "#/components/parameters/PathId"
+        - $ref: "#/components/parameters/QueryGraduateTrack"
       responses:
         "200":
           description: XLSX file
@@ -1187,6 +1190,17 @@ components:
       bearerFormat: JWT
 
   parameters:
+    QueryGraduateTrack:
+      name: track
+      in: query
+      required: false
+      description: |
+        Exit track code, as carried by `track.code`. Left out, the whole
+        promotion is returned. An unknown code matches nobody and yields an
+        empty list, which is how every other track filter of this API behaves.
+      schema:
+        type: string
+        example: EL
     PathId:
       name: id
       in: path

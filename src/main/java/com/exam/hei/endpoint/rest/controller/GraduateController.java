@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,14 +28,20 @@ public class GraduateController {
   private final PromotionService promotionService;
 
   @GetMapping("/promotions/{promotionId}/graduates")
-  public List<Graduate> getPromotionGraduates(@PathVariable UUID promotionId) {
-    return graduateService.graduatesOf(promotionId).stream().map(graduateMapper::toRest).toList();
+  public List<Graduate> getPromotionGraduates(
+      @PathVariable UUID promotionId,
+      @RequestParam(name = "track", required = false) String track) {
+    return graduateService.graduatesOf(promotionId, track).stream()
+        .map(graduateMapper::toRest)
+        .toList();
   }
 
   @GetMapping("/promotions/{promotionId}/graduates/excel")
-  public ResponseEntity<byte[]> getPromotionGraduatesExcel(@PathVariable UUID promotionId) {
+  public ResponseEntity<byte[]> getPromotionGraduatesExcel(
+      @PathVariable UUID promotionId,
+      @RequestParam(name = "track", required = false) String track) {
     var promotion = promotionService.findById(promotionId);
-    var bytes = graduateExcelWriter.write(graduateService.graduatesOf(promotionId));
+    var bytes = graduateExcelWriter.write(graduateService.graduatesOf(promotionId, track));
 
     return ResponseEntity.ok()
         .contentType(XLSX)
