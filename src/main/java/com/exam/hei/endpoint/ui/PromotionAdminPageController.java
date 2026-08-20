@@ -19,13 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Promotions, and the tracks each of them opens.
- *
- * <p>The tracks are not decoration. {@code GroupService} refuses a group on a track its promotion
- * does not open, and {@code StudentTrackChoiceService} refuses the matching choice, so a promotion
- * created without them can never reach the semesters where tracks begin.
- */
 @Controller
 @AllArgsConstructor
 public class PromotionAdminPageController {

@@ -141,8 +141,6 @@ class TeacherAdminPageIT extends FacadeIT {
             .build());
   }
 
-  // --- the demo scenario ---------------------------------------------------------------
-
   @Test
   void a_teacher_created_from_the_form_can_actually_sign_in() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -193,8 +191,6 @@ class TeacherAdminPageIT extends FacadeIT {
     assertTrue(page.body().contains(email), "listing did not show the teacher");
   }
 
-  // --- teaching assignments --------------------------------------------------------------
-
   @Test
   void a_course_can_be_assigned_to_a_teacher_for_a_group() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -238,8 +234,6 @@ class TeacherAdminPageIT extends FacadeIT {
 
   @Test
   void assigning_the_same_triple_twice_is_reported_on_the_form() throws Exception {
-    // UNIQUE (course_id, teacher_id, group_id): the second attempt must come back as a message,
-    // not as a stack trace or a JSON payload.
     var admin = tokenFor(Role.ADMIN);
     var email = rand(12) + "@hei.demo";
     post("/ui/admin/teachers", newTeacher(email), admin);
@@ -256,8 +250,6 @@ class TeacherAdminPageIT extends FacadeIT {
     assertTrue(again.body().contains("<form"), "the page must come back");
     assertTrue(!again.body().startsWith("{"), "body was " + again.body());
   }
-
-  // --- failures and access ------------------------------------------------------------------
 
   @Test
   void a_duplicate_email_re_renders_the_form_instead_of_answering_json() throws Exception {

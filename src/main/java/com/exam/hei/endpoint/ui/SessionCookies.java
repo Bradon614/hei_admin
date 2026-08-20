@@ -12,11 +12,6 @@ final class SessionCookies {
     return base(token).maxAge(Duration.ofSeconds(maxAgeSeconds)).build();
   }
 
-  /**
-   * A browser only replaces a cookie when the name, path and domain all match, so signing out has
-   * to repeat every attribute the sign-in used. Both are built here for that reason: a logout that
-   * quietly leaves the session alive would be worse than no logout at all.
-   */
   static ResponseCookie cleared() {
     return base("").maxAge(Duration.ZERO).build();
   }

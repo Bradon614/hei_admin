@@ -28,12 +28,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
-/**
- * What the database refuses, once it reaches the caller.
- *
- * <p>Every case here used to answer 500: nothing translated a constraint violation, so it fell
- * through to the container.
- */
 class ConflictStatusIT extends FacadeIT {
 
   @Autowired TestRestTemplate restTemplate;
@@ -109,8 +103,6 @@ class ConflictStatusIT extends FacadeIT {
         .build();
   }
 
-  // --- a value already taken is a conflict ---------------------------------------------------
-
   @Test
   void a_duplicate_student_email_answers_409() {
     var admin = adminToken();
@@ -160,7 +152,6 @@ class ConflictStatusIT extends FacadeIT {
 
   @Test
   void the_conflict_message_leaks_no_constraint_name() {
-    // The caller gets to know that something is taken, not how the schema is spelled.
     var admin = adminToken();
     var ref = TestRefs.promotionRef();
     put("/promotions", List.of(aPromotion(ref)), admin);
@@ -171,11 +162,8 @@ class ConflictStatusIT extends FacadeIT {
     assertTrue(!body.contains("Detail:"), "body was " + body);
   }
 
-  // --- a value the column cannot hold is not a conflict ------------------------------------
-
   @Test
   void a_reference_too_long_for_its_column_answers_400() {
-    // promotion.ref is varchar(5). Nothing is in conflict here: the request is simply not storable.
     var admin = adminToken();
 
     var response = put("/promotions", List.of(aPromotion("TOOLONG")), admin);

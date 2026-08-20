@@ -1,9 +1,4 @@
-/*
- * Everything that appears on more than one screen: cards, forms, tables, buttons, badges,
- * alerts and empty states. A screen that needs a one-off rule does not belong here.
- */
 
-/* --- card ------------------------------------------------------------------------------------ */
 
 .card {
   background: var(--surface);
@@ -39,7 +34,6 @@
   padding: 1.25rem;
 }
 
-/* Tiles on the dashboard: a card that is itself a link. */
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
@@ -86,8 +80,6 @@
   color: var(--muted);
 }
 
-/* --- callout: the explanatory banner at the top of a screen ---------------------------------- */
-
 .callout {
   display: flex;
   gap: 0.75rem;
@@ -102,8 +94,6 @@
 .callout .icon {
   color: var(--blue-600);
 }
-
-/* --- alerts ---------------------------------------------------------------------------------- */
 
 .alert {
   display: flex;
@@ -126,8 +116,6 @@
   background: var(--success-bg);
   border-color: #c3e3d3;
 }
-
-/* --- forms ----------------------------------------------------------------------------------- */
 
 .form-grid {
   display: grid;
@@ -190,12 +178,10 @@ textarea:focus {
   margin-top: 1.25rem;
 }
 
-/* A field that spans the whole form rather than one grid column. */
 .field-wide {
   margin-top: 1rem;
 }
 
-/* A row of checkboxes, used for the tracks a promotion opens. */
 .checks {
   display: flex;
   flex-wrap: wrap;
@@ -224,7 +210,6 @@ textarea:focus {
   accent-color: var(--blue-600);
 }
 
-/* The filter bar that opens most screens. */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -237,7 +222,6 @@ textarea:focus {
   flex: 1 1 16rem;
 }
 
-/* A form living inside a table cell. */
 .inline-form {
   display: flex;
   flex-wrap: wrap;
@@ -252,8 +236,6 @@ textarea:focus {
   padding: 0.3rem 0.45rem;
   font-size: 0.85rem;
 }
-
-/* --- buttons ---------------------------------------------------------------------------------- */
 
 .btn {
   display: inline-flex;
@@ -314,8 +296,6 @@ textarea:focus {
   width: 100%;
 }
 
-/* --- tables ------------------------------------------------------------------------------------ */
-
 .table-wrap {
   overflow-x: auto;
 }
@@ -356,14 +336,11 @@ tbody tr:hover td {
   font-weight: 600;
 }
 
-/* Two lines in one cell: a value and what qualifies it. */
 .cell-sub {
   display: block;
   font-size: 0.8rem;
   color: var(--muted);
 }
-
-/* --- badges ------------------------------------------------------------------------------------- */
 
 .badge {
   display: inline-block;
@@ -399,8 +376,6 @@ tbody tr:hover td {
   margin-left: 0.25rem;
 }
 
-/* --- empty state ---------------------------------------------------------------------------------- */
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -421,8 +396,6 @@ tbody tr:hover td {
   color: var(--text-soft);
   font-weight: 600;
 }
-
-/* --- key-value summary ------------------------------------------------------------------------------ */
 
 .summary {
   display: grid;

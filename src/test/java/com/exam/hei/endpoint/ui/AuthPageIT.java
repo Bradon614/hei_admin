@@ -88,7 +88,6 @@ class AuthPageIT extends FacadeIT {
 
   @Test
   void a_student_lands_on_their_own_page() throws Exception {
-    // Sending them to /ui/admin would earn a 403 straight after signing in successfully.
     var email = rand(12) + "@hei.test";
     account(email, "correct-horse", Role.STUDENT);
 

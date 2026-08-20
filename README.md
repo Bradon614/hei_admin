@@ -98,8 +98,10 @@ controller decides who may do what.
 The rules that are not merely a matter of role:
 
 - a student reads their own record, and only theirs
-- a teacher grades the exams of the courses they are assigned to, and sees the grades of the groups
-  they teach, resolved against the group a student belonged to **on the day of the exam**
+- a teacher reads the record of a student they teach, and no other. Their view of that student's
+  grades is filtered to the courses they give, resolved against the group the student belonged to
+  **on the day of the exam**
+- a transcript belongs to its student alone: a teacher never reaches one, taught or not
 - an administrator does the rest
 
 CSRF protection is `SameSite=Strict` rather than a token: the cookie is not attached to
@@ -108,6 +110,27 @@ cross-site requests at all.
 The first administrator is created at startup from `ADMIN_EMAIL` and `ADMIN_PASSWORD`, only when no
 administrator exists, with a BCrypt-hashed password. It never fails startup and no migration carries
 a credential.
+
+### Accounts
+
+An account is disabled, never deleted: `grade_history` names it as the author of every change it
+carries.
+
+`AuthProvider` resolves the signed-in account **from the database on every request** rather than
+believing the claims of the token. Three consequences, all immediate rather than at the token's
+twelve-hour expiry:
+
+- a disabled account is refused from its very next call
+- a change of role takes effect at once
+- every token issued before the current password is refused
+
+`POST /me/password` takes no identifier. The account is the one the token was issued for, so
+changing somebody else's password cannot be expressed rather than merely being refused; the current
+password is required besides. A reset performed by an administrator through `PUT /students` or
+`PUT /teachers` closes the same sessions.
+
+Disabling and enabling an account is `POST /students/{id}/deactivation` and its three siblings,
+open to an administrator alone.
 
 ## The web interface
 
@@ -119,8 +142,8 @@ An administrator can run the whole demonstration from the browser, in this order
 |---|---|
 | Promotions and the tracks they open | `/ui/admin/promotions` |
 | Teaching groups of a promotion | `/ui/admin/groups` |
-| Students, their accounts, groups and track choices | `/ui/admin/students` |
-| Teachers and what they teach | `/ui/admin/teachers` |
+| Students, their accounts, groups, track choices and account state | `/ui/admin/students` |
+| Teachers, what they teach, and their account state | `/ui/admin/teachers` |
 | Courses, filtered by semester | `/ui/admin/courses` |
 | Exams of a course | `/ui/admin/courses/{id}/exams` |
 | Grade entry and its change history | `/ui/admin/exams/{id}/grades` |
@@ -128,7 +151,8 @@ An administrator can run the whole demonstration from the browser, in this order
 | Ranked graduates, and the Excel export | `/ui/graduates` |
 
 A student opens `/ui/me`: their result, their applicable courses, their grades, and a button that
-requests a transcript. A teacher opens the same route and sees what they teach.
+requests a transcript. A teacher opens the same route and sees what they teach. Both change their
+password there, which signs them out of every session including that one.
 
 Every screen calls the same services as the API and reports their refusals as messages on the form,
 rather than letting a JSON payload reach someone filling in a field.
@@ -167,7 +191,7 @@ Dependencies are declared through the POJA console's custom-dependency mechanism
 
 ## Tests
 
-79 test classes — 51 integration, 28 unit. The suite runs 736 tests and holds line coverage at 96%,
+83 test classes — 54 integration, 29 unit. The suite runs 817 tests and holds line coverage at 96%,
 against a floor of **80% enforced by the build**: `jacocoTestCoverageVerification` fails it below
 that.
 
@@ -178,6 +202,10 @@ available cores in parallel.
 `BucketComponentLocalStackIT` exercises the actual `BucketComponent` with static credentials, so the
 default credentials chain is never consulted and no test can reach a real bucket. Everywhere else
 that would touch AWS, the client is mocked.
+
+Authorization is proved in HTTP, not in markup. `TeacherScopeIT`, `AccountLifecycleIT`,
+`PasswordChangeIT` and `AuthorizationMatrixIT` assert the status codes each role actually receives,
+so a screen that hides a button is never mistaken for an endpoint that refuses one.
 
 ## Known limits
 

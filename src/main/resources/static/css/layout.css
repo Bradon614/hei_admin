@@ -1,15 +1,7 @@
-/*
- * The application shell: sidebar, topbar, content column, and the sign-in page.
- *
- * The sidebar collapses below 900px and is opened by a hidden checkbox, so navigation works with
- * JavaScript disabled and the page ships no script at all.
- */
 
 .app {
   min-height: 100vh;
 }
-
-/* --- sidebar ------------------------------------------------------------------------------ */
 
 .sidebar {
   position: fixed;
@@ -93,8 +85,6 @@
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
-/* --- topbar -------------------------------------------------------------------------------- */
-
 .topbar {
   position: sticky;
   top: 0;
@@ -145,8 +135,6 @@
   background: var(--blue-050);
 }
 
-/* --- content ------------------------------------------------------------------------------- */
-
 .main {
   margin-left: var(--sidebar-width);
   min-height: 100vh;
@@ -196,8 +184,6 @@
   border-top: 1px solid var(--border);
 }
 
-/* --- the sign-in page has no shell ---------------------------------------------------------- */
-
 .auth {
   display: grid;
   place-items: center;
@@ -229,8 +215,6 @@
   color: var(--muted);
   font-size: 0.9rem;
 }
-
-/* --- responsive ----------------------------------------------------------------------------- */
 
 .nav-toggle,
 .nav-scrim {

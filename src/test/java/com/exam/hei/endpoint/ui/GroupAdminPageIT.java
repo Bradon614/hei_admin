@@ -55,7 +55,6 @@ class GroupAdminPageIT extends FacadeIT {
     return jwtService.issue(user).token();
   }
 
-  /** Opens EL only, so TN is the track this promotion must refuse. */
   private Promotion promotionOpeningEl() {
     return promotionRepository.save(
         Promotion.builder()
@@ -99,8 +98,6 @@ class GroupAdminPageIT extends FacadeIT {
     return HTTP_CLIENT.send(builder.GET().build(), HttpResponse.BodyHandlers.ofString());
   }
 
-  // --- creating ---------------------------------------------------------------------
-
   @Test
   void a_mixed_group_is_created_without_a_track() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -141,7 +138,6 @@ class GroupAdminPageIT extends FacadeIT {
 
   @Test
   void a_track_the_promotion_does_not_open_is_refused_on_the_form() throws Exception {
-    // The rule lives in GroupService; this checks the screen reports it rather than crashing.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotionOpeningEl();
     var tn = trackRepository.findByCode("TN").orElseThrow();
@@ -174,8 +170,6 @@ class GroupAdminPageIT extends FacadeIT {
     assertTrue(again.body().contains("already has a group"), "body was " + again.body());
   }
 
-  // --- listing ------------------------------------------------------------------------
-
   @Test
   void the_new_group_appears_in_the_listing() throws Exception {
     var admin = tokenFor(Role.ADMIN);
@@ -191,7 +185,6 @@ class GroupAdminPageIT extends FacadeIT {
 
   @Test
   void the_form_only_offers_the_tracks_the_promotion_opens() throws Exception {
-    // Offering TN here would invite a rejection the form could have avoided asking for.
     var admin = tokenFor(Role.ADMIN);
     var promotion = promotionOpeningEl();
 
@@ -200,8 +193,6 @@ class GroupAdminPageIT extends FacadeIT {
     assertTrue(body.contains("EL —"), "EL should be offered");
     assertTrue(!body.contains("TN —"), "TN is not opened by this promotion");
   }
-
-  // --- access --------------------------------------------------------------------------
 
   @Test
   void the_screen_is_closed_to_the_other_roles() throws Exception {

@@ -95,15 +95,11 @@ class CourseAdminPageIT extends FacadeIT {
     return fields;
   }
 
-  // --- the catalogue --------------------------------------------------------------------
-
   @Test
   void a_course_created_from_the_form_reaches_the_catalogue() throws Exception {
     var admin = tokenFor(Role.ADMIN);
     var ref = rand(18);
 
-    // S6 rather than S1: the listing is capped at one page, and the early semesters are where
-    // every other test piles its fixtures up.
     var created = post("/ui/admin/courses", newCourse(ref, "S6"), admin);
 
     assertEquals(302, created.statusCode(), "body was " + created.body());
@@ -126,7 +122,6 @@ class CourseAdminPageIT extends FacadeIT {
 
   @Test
   void a_track_course_is_refused_on_a_common_core_semester() throws Exception {
-    // S1 to S3 are followed by every student, so a course there cannot belong to one track.
     var admin = tokenFor(Role.ADMIN);
     var fields = newCourse(rand(18), "S1");
     fields.put("track_id", trackRepository.findAll().get(0).getId().toString());
@@ -163,8 +158,6 @@ class CourseAdminPageIT extends FacadeIT {
     assertTrue(again.body().contains("<form"), "the form must come back");
     assertTrue(!again.body().startsWith("{"), "body was " + again.body());
   }
-
-  // --- exams ------------------------------------------------------------------------------
 
   @Test
   void an_exam_added_to_a_course_shows_up_under_it() throws Exception {
@@ -213,8 +206,6 @@ class CourseAdminPageIT extends FacadeIT {
     assertEquals(200, response.statusCode());
     assertTrue(response.body().contains("not found"), "body was " + response.body());
   }
-
-  // --- access ------------------------------------------------------------------------------
 
   @Test
   void the_screens_are_closed_to_the_other_roles() throws Exception {
