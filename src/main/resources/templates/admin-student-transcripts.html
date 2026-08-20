@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Transcripts')}"></head>
+<body th:replace="~{layout :: shell('Transcripts', 'students', ~{::content})}">
+
+<div th:fragment="content">
+
+  <a class="crumb" th:href="@{/ui/admin/students}">
+    <svg class="icon icon-sm"><use href="#i-back"></use></svg> Back to the students
+  </a>
+
+  <div class="page-head" th:if="${student != null}">
+    <div>
+      <h2 th:text="${student.firstName + ' ' + student.lastName}">Jean Rakoto</h2>
+      <p class="subtitle" th:text="${student.ref + ' · ' + student.email}">
+        STD22045 · jean@hei.school
+      </p>
+    </div>
+  </div>
+
+  <div th:replace="~{layout :: alerts}"></div>
+
+  <div th:if="${student != null}">
+
+    <p class="callout">
+      <svg class="icon"><use href="#i-info"></use></svg>
+      <span>
+        The transcript is rendered, stored, then emailed to
+        <strong th:text="${student.email}">jean@hei.school</strong> — the student, never the
+        administrator who asked for it.
+      </span>
+    </p>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-download"></use></svg> Request a transcript</h2>
+      </div>
+      <div class="card-body">
+        <form method="post" th:action="@{'/ui/admin/students/' + ${student.id} + '/transcripts'}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="semester_ref">Scope</label>
+              <select id="semester_ref" name="semester_ref">
+                <option value="">Whole curriculum, S1 to S6</option>
+                <option th:each="s : ${semesters}" th:value="${s}" th:text="${s}">S5</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"
+                    th:attr="onclick='return confirm(\'Request a transcript and email it to '
+                      + ${student.email} + '?\')'">
+              Request transcript
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><svg class="icon"><use href="#i-clock"></use></svg> Previous requests</h2>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(transcripts)}">
+        <svg class="icon"><use href="#i-inbox"></use></svg>
+        <strong>No transcript requested for this student yet</strong>
+        <span>Ask for one above and it will be listed here with its status.</span>
+      </div>
+
+      <div class="table-wrap" th:unless="${#lists.isEmpty(transcripts)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Requested</th>
+            <th>Scope</th>
+            <th>Status</th>
+            <th>Sent</th>
+            <th>Link</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="t : ${transcripts}">
+            <td th:text="${#strings.substring(t.requestedAt, 0, 10)}">2026-01-15</td>
+            <td th:text="${t.semester != null ? t.semester.ref : 'S1 to S6'}">S1 to S6</td>
+            <td>
+              <span class="badge badge-success" th:if="${t.status.name() == 'SENT'}"
+                    th:text="${t.status}">SENT</span>
+              <span class="badge badge-danger" th:if="${t.status.name() == 'FAILED'}"
+                    th:text="${t.status}">FAILED</span>
+              <span class="badge" th:if="${t.status.name() != 'SENT' and t.status.name() != 'FAILED'}"
+                    th:text="${t.status}">GENERATED</span>
+              <span class="cell-sub" th:if="${t.errorMessage != null}"
+                    th:text="${t.errorMessage}"></span>
+            </td>
+            <td>
+              <span th:if="${t.sentAt != null}"
+                    th:text="${#strings.substring(t.sentAt, 0, 10)}">2026-01-15</span>
+              <span class="muted" th:if="${t.sentAt == null}">not yet</span>
+            </td>
+            <td>
+              <a th:if="${t.fileUrl != null}" th:href="${t.fileUrl}">Download</a>
+              <span class="muted" th:if="${t.fileUrl == null}">available once emailed</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+</div>
+</body>
+</html>

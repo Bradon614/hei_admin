@@ -105,6 +105,7 @@
             <th>Group</th>
             <th>Track</th>
             <th>Account</th>
+            <th>Transcripts</th>
           </tr>
           </thead>
           <tbody>
@@ -152,6 +153,10 @@
                           ? 'return confirm(\'Disable this account? The holder is signed out at once.\')'
                           : null">Disable</button>
               </form>
+            </td>
+            <td>
+              <a class="btn btn-ghost btn-sm"
+                 th:href="@{'/ui/admin/students/' + ${s.id} + '/transcripts'}">Transcripts</a>
             </td>
           </tr>
           </tbody>

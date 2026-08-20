@@ -21,6 +21,7 @@ final class UiFeedback {
   static final String ACCOUNT_DISABLED = "account-disabled";
   static final String ACCOUNT_ENABLED = "account-enabled";
   static final String PASSWORD_CHANGED = "password-changed";
+  static final String TRANSCRIPT_REQUESTED_FOR_STUDENT = "transcript-requested-for-student";
 
   private static final Map<String, String> MESSAGES =
       Map.ofEntries(
@@ -39,6 +40,9 @@ final class UiFeedback {
           Map.entry(
               PASSWORD_CHANGED,
               "Password changed. Sign in again: every earlier session was closed."),
+          Map.entry(
+              TRANSCRIPT_REQUESTED_FOR_STUDENT,
+              "Transcript requested. It is generated and stored, then emailed to the student."),
           Map.entry(
               TRANSCRIPT_REQUESTED,
               "Transcript requested. It is generated and stored, then emailed to you."));

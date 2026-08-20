@@ -23,6 +23,7 @@ import com.exam.hei.file.hash.FileHashAlgorithm;
 import com.exam.hei.repository.AppUserRepository;
 import com.exam.hei.repository.PromotionRepository;
 import com.exam.hei.repository.StudentRepository;
+import com.exam.hei.repository.TranscriptRequestRepository;
 import com.exam.hei.repository.model.AppUser;
 import com.exam.hei.repository.model.Promotion;
 import com.exam.hei.repository.model.Role;
@@ -50,6 +51,7 @@ class TranscriptIT extends FacadeIT {
   @Autowired TestRestTemplate restTemplate;
   @Autowired AppUserRepository appUserRepository;
   @Autowired StudentRepository studentRepository;
+  @Autowired TranscriptRequestRepository transcriptRequestRepository;
   @Autowired PromotionRepository promotionRepository;
   @Autowired JwtService jwtService;
   @Autowired ObjectMapper objectMapper;
@@ -103,14 +105,16 @@ class TranscriptIT extends FacadeIT {
   }
 
   private String adminToken() {
-    var user =
-        appUserRepository.save(
-            AppUser.builder()
-                .email(rand(12) + "@hei.test")
-                .passwordHash("hash")
-                .role(Role.ADMIN)
-                .build());
-    return jwtService.issue(user).token();
+    return jwtService.issue(adminAccount()).token();
+  }
+
+  private AppUser adminAccount() {
+    return appUserRepository.save(
+        AppUser.builder()
+            .email(rand(12) + "@hei.test")
+            .passwordHash("hash")
+            .role(Role.ADMIN)
+            .build());
   }
 
   private static HttpHeaders bearer(String token) {
@@ -325,5 +329,33 @@ class TranscriptIT extends FacadeIT {
 
     assertTrue(!raw.contains("s3_key"), "body was " + raw);
     assertTrue(!raw.contains("transcripts/"), "body was " + raw);
+  }
+
+  @Test
+  void a_request_made_by_an_admin_names_the_admin_as_its_author() throws Exception {
+    var account = studentAccount();
+    var admin = adminAccount();
+
+    post(account.student().getId(), null, jwtService.issue(admin).token());
+
+    var stored =
+        transcriptRequestRepository
+            .findAllByStudentIdOrderByRequestedAtDesc(account.student().getId())
+            .get(0);
+    assertEquals(admin.getId(), stored.getRequestedBy().getId());
+    assertEquals(account.student().getId(), stored.getStudent().getId());
+  }
+
+  @Test
+  void a_request_made_by_the_student_names_the_student_as_its_author() throws Exception {
+    var account = studentAccount();
+
+    post(account.student().getId(), null, account.token());
+
+    var stored =
+        transcriptRequestRepository
+            .findAllByStudentIdOrderByRequestedAtDesc(account.student().getId())
+            .get(0);
+    assertEquals(account.student().getUser().getId(), stored.getRequestedBy().getId());
   }
 }
